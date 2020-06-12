@@ -210,6 +210,7 @@ namespace ESM4
 
         FormId mDefaultOutfit; // TES5 OTFT
         FormId mSleepOutfit;   // TES5 OTFT
+        FormId mDefaultPkg;
 
         std::vector<float> mSymShapeModeCoefficients;    // size 0 or 50
         std::vector<float> mAsymShapeModeCoefficients;   // size 0 or 30

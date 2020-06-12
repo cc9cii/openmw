@@ -869,7 +869,7 @@ Often it is created in the constructor of `BtOgreInst`.
 
 The constructor of the each of `NiObjects` read the NIF file stream and populate various data structures in advance for the actual instantiation of the object at a later point in time.
 
-# [16/02/2020] Refactor code generating the body parts.
+# [16/02/2020] Refactor code generating the body parts
 
 See `openmw/apps/openmw/mwrender/foreignnpcanimation.cpp`:
 
@@ -898,7 +898,7 @@ Obviously, care needs to be taken in creating these resource "templates" so that
 
 Each of `npc_::mHair` are present in `hair` records.  I guess to be safe the race default should be checked if it is not found.
 
-# [17/02/2020] FindFFmpeg.cmake seems to be broken
+# [17/02/2020] `FindFFmpeg.cmake` seems to be broken
 
 Thought that was fixed?  Had to manually delete the component include directories from MSVC properties.  This happened after checking out an old branch to test something.
 
@@ -1270,7 +1270,7 @@ Note that, unlike other objects, FaceGen morph NIF models have **exactly one** N
 
 **NOTE 2:** Material name may not match the actual NIF or NiTriBasedGeom (the same material from another model will be used if found).
 
-## Putting it all together for NiModel
+## Putting it all together for `NiModel`
 
 ```cpp
 NiBtOgre::NiModelManager& modelManager = NiBtOgre::NiModelManager::getSingleton();
@@ -1691,7 +1691,7 @@ void PhysicsSystem::addObject (const Ptr& ptr, const std::string& mesh, bool pla
     // TODO: probably possible to optimise the use of the "group" parameter, e.g. per cell
 
 
-# [04/03/2020] Finding missing TrapLog
+# [04/03/2020] Finding missing `TrapLog`
 
 COC "ImperialDungeon05" and look for `Dungeons\Caves\Traps\CTrapLog01.NIF`.  Found it - it turns out that `CollisoinType_World` had to be added in th flags otherwise the collision shapes don't collide with the floor and sink through.
 
@@ -1719,7 +1719,7 @@ if (lowerMesh.find("traplog") == std::string::npos)
 
 That might be due to the inability to determine whether the rigid bodies are ragdoll or not? **NOTE: 08/03/20** most likely due to ragdoll being broken, other than the trap logs.
 
-# [05/03/2020] Making progress with NiModel
+# [05/03/2020] Making progress with `NiModel`
 
 Naming convension needs to be revisited.  A head model may be morphed per NPC's FaceGen coefficients.  However it is alos skinned, meaning it will have an external skeleton.  **NOTE:** not sure if the external skeleton can be anything other than skeleton.nif for FaceGen head models.
 
@@ -3419,7 +3419,7 @@ The size and content of the `ACBS` sub-record are different between games.  It w
 
 Each game differs on what body and head parts are used for an NPC.  Similar to `BaseConfig` this should be abstracted to an interface class.
 
-### `BSDismemberskinInstance` partitions in NIF files
+### `BSDismemberSkinInstance` partitions in NIF files
 
 The visibility of body parts can be selected in FO3/FONV/TES5 NIF files.  It is no longer feasible to have all the permuations created and have them ready in a `ResourceManager`.
 
@@ -4161,7 +4161,7 @@ Refactored ESMStore and ForeignStore (still a work in progress).
 
 # [07/05/2020 - 08/05/2020] NVRadio
 
-Going back to decyphering the logic.
+Going back to deciphering the logic.
 
 The quest `vUltraLuxeRadioQuest` has "Start Game Enabled" and "Allow repeated conversation topics" flags.  This may mean that the quest is running all the time but applies to the condition that runs only on `vCasinoUltraLuxeRadio`.  How to implement this?
 
@@ -4803,6 +4803,17 @@ TES4 `characters\_male\skeleton.nif` has:
     SideWeapon
     Bip01 Spine
     Bip01 L Thigh
+
+# [08/06/2020 - 09/06/2020] TES5 Animation cont.
+
+## Lighting Shaders
+
+It turns out that the dark skin textures were due to the lack of support for TES5 backlight in the shaders.
+
+## Skinning and Bone offset
+
+Looks like the issue with Spider Daedra has come back.  Will have to try to see if it is necessary to modiy Ogre or can get away with creating a few extra bones.
+
 
 
 [//]: # (/* spell spelllang=en_au syntax=cpp */)

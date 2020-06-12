@@ -35,7 +35,7 @@
 #include "nimodel.hpp"
 #include "nitimecontroller.hpp"
 #include "ogrematerial.hpp"
-#include "nidata.hpp"
+#include "nidata.hpp" // BSShaderTextureSet
 
 #ifdef NDEBUG // FIXME: debuggigng only
 #undef NDEBUG
@@ -122,7 +122,7 @@ NiBtOgre::BSLightingShaderProperty::BSLightingShaderProperty(uint32_t index, NiS
     stream->read(mEmissiveMultiple);
     stream->read(mTextureClampMode);
     stream->read(mAlpha);
-    stream->read(mUnknown2);
+    stream->read(mRefractionStrength);
     stream->read(mGlossiness);
     stream->read(mSpecularColor);
     stream->read(mSpecularStrength);
@@ -167,6 +167,10 @@ NiBtOgre::BSLightingShaderProperty::BSLightingShaderProperty(uint32_t index, NiS
 void NiBtOgre::BSLightingShaderProperty::applyMaterialProperty(OgreMaterial& material,
                                                                std::vector<Ogre::Controller<float> >& controllers)
 {
+    material.bsLightingShaderProperty = this;
+
+    if ((mShaderFlags1 & 0x00001000) != 0) // msn
+        return;
     material.alpha = mAlpha;
 
     // FIXME: TEMP HACK
@@ -174,8 +178,10 @@ void NiBtOgre::BSLightingShaderProperty::applyMaterialProperty(OgreMaterial& mat
     texDesc.clampMode = mTextureClampMode;
     texDesc.uvSet = 0; // FIXME: material system needs re-written
 
+
+//#if 0
     BSShaderTextureSet* tset = mModel.getRef<BSShaderTextureSet>(mTextureSetRef);
-    if (tset->mTextures[0] != "")
+    if (tset && tset->mTextures[0] != "")
     {
         material.texName[NiTexturingProperty::Texture_Base]    = tset->mTextures[0]; // diffuse
         mTextureDescriptions[NiTexturingProperty::Texture_Base] = texDesc;
@@ -200,8 +206,8 @@ void NiBtOgre::BSLightingShaderProperty::applyMaterialProperty(OgreMaterial& mat
     {
         if (tset->mTextures[2].find("_sk.") != std::string::npos)
         {
-            //material.texName[NiTexturingProperty::Texture_Detail]  = tset->mTextures[2]; // skin
-            //mTextureDescriptions[NiTexturingProperty::Texture_Detail] = texDesc;
+            material.texName[NiTexturingProperty::Texture_Detail]  = tset->mTextures[2]; // skin
+            mTextureDescriptions[NiTexturingProperty::Texture_Detail] = texDesc;
         }
         else if (tset->mTextures[2].find("_g.") != std::string::npos ||
                  tset->mTextures[2].find("_G.") != std::string::npos)
@@ -213,7 +219,34 @@ void NiBtOgre::BSLightingShaderProperty::applyMaterialProperty(OgreMaterial& mat
             std::cout << "not skin nor glow " << tset->mTextures[2] << std::endl; //_hl.dds == hair?
     }
 
+    if (tset->mTextures[6] != "")
+    {
+        std::string backlight = tset->mTextures[6];
+        if (backlight.substr(1, 5) == "ata\\")
+            material.texName[NiTexturingProperty::Texture_Normal]  = "t"+tset->mTextures[6].substr(6);
+        else
+            material.texName[NiTexturingProperty::Texture_Normal]  = tset->mTextures[6];
+
+        mTextureDescriptions[NiTexturingProperty::Texture_Normal] = texDesc;
+    }
+
+    if (tset->mTextures[7] != "")
+    {
+        material.texName[NiTexturingProperty::Texture_Unknown2]  = tset->mTextures[7];
+
+        mTextureDescriptions[NiTexturingProperty::Texture_Unknown2] = texDesc;
+    }
+
     material.textureDescriptions = &mTextureDescriptions;
+//#endif
+}
+
+const NiBtOgre::BSShaderTextureSet *NiBtOgre::BSLightingShaderProperty::getBSShaderTextureSet() const
+{
+    if (mTextureSetRef != -1)
+        return mModel.getRef<BSShaderTextureSet>(mTextureSetRef);
+    else
+        return nullptr;
 }
 
 NiBtOgre::BSShaderLightingProperty::BSShaderLightingProperty(uint32_t index, NiStream *stream, const NiModel& model, BuildData& data)

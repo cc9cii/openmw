@@ -132,6 +132,7 @@ private:
 
     void updateTES4NpcBase();
     void updateFO3NpcBase();
+    void updateTES5NpcBase();
 
     std::string getSkeletonModel(const MWWorld::ESMStore& store) const;
 
@@ -145,6 +146,7 @@ private:
             const std::string& group , NiModelPtr skeletonModel, const std::string& texture = "");
 
     bool equipArmor(const ESM4::Armor* armor, bool isFemale);
+    bool equipTES5Armor(const ESM4::Armor* armor, bool isFemale);
     bool equipClothes(const ESM4::Clothing* cloth, bool isFemale);
     void replaceMeshTexture(NifOgre::ObjectScenePtr scene, const std::string& npcTextureName);
     void replaceSkinTexture(NifOgre::ObjectScenePtr scene, const std::string& npcTextureName);

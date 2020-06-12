@@ -48,20 +48,29 @@ namespace NiBtOgre
         int wireFlags;
         int drawMode;
         bool vertexColor;
+        BSLightingShaderProperty *bsLightingShaderProperty;
+        //bool isBSLightingShader;
+        //std::uint32_t shaderType;
+        //std::uint32_t shaderFlags1;
+        //std::uint32_t shaderFlags2;
 
         std::map<NiTexturingProperty::TextureType, std::string> texName;
         std::map<NiTexturingProperty::TextureType, NiTexturingProperty::TexDesc> *textureDescriptions;
+
+        std::vector<std::string> bsTextureSet;
 
 
         OgreMaterial() : ambient(1.f), diffuse(1.f), specular(0.f), emissive(0.f), glossiness(0.f), alpha(1.f)
                        , alphaFlags(0), alphaTest(0), vertMode(2), lightMode(1), depthFlags(3)
                        , specFlags(0), wireFlags(0), drawMode(1), vertexColor(false), mNeedTangents(false)
+                       , bsLightingShaderProperty(nullptr)//, shaderType(0), shaderFlags1(0), shaderFlags2(0)
         {
         }
 
         void setExternalTexture(const std::string& texture);
 
         std::string getOrCreateMaterial(const std::string& name);
+        std::string getOrCreateLSMaterial(const std::string& name);
 
         bool needTangents() const { return mNeedTangents; }
 

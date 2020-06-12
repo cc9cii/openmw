@@ -1,0 +1,15 @@
+shader_set openmw_tes5msnobjects_vertex
+{
+    source tes5msnobjects.shader
+    type vertex
+    profiles_cg vs_2_0 vp40 arbvp1
+    profiles_hlsl vs_3_0 vs_2_0
+}
+
+shader_set openmw_tes5msnobjects_fragment
+{
+    source tes5msnobjects.shader
+    type fragment
+    profiles_cg ps_3_0 ps_2_x ps_2_0 fp40 arbfp1
+    profiles_hlsl ps_3_0 ps_2_0
+}

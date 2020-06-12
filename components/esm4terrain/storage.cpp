@@ -828,7 +828,8 @@ namespace ESM4Terrain
         // FIXME: how to choose between games?
         if (baseTextureId == 0)
             //baseTextureId = 0x000008C0; // TES4: TerrainHDDirt01.dds
-            baseTextureId = 0x00000A0D; // FONV: Dirt01.dds
+            //baseTextureId = 0x00000A0D; // FONV: Dirt01.dds
+            baseTextureId = 0x00000C14; // TES5
 
         const ESM4::LandTexture *baseTexture = getLandTexture(baseTextureId);
         std::string baseTextureFile;
@@ -880,7 +881,8 @@ namespace ESM4Terrain
             {
                 // FIXME: how to choose between games?
                 //textureId = 0x000008C0; // TES4: TerrainHDDirt01.dds
-                textureId = 0x00000A0D; // FONV: Dirt01.dds
+                //textureId = 0x00000A0D; // FONV: Dirt01.dds
+                textureId = 0x00000C14; // TES5
                 std::cout << "ATXT layer null, cell " << cellX << "," << cellY
                           << " quad " << quad << " layer " << i << std::endl; // FIXME
             }

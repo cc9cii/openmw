@@ -301,8 +301,8 @@ ForeignNpcAnimation::ForeignNpcAnimation(const MWWorld::Ptr& ptr, Ogre::SceneNod
         updateTES4NpcBase();
     else if (mIsFO3 || mIsFONV)
         updateFO3NpcBase();
-    //else
-        //updateTES5NpcBase();
+    else
+        updateTES5NpcBase();
 
     if (!disableListener)
         mPtr.getClass().getInventoryStore(mPtr).setListener(this, mPtr);
@@ -373,7 +373,7 @@ void ForeignNpcAnimation::updateTES4NpcBase()
     std::string group("General");
 
     if (mInsert->getScale().x != 1.0f) // WARN: assumed uniform scaling
-        std::cout << "scale not 1.0 " << skeletonModel << std::endl;
+        std::cout << "TES4 NPC scale not 1.0 " << skeletonModel << std::endl;
 
     setForeignObjectRootBase(skeletonModel); // create the skeleton
     if (mObjectRoot->mForeignObj)
@@ -1534,7 +1534,7 @@ void ForeignNpcAnimation::updateFO3NpcBase()
     std::string group("General");
 
     if (mInsert->getScale().x != 1.0f) // WARN: assumed uniform scaling
-        std::cout << "scale not 1.0 " << skeletonModel << std::endl;
+        std::cout << "FO3/FONV scale not 1.0 " << skeletonModel << std::endl;
 
     setForeignObjectRootBase(skeletonModel); // create the skeleton
     if (mObjectRoot->mForeignObj)
@@ -2223,17 +2223,546 @@ void ForeignNpcAnimation::updateFO3NpcBase()
     mWeaponAnimationTime->updateStartTime();
 }
 
+void ForeignNpcAnimation::updateTES5NpcBase()
+{
+    if (!mNpc || !mRace)
+        return;
+
+    clearAnimSources(); // clears *all* animations
+
+    const MWWorld::ESMStore &store = MWBase::Environment::get().getWorld()->getStore();
+    std::string skeletonModel = getSkeletonModel(store);
+    if (skeletonModel.empty())
+        return; // FIXME: perhaps should log an error first
+
+    Misc::StringUtils::lowerCaseInPlace(skeletonModel);
+    size_t pos = skeletonModel.find_last_of('\\');
+    if (pos == std::string::npos)
+        throw std::runtime_error(mNpc->mEditorId + " NPC skeleton.nif path could not be derived.");
+
+    std::string skeletonPath = skeletonModel.substr(0, pos+1); // +1 is for '\\'
+
+    bool isFemale = (mNpc->mBaseConfig.tes5.flags & ESM4::Npc::TES5_Female) != 0; // FIXME: move to constructor?
+
+    NiBtOgre::NiModelManager& modelManager = NiBtOgre::NiModelManager::getSingleton();
+    std::string group("General");
+
+    if (mInsert->getScale().x != 1.0f) // WARN: assumed uniform scaling
+        std::cout << "TES5 scale not 1.0 " << skeletonModel << std::endl;
+
+    setForeignObjectRootBase(skeletonModel); // create the skeleton
+    if (mObjectRoot->mForeignObj)
+    {
+        mObjectRoot->mSkelBase = mObjectRoot->mForeignObj->mSkeletonRoot; // Ogre::Entity*
+        mSkelBase = mObjectRoot->mForeignObj->mSkeletonRoot;
+    }
+
+    if (mSkelBase == nullptr) // FIXME: FO3
+        return;
+
+    mSkelBase->getSkeleton()->reset(true); // seems to fix the twisted torso
+    Ogre::Bone* b = mObjectRoot->mSkelBase->getSkeleton()->getBone("NPC Root [Root]");
+    try
+    {
+    Ogre::Bone* bna = mObjectRoot->mSkelBase->getSkeleton()->getBone("NPC COM [COM ]");
+    if (b && bna)
+    {
+        // FIXME: all the skinned meshes seems to be offset by this, probably something to do
+        // with the binding position
+        Ogre::Vector3 vb = b->getPosition();
+        Ogre::Vector3 vbna = bna->getPosition();
+        Ogre::Vector3 ins = mInsert->getPosition();
+
+        b->setPosition(vbna+ Ogre::Vector3(0,0,0.f)); // TEMP testing for FO3
+    }
+    }
+    catch(...)
+    {
+    Ogre::Bone* bna = mObjectRoot->mSkelBase->getSkeleton()->getBone("NPC COM");
+    if (b && bna)
+    {
+        // FIXME: all the skinned meshes seems to be offset by this, probably something to do
+        // with the binding position
+        Ogre::Vector3 vb = b->getPosition();
+        Ogre::Vector3 vbna = bna->getPosition();
+        Ogre::Vector3 ins = mInsert->getPosition();
+
+        b->setPosition(vbna+ Ogre::Vector3(0,0,0.f)); // TEMP testing for FO3
+    }
+    }
+
+    if(mViewMode != VM_FirstPerson)
+    {
+        addAnimSource(skeletonModel);
+    }
+    else
+    {
+        bool isFemale = (mNpc->mBaseConfig.tes5.flags & ESM4::Npc::TES5_Female) != 0;
+    }
+
+    std::string modelName;
+    std::string meshName;
+    std::string textureName;
+
+    MWWorld::InventoryStoreTES5& inv
+        = static_cast<const MWClass::ForeignNpc&>(mPtr.getClass()).getInventoryStoreTES5(mPtr);
+    MWWorld::ContainerStoreIterator invHeadGear = inv.getSlot(MWWorld::InventoryStoreTES5::Slot_TES5_Hair);
+
+      //---------------------------- Hair ------------------------------------ {{{
+
+    //bool isFemale = (mNpc->mBaseConfig.tes5.flags & ESM4::Npc::TES5_Female) != 0;
+    const std::vector<ESM4::FormId>& parts = (isFemale ? mRace->mHeadPartIdsFemale : mRace->mHeadPartIdsMale);
+    meshName = "";
+
+    // FIXME: not sure how to get at the hair part without searching for names :-(
+    // (mNpc->mHeadParts seems to have beards, eyes, etc)
+    for (std::size_t i = 0; i < parts.size(); ++i)
+    {
+        // Hair, Head, Mouth, Eyes, Brows
+        const ESM4::HeadPart *hdpt = store.getForeign<ESM4::HeadPart>().search(parts[i]);
+        if (hdpt && hdpt->mModel.find("Hair") != std::string::npos)
+        {
+            meshName = "meshes\\" + hdpt->mModel;
+            textureName = "textures\\" + hdpt->mBaseTexture;
+
+            std::cout << "hair index " << i << std::endl; // FIXME
+
+            break;
+        }
+    }
+
+    // FIXME: drauger don't have hair?
+    if (0)//meshName != "")
+        //throw std::runtime_error(mNpc->mEditorId + " - cannot find the hair.");
+    {
+
+
+    NiModelPtr model = modelManager.getByName(mNpc->mEditorId+"_"+meshName, group);
+    if (!model)
+    {
+        model = modelManager.createMorphedModel(meshName, group, mNpc, mRace,
+                mObjectRoot->mForeignObj->mModel.get(), textureName, NiBtOgre::NiModelManager::BP_Hair);
+        //model = modelManager.createManualModel(meshName, group, "tes5", "");
+    }
+
+    NifOgre::ObjectScenePtr scene
+        = NifOgre::ObjectScenePtr (new NifOgre::ObjectScene(mInsert->getCreator()));
+    scene->mForeignObj
+        = std::make_unique<NiBtOgre::BtOgreInst>(NiBtOgre::BtOgreInst(model, mInsert->createChildSceneNode()));
+    scene->mForeignObj->instantiate();
+
+    std::string targetBone = "";// model->getTargetBone();
+    // Characters\Hair\ArgonianSpines.NIF does not have a targetBone
+    if (targetBone == "")
+        targetBone = "NPC Head [Head]"; // HACK: give a guessed default
+
+    Ogre::Bone *heBone = mSkelBase->getSkeleton()->getBone(targetBone);
+    Ogre::Quaternion heOrientation // fix rotation issue
+        = heBone->getOrientation()// * Ogre::Quaternion(Ogre::Degree(90), Ogre::Vector3::UNIT_Y)
+                                   * Ogre::Quaternion(Ogre::Degree(-12.5), Ogre::Vector3::UNIT_X);
+
+    // FIXME non-zero for FO3 to make hair fit better
+    Ogre::Vector3 hePosition = Ogre::Vector3(0.f, /*forward*/0.1f, 0.f);
+    //Ogre::Vector3 hePosition = Ogre::Vector3(0.5f, -0.2f, 0.f);
+
+    std::map<int32_t, Ogre::Entity*>::const_iterator it(scene->mForeignObj->mEntities.begin());
+    for (; it != scene->mForeignObj->mEntities.end(); ++it)
+    {
+        Ogre::MaterialPtr mat = scene->mMaterialControllerMgr.getWritableMaterial(it->second);
+// FIXME: need to search CLFM from mRace->mHairColourid
+#if 0
+        Ogre::Material::TechniqueIterator techIter = mat->getTechniqueIterator();
+        while(techIter.hasMoreElements())
+        {
+            Ogre::Technique *tech = techIter.getNext();
+            Ogre::Technique::PassIterator passes = tech->getPassIterator();
+            while(passes.hasMoreElements())
+            {
+                Ogre::Pass *pass = passes.getNext();
+                //Ogre::TextureUnitState *tex = pass->getTextureUnitState(0);
+                //tex->setColourOperation(Ogre::LBO_ALPHA_BLEND);
+                //tex->setColourOperation(Ogre::LBO_REPLACE);
+                //tex->setBlank(); // FIXME: testing
+                Ogre::ColourValue ambient = pass->getAmbient();
+                ambient.r = (float)mNpc->mHairColour.red / 256.f;
+                ambient.g = (float)mNpc->mHairColour.green / 256.f;
+                ambient.b = (float)mNpc->mHairColour.blue / 256.f;
+                ambient.a = 1.f;
+                pass->setSceneBlending(Ogre::SBT_REPLACE);
+                pass->setAmbient(ambient);
+                pass->setVertexColourTracking(pass->getVertexColourTracking() &~Ogre::TVC_AMBIENT);
+            }
+        }
+#endif
+
+        if (targetBone != "")
+            mSkelBase->attachObjectToBone(targetBone, it->second, heOrientation, hePosition);
+    }
+    mObjectParts[ESM4::Armor::TES5_Hair] = scene;
+    } //---------------------------------------------------------------------- }}}
+
+    if (0) // FIXME
+    { //------------------------- Head Parts --------------------------------- {{{
+
+    bool isFemale = (mNpc->mBaseConfig.tes5.flags & ESM4::Npc::TES5_Female) != 0;
+    const std::vector<ESM4::FormId>& parts = (isFemale ? mRace->mHeadPartIdsFemale : mRace->mHeadPartIdsMale);
+    meshName = "";
+
+    // FIXME: not sure how to get at the hair part without searching for names :-(
+    // (mNpc->mHeadParts seems to have beards, eyes, etc)
+    for (std::size_t i = 0; i < parts.size(); ++i)
+    {
+        // Hair, Head, Mouth, Eyes, Brows
+        const ESM4::HeadPart *hdpt = store.getForeign<ESM4::HeadPart>().search(parts[i]);
+        if (hdpt && hdpt->mModel.find("Hair") != std::string::npos)
+            continue; // we handled hair separately before
+
+        if (hdpt && hdpt->mModel.find("Head") != std::string::npos)
+            continue; // we'll handle head separately later
+
+        if (!hdpt)
+            continue; // FIXME
+#if 1
+
+        meshName = "meshes\\" + hdpt->mModel;
+        textureName = "textures\\" + hdpt->mBaseTexture;
+
+        std::cout << hdpt->mEditorId << " head part index " << i << std::endl; // FIXME
+
+        NiModelPtr model = modelManager.getByName(mNpc->mEditorId+"_"+meshName, group);
+        if (!model)
+        {
+            model = modelManager.createMorphedModel(meshName, group, mNpc, mRace,
+                    mObjectRoot->mForeignObj->mModel.get(), textureName, NiBtOgre::NiModelManager::BP_Hair);
+            //model = modelManager.createManualModel(meshName, group, "tes5", "");
+        }
+
+        NifOgre::ObjectScenePtr scene
+            = NifOgre::ObjectScenePtr (new NifOgre::ObjectScene(mInsert->getCreator()));
+        scene->mForeignObj
+            = std::make_unique<NiBtOgre::BtOgreInst>(NiBtOgre::BtOgreInst(model, mInsert->createChildSceneNode()));
+        scene->mForeignObj->instantiate();
+
+        std::string targetBone = "";// model->getTargetBone();
+
+        if (targetBone == "")
+            targetBone = "NPC Head [Head]"; // HACK: give a guessed default
+
+        Ogre::Bone *heBone = mSkelBase->getSkeleton()->getBone(targetBone);
+        Ogre::Quaternion heOrientation // fix rotation issue
+            = heBone->getOrientation() //* Ogre::Quaternion(Ogre::Degree(0), Ogre::Vector3::UNIT_Y)
+                                       * Ogre::Quaternion(Ogre::Degree(-12.5), Ogre::Vector3::UNIT_X);
+
+        // FIXME non-zero for FO3 to make hair fit better
+        Ogre::Vector3 hePosition = Ogre::Vector3(/*left*/0.f, /*forward*/-0.1f, 0.2f/*up*/);
+        //Ogre::Vector3 hePosition = Ogre::Vector3(0.5f, -0.2f, 0.f);
+
+        std::map<int32_t, Ogre::Entity*>::const_iterator it(scene->mForeignObj->mEntities.begin());
+        for (; it != scene->mForeignObj->mEntities.end(); ++it)
+        {
+            Ogre::MaterialPtr mat = scene->mMaterialControllerMgr.getWritableMaterial(it->second);
+
+            if (targetBone != "")
+                mSkelBase->attachObjectToBone(targetBone, it->second, heOrientation, hePosition);
+        }
+
+        mHeadParts.push_back(scene);
+#else
+        //if (hdpt && hdpt->mModel.find("Eye") != std::string::npos)
+        {
+            // FIXME: need to handle MPAV sub-record
+
+            meshName = "meshes\\" + hdpt->mModel;
+            textureName = "textures\\" + hdpt->mBaseTexture;
+
+            std::cout << hdpt->mEditorId << " head part index " << i << std::endl; // FIXME
+
+            NifOgre::ObjectScenePtr scene
+                = createMorphedObject(meshName, "General", mObjectRoot->mForeignObj->mModel, textureName);
+                //= createObject(meshName, "General", mObjectRoot->mForeignObj->mModel, textureName);
+
+            if (scene->mForeignObj)
+            {
+                std::map<std::int32_t, Ogre::Entity*>::iterator it = scene->mForeignObj->mEntities.begin();
+                if (it != scene->mForeignObj->mEntities.end())
+                {
+                    scene->mSkelBase = it->second;
+
+                    //std::string targetBone = "NPC Head [Head]"; // FIXME: temp
+                    //mSkelBase->attachObjectToBone(targetBone, it->second);
+
+                }
+            }
+
+            mHeadParts.push_back(scene);
+        }
+#endif
+    }
+    } //---------------------------------------------------------------------- }}}
+
+    { //------------------------- Body Parts --------------------------------- {{{
+    bool isFemale = (mNpc->mBaseConfig.tes5.flags & ESM4::Npc::TES5_Female) != 0;
+
+    const ESM4::Armor *skin = store.getForeign<ESM4::Armor>().search(mRace->mSkin);
+    //const ESM4::Armor *skin = store.getForeign<ESM4::Armor>().search(mNpc->mWornArmor);  // empty for TES5??
+    if (!skin)
+        return;
+
+    //std::cout << skin->mEditorId << std::endl; // FIXME
+
+    std::string bodyMeshName = "";
+    std::string bodyTextureName = "";
+
+    bodyMeshName = (isFemale ? skin->mModelFemale : skin->mModelMale);
+    bodyTextureName = (isFemale ? skin->mIconFemale : skin->mIconMale);
+
+    if (bodyMeshName == "" && skin->mAddOns.empty())
+        return; // FIXME
+
+    for (std::size_t i = 0; i < skin->mAddOns.size(); ++i)
+    {
+        const ESM4::ArmorAddon *arma = store.getForeign<ESM4::ArmorAddon>().search(skin->mAddOns[i]);
+        ESM4::FormId armaRace = arma->mRacePrimary;
+        if (armaRace != mRace->mFormId)
+        {
+            // FIXME: is there a way to avoid searching *every* single time?
+            //if (armaRace == 0x00000019) // TES5 DefaultRace formid
+            {
+                bool found = false;
+                for (std::size_t j = 0; j < arma->mRaces.size(); ++j)
+                {
+                    if (arma->mRaces[j] == mRace->mFormId)
+                        found = true;
+                }
+
+                if (!found)
+                    continue;
+            }
+            //else
+                //continue;
+        }
+
+        std::cout << "skin " << arma->mEditorId << std::endl; // FIXME
+
+        bodyMeshName = "meshes\\" + (isFemale ? arma->mModelFemale : arma->mModelMale);
+
+        ESM4::FormId textureId = (isFemale ? arma->mTextureFemale : arma->mTextureMale);
+        if (textureId)
+        {
+            const ESM4::TextureSet *txst = store.getForeign<ESM4::TextureSet>().search(textureId);
+            bodyTextureName = "textures\\" + txst->mDiffuse;
+        }
+
+        int type = skin->mArmorFlags;
+
+        // FIXME temp testing, needs some thinking
+        removeIndividualPart((ESM::PartReferenceType)type);
+
+        std::string skeletonName = mObjectRoot->mForeignObj->mModel->getName();
+        Misc::StringUtils::lowerCaseInPlace(skeletonName);
+        NiModelPtr model = modelManager.getByName(mRace->mEditorId + skeletonName + "_" + bodyMeshName, group);
+
+        std::cout << bodyTextureName << std::endl;
+
+        if (!model)
+            model = modelManager.createSkinnedModel(bodyMeshName,
+                    "General", mObjectRoot->mForeignObj->mModel.get(), mRace->mEditorId, bodyTextureName);
+
+        // create an instance of the model
+        NifOgre::ObjectScenePtr scene
+            = NifOgre::ObjectScenePtr (new NifOgre::ObjectScene(mInsert->getCreator()));
+
+        scene->mForeignObj
+            = std::make_unique<NiBtOgre::BtOgreInst>(NiBtOgre::BtOgreInst(model, mInsert->createChildSceneNode()));
+        scene->mForeignObj->instantiateBodyPart(mInsert, mSkelBase);
+
+        //hideDismember(scene);
+        mObjectParts[i+5000] = scene; // FIXME: temp hack
+    }
+    } //---------------------------------------------------------------------- }}}
+
+    { //---------------------------- Head ------------------------------------ {{{
+
+    bool isFemale = (mNpc->mBaseConfig.tes5.flags & ESM4::Npc::TES5_Female) != 0;
+    const std::vector<ESM4::FormId>& parts = (isFemale ? mRace->mHeadPartIdsFemale : mRace->mHeadPartIdsMale);
+    meshName = "";
+
+    // FIXME: hard coded path - is this specified anywhere else?
+    std::string headMesh = "meshes\\actors\\character\\facegendata\\facegeom\\skyrim.esm\\"
+        + Misc::StringUtils::lowerCase(ESM4::formIdToString(mNpc->mFormId)) + ".nif";
+    if (Ogre::ResourceGroupManager::getSingleton().resourceExistsInAnyGroup(headMesh))
+    {
+        meshName = headMesh;
+        for (std::size_t i = 0; i < parts.size(); ++i)
+        {
+            // Hair, Head, Mouth, Eyes, Brows
+            const ESM4::HeadPart *hdpt = store.getForeign<ESM4::HeadPart>().search(parts[i]);
+            if (hdpt && hdpt->mModel.find("Head") != std::string::npos)
+            {
+                if (hdpt->mBaseTexture)
+                {
+                    const ESM4::TextureSet* txst = store.getForeign<ESM4::TextureSet>().search(hdpt->mBaseTexture);
+                    if (txst)
+                        textureName = "textures\\" + txst->mDiffuse;
+                    else
+                        textureName = "";
+                }
+            }
+        }
+        textureName = "";
+    }
+    else
+    {
+        // FIXME: not sure how to get at the hair part without searching for names :-(
+        // (mNpc->mHeadParts seems to have beards, eyes, etc)
+        for (std::size_t i = 0; i < parts.size(); ++i)
+        {
+            // Hair, Head, Mouth, Eyes, Brows
+            const ESM4::HeadPart *hdpt = store.getForeign<ESM4::HeadPart>().search(parts[i]);
+            if (hdpt && hdpt->mModel.find("Head") != std::string::npos)
+            {
+                // FIXME: need to handle MPAV sub-record
+
+                meshName = "meshes\\" + hdpt->mModel;
+                //textureName = "textures\\" + hdpt->mBaseTexture;
+                if (hdpt->mBaseTexture)
+                {
+                    const ESM4::TextureSet* txst = store.getForeign<ESM4::TextureSet>().search(hdpt->mBaseTexture);
+                    if (txst)
+                        textureName = "textures\\" + txst->mDiffuse;
+                    else
+                        textureName = "";
+                }
+
+                std::cout << hdpt->mEditorId << " head index " << i << std::endl; // FIXME
+            }
+        }
+    }
+
+        //if (mNpc->mFormId == 0x00013BB8) // TES5 Irileth
+        if (mNpc->mEditorId == "Hrongar")
+            std::cout << "count " << std::endl; // FIXME
+
+    std::string skelName = mObjectRoot->mForeignObj->mModel->getName();
+    Misc::StringUtils::lowerCaseInPlace(skelName);
+    NiModelPtr model = modelManager.getByName(mRace->mEditorId + skelName + "_" + meshName, group);
+    if (!model)
+    {
+        //model = modelManager.createMorphedModel(meshName, group, mNpc, mRace,
+                        //mObjectRoot->mForeignObj->mModel.get(), textureName, NiBtOgre::NiModelManager::BP_Head);
+        model = modelManager.createSkinnedModel(meshName, group,
+                mObjectRoot->mForeignObj->mModel.get(), mRace->mEditorId, textureName);
+    }
+
+    NifOgre::ObjectScenePtr scene = NifOgre::ObjectScenePtr (new NifOgre::ObjectScene(mInsert->getCreator()));
+    scene->mForeignObj
+        = std::make_unique<NiBtOgre::BtOgreInst>(NiBtOgre::BtOgreInst(model, mInsert->createChildSceneNode()));
+    scene->mForeignObj->instantiate();
+#if 1
+    std::map<int32_t, Ogre::Entity*>::const_iterator it(scene->mForeignObj->mEntities.begin());
+    for (; it != scene->mForeignObj->mEntities.end(); ++it)
+    {
+        Ogre::MaterialPtr mat = scene->mMaterialControllerMgr.getWritableMaterial(it->second);
+        Ogre::Material::TechniqueIterator techIter = mat->getTechniqueIterator();
+
+        it->second->shareSkeletonInstanceWith(mSkelBase); // NOTE: removes all vertex anim from the entity
+        mInsert->attachObject(it->second);
+    }
+#else
+    std::string targetBone = "NPC Head [Head]"; // HACK: give a guessed default
+
+    Ogre::Bone *heBone = mSkelBase->getSkeleton()->getBone(targetBone);
+    Ogre::Quaternion orientation // fix rotation issue
+        = heBone->getOrientation()// * Ogre::Quaternion(Ogre::Degree(90), Ogre::Vector3::UNIT_Y)
+                                   * Ogre::Quaternion(Ogre::Degree(-7.6), Ogre::Vector3::UNIT_X);
+
+    Ogre::Vector3 position = Ogre::Vector3(0.f, 0.f, 0.f);
+
+    if (scene->mForeignObj)
+    {
+        std::map<std::int32_t, Ogre::Entity*>::iterator it = scene->mForeignObj->mEntities.begin();
+        if (it != scene->mForeignObj->mEntities.end())
+        {
+            //scene->mSkelBase = it->second;
+            it->second->shareSkeletonInstanceWith(mSkelBase); // NOTE: removes all vertex anim from the entity
+            mSkelBase->attachObjectToBone(targetBone, it->second, orientation, position);
+        }
+    }
+#endif
+    mHeadParts.push_back(scene);
+    } //---------------------------------------------------------------------- }}}
+
+    // FIXME: this section below should go to updateParts()
+    std::vector<const ESM4::Armor*> invArmor;
+    std::vector<const ESM4::Weapon*> invWeap;
+
+    // check inventory
+    for(size_t i = 0; i < inv.getNumSlots(); ++i)
+    {
+        MWWorld::ContainerStoreIterator store = inv.getSlot(int(i)); // compiler warning
+
+        if(store == inv.end())
+            continue;
+
+        // TODO: this method of handling inventory doen't suit FO3 very well because it is possible
+        //       for one part to occupy more than one slot; for now as a workaround just loop
+        //       through the slots to gather all the equipped parts and process them afterwards
+        else if(store->getTypeName() == typeid(ESM4::Armor).name())
+        {
+            const ESM4::Armor *armor = store->get<ESM4::Armor>()->mBase;
+            if (std::find(invArmor.begin(), invArmor.end(), armor) == invArmor.end()) // avoid duplicates
+                invArmor.push_back(armor);
+        }
+        else if(store->getTypeName() == typeid(ESM4::Weapon).name())
+        {
+            const ESM4::Weapon *weap = store->get<ESM4::Weapon>()->mBase;
+            if (std::find(invWeap.begin(), invWeap.end(), weap) == invWeap.end()) // avoid duplicates
+                invWeap.push_back(weap);
+        }
+        else if(store->getTypeName() == typeid(ESM4::Clothing).name())
+            throw std::runtime_error("Found CLOT in TES5");
+    }
+
+    for (std::size_t i = 0; i < invArmor.size(); ++i)
+        equipTES5Armor(invArmor[i], isFemale);
+//#if 0
+    for (std::size_t i = 0; i < invWeap.size(); ++i)
+    {
+        // FIXME: group "General"
+        // FIXME: prob wrap this with a try/catch block
+        std::string meshName = /*meshes\\"+*/invWeap[i]->mModel;
+        if (meshName != "") // FIXME: mIcon = "Interface\\Icons\\PipboyImages\\Weapons\\weapons_brass_knuckles.dds"
+        {
+            try
+            {
+                int type = ESM4::Armor::TES5_BodyAddOn3; // FIXME: I have no idea which slot, choose a random one for now
+                removeIndividualPart((ESM::PartReferenceType)type);
+                mObjectParts[type] = createObject("meshes\\" + meshName, "General", mObjectRoot->mForeignObj->mModel);
+            }
+            catch (...)
+            {
+                std::cout << mNpc->mEditorId << " weapon creation failed" << std::endl;
+            }
+        }
+    }
+//#endif
+    //if (mAccumRoot) mAccumRoot->setPosition(Ogre::Vector3());
+
+    mWeaponAnimationTime->updateStartTime();
+}
+
 // needs: mNpc, mRace
 std::string ForeignNpcAnimation::getSkeletonModel(const MWWorld::ESMStore& store) const
 {
     std::string skeletonModel;
 
-    // FIXME: FO3/FONV some NPCs have mModel = marker_creature.nif
-    if (mNpc->mModel.empty() && mNpc->mBaseTemplate != 0) // TES5
+    // FIXME: TES5 mEditorId = "EncTrollFrost" is somehow considered an NPC
+    // FIXME: TES5 mEditorId = "MS13Arvel", mFullName = "Arvel the Swift" does not have mBaseTemplate
+    if (mNpc->mModel.empty()/* && mNpc->mBaseTemplate != 0*/) // TES5
     {
         uint32_t type = store.getRecordType(mNpc->mBaseTemplate);
 
-        if (type == ESM4::REC_NPC_)
+        if (mNpc->mBaseTemplate == 0 || type == ESM4::REC_NPC_)
         {
             if ((mNpc->mBaseConfig.tes5.flags & ESM4::Npc::TES5_Female) != 0)
                 return  "meshes\\" + mRace->mModelFemale; // TODO: check if this can be empty
@@ -2261,6 +2790,7 @@ std::string ForeignNpcAnimation::getSkeletonModel(const MWWorld::ESMStore& store
     }
     else if (!mNpc->mModel.empty()) // TES4/FO3/FONV
     {
+        // FIXME: FO3/FONV some NPCs have mModel = marker_creature.nif
         if (mNpc->mModel == "marker_creature.nif")
             return ""; // FIXME FO3/FONV
 
@@ -2271,8 +2801,6 @@ std::string ForeignNpcAnimation::getSkeletonModel(const MWWorld::ESMStore& store
     }
     else
         return ""; // shouldn't happen
-    // FIXME: TES5 mEditorId = "EncTrollFrost" is somehow considered an NPC
-    // FIXME: TES5 mEditorId = "MS13Arvel", mFullName = "Arvel the Swift" does not have mBaseTemplate
 }
 
 NifOgre::ObjectScenePtr ForeignNpcAnimation::createSkinnedObject(NifOgre::ObjectScenePtr scene,
@@ -2500,6 +3028,8 @@ NifOgre::ObjectScenePtr ForeignNpcAnimation::createObject(const std::string& mes
         {
             if (meshName.find("eapon") != std::string::npos)
                 targetBone = "Weapon";
+            else if (mIsTES5)
+                targetBone = "NPC Head [Head]"; // FIXME: temp hack
             else
                 targetBone = "Bip01 Head";
         }
@@ -2611,6 +3141,71 @@ bool ForeignNpcAnimation::equipClothes(const ESM4::Clothing* cloth, bool isFemal
         mObjectParts[type] =
             createObject(meshName, "General", mObjectRoot->mForeignObj->mModel, raceTexture);
 
+
+    return true;
+}
+
+bool ForeignNpcAnimation::equipTES5Armor(const ESM4::Armor* armor, bool isFemale)
+{
+    const MWWorld::ESMStore &store = MWBase::Environment::get().getWorld()->getStore();
+
+    const std::vector<ESM4::FormId>& addons = armor->mAddOns;
+
+    if (addons.empty())
+        return false;
+
+    for (std::size_t i = 0; i < addons.size(); ++i)
+    {
+        const ESM4::ArmorAddon *arma = store.getForeign<ESM4::ArmorAddon>().search(addons[i]);
+#if 0
+        ESM4::FormId armaRace = arma->mRacePrimary;
+        if (armaRace != mRace->mFormId)
+        {
+            // FIXME: is there a way to avoid searching *every* single time?
+            //if (armaRace == 0x00000019) // TES5 DefaultRace formid
+            {
+                bool found = false;
+                for (std::size_t j = 0; j < arma->mRaces.size(); ++j)
+                {
+                    if (arma->mRaces[j] == mRace->mFormId)
+                        found = true;
+                }
+
+                if (!found)
+                    continue;
+            }
+            //else
+                //continue;
+        }
+#endif
+        // FIXME: rings may only have male models (not sure if this logic can apply unversally, however)
+        std::string meshName = "meshes\\" + ((isFemale && arma->mModelFemale != "") ? arma->mModelFemale
+                                                                                    : arma->mModelMale);
+
+        std::string textureName;
+        ESM4::FormId textureId = (isFemale ? arma->mTextureFemale : arma->mTextureMale);
+        if (textureId)
+        {
+            const ESM4::TextureSet* txst = store.getForeign<ESM4::TextureSet>().search(textureId);
+            textureName = "textures\\" + txst->mDiffuse;
+        }
+
+        // FIXME: this doesn't quite work for TES5, as an armor may occupy many different slots
+        int type = armor->mArmorFlags;
+
+        removeParts((ESM::PartReferenceType)type);
+
+        NifOgre::ObjectScenePtr scene =
+                createObject(meshName, "General", mObjectRoot->mForeignObj->mModel, textureName);
+#if 0
+        std::string npcTextureName;
+        if (index == ESM5::Race::Body)
+            npcTextureName = mTextureUpperBody->getName();
+
+        replaceSkinTexture(scene, npcTextureName); // does nothing if none found
+#endif
+        mObjectParts[type] = scene;
+    }
 
     return true;
 }
@@ -2865,14 +3460,14 @@ void ForeignNpcAnimation::addAnimSource(const std::string &model)
     if (pos == std::string::npos)
     {
         pos = model.find("skeletonbeast.nif");
-        if (pos == std::string::npos)
+        if (pos == std::string::npos && !mIsTES5) // FIXME: TES5 female has skeleton_female.nif
             return; // FIXME: should throw here
         // TODO: skeletonsesheogorath
     }
 
     // FIXME: for testing just load idle
     std::string animName = model.substr(0, pos) + "handtohandattackleft_jab.kf";
-    addForeignAnimSource(model, animName);
+    //addForeignAnimSource(model, animName);
 
     //animName = model.substr(0, pos) + "handtohandattackright_hook.kf";
     //addForeignAnimSource(model, animName);
@@ -2908,6 +3503,29 @@ void ForeignNpcAnimation::addAnimSource(const std::string &model)
         animName = model.substr(0, pos) + "idleanims\\laugha.kf";
         animName = model.substr(0, pos) + "idleanims\\lookingaround.kf";
         animName = model.substr(0, pos) + "locomotion\\mtidle.kf";
+        addForeignAnimSource(model, animName);
+    }
+    else if (model.find("ragon") != std::string::npos) // TES5 Dragon
+    {
+        animName = "meshes\\actors\\dragon\\animations\\mtfeatherslow.kf";
+        animName = "meshes\\actors\\dragon\\animations\\mtfastforward_flap.kf";
+        addForeignAnimSource(model, animName);
+    }
+    else // TES5
+    {
+        return; // FIXME: temp testing
+
+        int roll = Misc::Rng::rollDice(4); // [0, 3]
+        if (roll == 0)
+            animName = "meshes\\actors\\character\\animations\\idlewave.kf";
+        else if (roll == 1)
+            animName = "meshes\\actors\\character\\animations\\idlemagic_01.kf";
+        else if (roll == 2)
+            animName = "meshes\\actors\\character\\animations\\idlelaugh.kf";
+        else
+            animName = "meshes\\actors\\character\\animations\\idlestudy.kf";
+            //animName = "meshes\\actors\\character\\animations\\dualmagic_idle.kf";
+            //animName = "meshes\\actors\\character\\animations\\idleleantable.kf";
         addForeignAnimSource(model, animName);
     }
 }
@@ -2998,6 +3616,19 @@ void ForeignNpcAnimation::addForeignAnimSource(const std::string& model, const s
         {
             mNonAccumRoot = dstval->getNode();
             mAccumRoot = mNonAccumRoot->getParent();
+        }
+        // FIXME: TES5
+        else if (!mAccumRoot && grp == 0 && (dstval->getNode()->getName() == "NPC COM [COM ]"))
+        {
+            mNonAccumRoot = dstval->getNode();
+            mAccumRoot = mNonAccumRoot->getParent();
+            std::cout << "found non accum " << dstval->getNode()->getName() << std::endl;
+        }
+        else if (!mAccumRoot && grp == 0 && (dstval->getNode()->getName() == "NPC COM")) // Dragon?
+        {
+            mNonAccumRoot = dstval->getNode();
+            mAccumRoot = mNonAccumRoot->getParent();
+            std::cout << "found non accum " << dstval->getNode()->getName() << std::endl;
         }
 #endif
 
@@ -3383,14 +4014,20 @@ Ogre::Vector3 ForeignNpcAnimation::runAnimation(float timepassed)
         return Ogre::Vector3::ZERO; // FIXME: FO3
 
     mHeadAnimationTime->update(timepassed);
-//#if 0 // FIXME: FO3 head rotation
+#//if 0 // FIXME: FO3 head rotation
     if (mSkelBase)
     {
         Ogre::SkeletonInstance *baseinst = mSkelBase->getSkeleton();
         if(mViewMode == VM_FirstPerson)
         {
             float pitch = mPtr.getRefData().getPosition().rot[0];
-            Ogre::Node *node = baseinst->getBone("Bip01 Neck");
+
+            Ogre::Node* node = nullptr;
+            if (baseinst->hasBone("Bip01 Neck"))
+                node = baseinst->getBone("Bip01 Neck");
+            else if (baseinst->hasBone("NPC Neck [Neck]"))
+                node = baseinst->getBone("NPC Neck [Neck]");
+
             node->pitch(Ogre::Radian(-pitch), Ogre::Node::TS_WORLD);
 
             // This has to be done before this function ends;
@@ -3408,7 +4045,12 @@ Ogre::Vector3 ForeignNpcAnimation::runAnimation(float timepassed)
                 std::cout << "yaw " << r.valueDegrees() << std::endl;
             }
 
-            Ogre::Node* node = baseinst->getBone("Bip01 Head");
+            Ogre::Node* node = nullptr;
+            if (baseinst->hasBone("Bip01 Head"))
+                node = baseinst->getBone("Bip01 Head");
+            else if (baseinst->hasBone("NPC Head"))
+                node = baseinst->getBone("NPC Head");
+
             if (node)
                 node->rotate(Ogre::Quaternion(mHeadYaw, Ogre::Vector3::UNIT_Z)
                            * Ogre::Quaternion(mHeadPitch, Ogre::Vector3::UNIT_X)
@@ -3418,12 +4060,13 @@ Ogre::Vector3 ForeignNpcAnimation::runAnimation(float timepassed)
     }
 //#endif
 
-// FIXME: demo code for vertex pose animation
+    // FIXME: demo code for vertex pose animation
 //#if 0
     if (mStartTimer > 1)
         mStartTimer -= timepassed;
 
-    if (mHeadASSet && mHeadASSet->hasAnimationState("Happy")) // if "Happy" exists so should others
+    if (!mIsTES5 && // FIXME: does not work for TES5
+            mHeadASSet && mHeadASSet->hasAnimationState("Happy")) // if "Happy" exists so should others
     {
         if (mStartTimer <= 1)
             mPoseDuration += timepassed;

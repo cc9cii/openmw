@@ -36,6 +36,10 @@
 #include <components/nifoverrides/nifoverrides.hpp>
 #include <components/misc/resourcehelpers.hpp>
 
+#include "nidata.hpp" // BSShaderTextureSet
+#include "nimodel.hpp"
+//#include "niobjectnet.hpp" // SkyrimShaderType
+
 namespace
 {
 // Conversion of blend / test mode from NIF
@@ -130,6 +134,10 @@ std::string NiBtOgre::OgreMaterial::getOrCreateMaterial(const std::string& name)
     if(material)
         return name;
 
+    // FIXME: just testing msn for now
+    if (bsLightingShaderProperty && (bsLightingShaderProperty->mShaderFlags1 & 0x00001000) != 0)
+        return getOrCreateLSMaterial(name);
+
     // Generate a hash out of all properties that can affect the material.
     size_t h = 0;
     boost::hash_combine(h, ambient.x);
@@ -181,7 +189,16 @@ std::string NiBtOgre::OgreMaterial::getOrCreateMaterial(const std::string& name)
     sMaterialMap.insert(std::make_pair(h, name));
 
     // No existing material like this. Create a new one.
+#if 0
+    sh::MaterialInstance *instance = nullptr;
+    if (texName.find(NiTexturingProperty::Texture_BumpMap) != texName.end() &&
+            texName[NiTexturingProperty::Texture_BumpMap].find("_msn.dds") != std::string::npos)
+        instance = sh::Factory::getInstance().createMaterialInstance(name, "openmw_tes5objects_base");
+    else
+        instance = sh::Factory::getInstance().createMaterialInstance(name, "openmw_objects_base");
+#else
     sh::MaterialInstance *instance = sh::Factory::getInstance().createMaterialInstance(name, "openmw_objects_base");
+#endif
 
     // some NIF (20.0.0.4 of clutter/farm/hoe01.nif) have NiTriStrips with no NiTexturingProperty
     if (texName.find(NiTexturingProperty::Texture_Base) != texName.end())
@@ -244,6 +261,52 @@ std::string NiBtOgre::OgreMaterial::getOrCreateMaterial(const std::string& name)
     }
     else
         instance->setProperty("detailMap", sh::makeProperty(texName[NiTexturingProperty::Texture_Detail]));
+
+#if 0
+    // FIXME: temp hack for TES5
+    if (texName.find(NiTexturingProperty::Texture_Normal) != texName.end())
+    {
+        instance->setProperty("tintMap", sh::makeProperty(
+                Misc::ResourceHelpers::correctTexturePath(texName[NiTexturingProperty::Texture_Normal])));
+
+        // FIXME: prob not necessary
+        instance->setProperty("use_tint_map", sh::makeProperty(new sh::BooleanValue(true)));
+
+        setTextureProperties(instance, "tintMap", (*textureDescriptions)[NiTexturingProperty::Texture_Normal]);
+
+        // FIXME
+        std::cout << "tint "
+            << Misc::ResourceHelpers::correctTexturePath(texName[NiTexturingProperty::Texture_Normal])
+            << std::endl;
+        //std::cout << "tint "
+            //<< texName[NiTexturingProperty::Texture_Normal] << std::endl;
+    }
+    else
+        instance->setProperty("tintMap", sh::makeProperty(texName[NiTexturingProperty::Texture_Normal]));
+
+    // FIXME: temp hack for TES5
+    if (texName.find(NiTexturingProperty::Texture_Unknown2) != texName.end())
+    {
+        instance->setProperty("backlightMap", sh::makeProperty(
+                Misc::ResourceHelpers::correctTexturePath(texName[NiTexturingProperty::Texture_Unknown2])));
+
+        // FIXME: prob not necessary
+        instance->setProperty("use_backlight_map", sh::makeProperty(new sh::BooleanValue(true)));
+        instance->setProperty("diffuseMapUVSet", sh::makeProperty(new sh::FloatValue(0)));
+
+        setTextureProperties(instance, "backlightMap", (*textureDescriptions)[NiTexturingProperty::Texture_Unknown2]);
+
+        // FIXME
+        std::cout << "backlight "
+            << Misc::ResourceHelpers::correctTexturePath(texName[NiTexturingProperty::Texture_Unknown2])
+            << std::endl;
+        if (texName[NiTexturingProperty::Texture_Unknown2] == "")
+            std::cout << "backlight "
+                << texName[NiTexturingProperty::Texture_Unknown2] << std::endl;
+    }
+    else
+        instance->setProperty("backlightMap", sh::makeProperty(texName[NiTexturingProperty::Texture_Unknown2]));
+#endif
 
     if (texName.find(NiTexturingProperty::Texture_Glow) != texName.end())
     {
@@ -372,7 +435,403 @@ std::string NiBtOgre::OgreMaterial::getOrCreateMaterial(const std::string& name)
     }
 
     // Don't use texName, as it may be overridden
-    mNeedTangents = !sh::retrieveValue<sh::StringValue>(instance->getProperty("normalMap"), instance).get().empty();
+    mNeedTangents = !sh::retrieveValue<sh::StringValue>(instance->getProperty("normalMap"), instance).get().empty()
+        && (texName[NiTexturingProperty::Texture_BumpMap].find("_msn.") != std::string::npos); // FIXME: quick test
+
+    return name;
+}
+
+std::string NiBtOgre::OgreMaterial::getOrCreateLSMaterial(const std::string& name)
+{
+    // Generate a hash out of all properties that can affect the material.
+    size_t h = 0;
+    boost::hash_combine(h, bsLightingShaderProperty->getSkyrimShaderType());
+    // TODO: extra data?
+    boost::hash_combine(h, bsLightingShaderProperty->mShaderFlags1);
+    boost::hash_combine(h, bsLightingShaderProperty->mShaderFlags2);
+    boost::hash_combine(h, bsLightingShaderProperty->mUVOffset.u);
+    boost::hash_combine(h, bsLightingShaderProperty->mUVOffset.v);
+    boost::hash_combine(h, bsLightingShaderProperty->mUVScale.u);
+    boost::hash_combine(h, bsLightingShaderProperty->mUVScale.v);
+
+    const NiBtOgre::BSShaderTextureSet* tset = nullptr;
+    if (bsLightingShaderProperty->mTextureSetRef != -1)
+    {
+        tset = bsLightingShaderProperty->getBSShaderTextureSet();
+        for (std::size_t i = 0; i < tset->mTextures.size(); ++i)
+        {
+            if (!tset->mTextures[i].empty())
+            {
+                std::string texture = tset->mTextures[i];
+                if (texture.substr(1, 5) == "ata\\")
+                    boost::hash_combine(h, "t"+texture.substr(6));
+                else
+                    boost::hash_combine(h, Misc::ResourceHelpers::correctTexturePath(texture));
+            }
+        }
+    }
+
+    boost::hash_combine(h, bsLightingShaderProperty->mEmissiveColor.x);
+    boost::hash_combine(h, bsLightingShaderProperty->mEmissiveColor.y);
+    boost::hash_combine(h, bsLightingShaderProperty->mEmissiveColor.z);
+    boost::hash_combine(h, bsLightingShaderProperty->mEmissiveMultiple);
+
+    boost::hash_combine(h, bsLightingShaderProperty->mTextureClampMode);
+    boost::hash_combine(h, bsLightingShaderProperty->mAlpha);
+    boost::hash_combine(h, bsLightingShaderProperty->mRefractionStrength);
+    boost::hash_combine(h, bsLightingShaderProperty->mGlossiness);
+    boost::hash_combine(h, bsLightingShaderProperty->mSpecularColor.x);
+    boost::hash_combine(h, bsLightingShaderProperty->mSpecularColor.y);
+    boost::hash_combine(h, bsLightingShaderProperty->mSpecularColor.z);
+    boost::hash_combine(h, bsLightingShaderProperty->mSpecularStrength);
+    boost::hash_combine(h, bsLightingShaderProperty->mLightingEffect1);
+    boost::hash_combine(h, bsLightingShaderProperty->mLightingEffect2);
+
+    switch (bsLightingShaderProperty->getSkyrimShaderType())
+    {
+        case 1: // Environment Map
+            boost::hash_combine(h, bsLightingShaderProperty->mEnvironmentMapScale);
+            break;
+        case 5: // Skin Tint
+            boost::hash_combine(h, bsLightingShaderProperty->mSkinTintColor.x);
+            boost::hash_combine(h, bsLightingShaderProperty->mSkinTintColor.y);
+            boost::hash_combine(h, bsLightingShaderProperty->mSkinTintColor.z);
+            break;
+        case 6: // Hair Tint
+            boost::hash_combine(h, bsLightingShaderProperty->mHairTintColor.x);
+            boost::hash_combine(h, bsLightingShaderProperty->mHairTintColor.y);
+            boost::hash_combine(h, bsLightingShaderProperty->mHairTintColor.z);
+            break;
+        case 7: // Parallax Occ Material
+            boost::hash_combine(h, bsLightingShaderProperty->mMaxPasses);
+            boost::hash_combine(h, bsLightingShaderProperty->mScale);
+            break;
+        case 11: // MultiLayer Parallax
+            boost::hash_combine(h, bsLightingShaderProperty->mParallaxInnerLayerThickness);
+            boost::hash_combine(h, bsLightingShaderProperty->mParallaxRefractionScale);
+            boost::hash_combine(h, bsLightingShaderProperty->mParallaxInnerLayerTextureScale.u);
+            boost::hash_combine(h, bsLightingShaderProperty->mParallaxInnerLayerTextureScale.v);
+            boost::hash_combine(h, bsLightingShaderProperty->mParallaxEnvmapStrength);
+            break;
+        case 14: // Sparkle Snow
+            boost::hash_combine(h, bsLightingShaderProperty->mSparkleParameters.x);
+            boost::hash_combine(h, bsLightingShaderProperty->mSparkleParameters.y);
+            boost::hash_combine(h, bsLightingShaderProperty->mSparkleParameters.z);
+            boost::hash_combine(h, bsLightingShaderProperty->mSparkleParameters.w);
+            break;
+        case 16: // Eye Envmap
+            boost::hash_combine(h, bsLightingShaderProperty->mEyeCubemapScale);
+            boost::hash_combine(h, bsLightingShaderProperty->mLeftEyeReflectionCenter.x);
+            boost::hash_combine(h, bsLightingShaderProperty->mLeftEyeReflectionCenter.y);
+            boost::hash_combine(h, bsLightingShaderProperty->mLeftEyeReflectionCenter.z);
+            boost::hash_combine(h, bsLightingShaderProperty->mRightEyeReflectionCenter.x);
+            boost::hash_combine(h, bsLightingShaderProperty->mRightEyeReflectionCenter.y);
+            boost::hash_combine(h, bsLightingShaderProperty->mRightEyeReflectionCenter.z);
+            break;
+        default:
+            break;
+    }
+
+    std::map<size_t,std::string>::iterator itr = sMaterialMap.find(h);
+    if (itr != sMaterialMap.end())
+    {
+        // a suitable material exists already - use it
+        sh::MaterialInstance* instance = sh::Factory::getInstance().getMaterialInstance(itr->second);
+
+        // no vertex normals in NiTriShapeData if flag has Model_Space_Normals
+        mNeedTangents = ((bsLightingShaderProperty->mShaderFlags1 & 0x00001000) != 0) &&
+            !sh::retrieveValue<sh::StringValue>(instance->getProperty("normalMap"), instance).get().empty();
+
+        return itr->second;
+    }
+
+    // not found, create a new one
+    sMaterialMap.insert(std::make_pair(h, name));
+
+    // choose a shader
+    sh::MaterialInstance *instance = nullptr;
+    if ((bsLightingShaderProperty->mShaderFlags1 & 0x00001000) != 0)
+    {
+        instance = sh::Factory::getInstance().createMaterialInstance(name, "openmw_tes5msnobjects_base");
+
+        instance->setProperty("has_msn", sh::makeProperty(new sh::BooleanValue(true)));
+    }
+    else
+        instance = sh::Factory::getInstance().createMaterialInstance(name, "openmw_tes5objects_base");
+
+    // clamp mode
+    switch (bsLightingShaderProperty->mTextureClampMode)
+    {
+        case 0:
+            instance->setProperty("clamp_mode", sh::makeProperty(new sh::StringValue("clamp clamp")));
+            break;
+        case 1:
+            instance->setProperty("clamp_mode", sh::makeProperty(new sh::StringValue("clamp wrap")));
+            break;
+        case 2:
+            instance->setProperty("clamp_mode", sh::makeProperty(new sh::StringValue("wrap clamp")));
+            break;
+        case 3:
+            instance->setProperty("clamp_mode", sh::makeProperty(new sh::StringValue("wrap wrap")));
+            break;
+        default:
+            break;
+    }
+
+    // alpha
+    instance->setProperty("alpha", sh::makeProperty(new sh::FloatValue(bsLightingShaderProperty->mAlpha)));
+
+    // uv
+    instance->setProperty("uv_offset", sh::makeProperty(new sh::Vector2(
+                bsLightingShaderProperty->mUVOffset.u,
+                bsLightingShaderProperty->mUVOffset.v)));
+
+    instance->setProperty("uv_scale", sh::makeProperty(new sh::Vector2(
+                bsLightingShaderProperty->mUVScale.u,
+                bsLightingShaderProperty->mUVScale.v)));
+
+    // flags
+    if ((bsLightingShaderProperty->mShaderFlags1 & 0x00400000) != 0)
+    {
+        instance->setProperty("has_own_emit", sh::makeProperty(new sh::BooleanValue(true)));
+    }
+
+    // already set above
+    //if ((bsLightingShaderProperty->mShaderFlags1 & 0x00001000) != 0)
+        //instance->setProperty("has_msn", sh::makeProperty(new sh::BooleanValue(true)));
+
+    if ((bsLightingShaderProperty->mShaderFlags2 & 0x02000000) != 0)
+        instance->setProperty("has_soft_light", sh::makeProperty(new sh::BooleanValue(true)));
+
+    if ((bsLightingShaderProperty->mShaderFlags2 & 0x04000000) != 0)
+        instance->setProperty("has_rim_light", sh::makeProperty(new sh::BooleanValue(true)));
+
+    if ((bsLightingShaderProperty->mShaderFlags2 & 0x08000000) != 0)
+        instance->setProperty("has_back_light", sh::makeProperty(new sh::BooleanValue(true)));
+
+    if (bsLightingShaderProperty->getSkyrimShaderType() == 4)  // face tint
+        instance->setProperty("has_detail_mask", sh::makeProperty(new sh::BooleanValue(true)));
+
+    if (bsLightingShaderProperty->getSkyrimShaderType() == 5) // skin tint
+    {
+        instance->setProperty("has_tint_color", sh::makeProperty(new sh::BooleanValue(true)));
+
+        instance->setProperty("tintColor", sh::makeProperty(new sh::Vector3(
+                    bsLightingShaderProperty->mSkinTintColor.x,
+                    bsLightingShaderProperty->mSkinTintColor.y,
+                    bsLightingShaderProperty->mSkinTintColor.z)));
+    }
+    else if (bsLightingShaderProperty->getSkyrimShaderType() == 6)    // hair tint
+    {
+        instance->setProperty("has_tint_color", sh::makeProperty(new sh::BooleanValue(true)));
+
+        instance->setProperty("tintColor", sh::makeProperty(new sh::Vector3(
+                    bsLightingShaderProperty->mHairTintColor.x,
+                    bsLightingShaderProperty->mHairTintColor.y,
+                    bsLightingShaderProperty->mHairTintColor.z)));
+    }
+
+    // specular
+    if ((bsLightingShaderProperty->mShaderFlags1 & 0x00000001) != 0)
+    {
+        instance->setProperty("has_specular", sh::makeProperty(new sh::BooleanValue(true)));
+
+        instance->setProperty("specularColor", sh::makeProperty(new sh::Vector3(
+                    bsLightingShaderProperty->mSpecularColor.x,
+                    bsLightingShaderProperty->mSpecularColor.y,
+                    bsLightingShaderProperty->mSpecularColor.z)));
+
+        instance->setProperty("specular_strength", sh::makeProperty(new sh::FloatValue(
+                    bsLightingShaderProperty->mSpecularStrength)));
+
+        instance->setProperty("specular_glossiness", sh::makeProperty(new sh::FloatValue(
+                    bsLightingShaderProperty->mGlossiness)));
+    }
+    //else
+    //{
+    //    // FIXME: is setting false necessary?
+    //    //instance->setProperty("has_specular", sh::makeProperty(new sh::BooleanValue(false)));
+
+    //    instance->setProperty("specularColor", sh::makeProperty(new sh::Vector3(0.f, 0.f, 0.f)));
+    //    instance->setProperty("specularStrength", sh::makeProperty(new sh::FloatValue(0.f)));
+    //    instance->setProperty("specularGlossiness", sh::makeProperty(new sh::FloatValue(0.f)));
+    //}
+
+    // emissive
+    instance->setProperty("emissiveColor", sh::makeProperty(new sh::Vector3(
+                bsLightingShaderProperty->mEmissiveColor.x,
+                bsLightingShaderProperty->mEmissiveColor.y,
+                bsLightingShaderProperty->mEmissiveColor.z)));
+
+    instance->setProperty("emissive_mult", sh::makeProperty(new sh::FloatValue(
+                bsLightingShaderProperty->mEmissiveMultiple)));
+
+    if (tset)
+    {
+        // base/diffuse map
+        if (!tset->mTextures[0].empty())
+        {
+            instance->setProperty("diffuseMap", sh::makeProperty(
+                                           Misc::ResourceHelpers::correctTexturePath(tset->mTextures[0])));
+            instance->setProperty("use_diffuse_map", sh::makeProperty(new sh::BooleanValue(true)));
+        }
+
+        // normal map
+        if (!tset->mTextures[1].empty())
+        {
+            instance->setProperty("normalMap", sh::makeProperty(
+                                           Misc::ResourceHelpers::correctTexturePath(tset->mTextures[1])));
+
+            // FIXME: this property is for terrain
+            //instance->setProperty("use_normal_map", sh::makeProperty(new sh::BooleanValue(true)));
+        }
+
+        // glow/specular map
+        // FIXME: also light mask?
+        if (!tset->mTextures[2].empty())
+        {
+            // FIXME: glow is 5? (same as env?)
+            if ((bsLightingShaderProperty->mShaderFlags2 & 0x00000040) != 0)
+                instance->setProperty("glowMap", sh::makeProperty(
+                                           Misc::ResourceHelpers::correctTexturePath(tset->mTextures[2])));
+            else
+                instance->setProperty("lightMask", sh::makeProperty(
+                                           Misc::ResourceHelpers::correctTexturePath(tset->mTextures[2])));
+        }
+
+        // height map (default shader) / detail map (msn)
+        if (!tset->mTextures[3].empty())
+        {
+            if (bsLightingShaderProperty->getSkyrimShaderType() == 3 && // parallax/height
+               (bsLightingShaderProperty->mShaderFlags1 & 0x00000800) != 0)
+            {
+                instance->setProperty("has_height_map", sh::makeProperty(new sh::BooleanValue(true)));
+
+                instance->setProperty("heightMap", sh::makeProperty(
+                                           Misc::ResourceHelpers::correctTexturePath(tset->mTextures[3])));
+            }
+            else
+            {
+                //instance->setProperty("has_detail_map", sh::makeProperty(new sh::BooleanValue(true)));
+
+                instance->setProperty("detailMap", sh::makeProperty(
+                                           Misc::ResourceHelpers::correctTexturePath(tset->mTextures[3])));
+            }
+        }
+        //else
+        // FIXME: use default?
+
+        // environment/cube map; default shader only
+        if (!tset->mTextures[4].empty())
+        {
+            instance->setProperty("environmentMap", sh::makeProperty(
+                                           Misc::ResourceHelpers::correctTexturePath(tset->mTextures[4])));
+        }
+
+        // FIXME: just a guess
+        if (!tset->mTextures[5].empty())
+        {
+            instance->setProperty("environmentMask", sh::makeProperty(
+                                           Misc::ResourceHelpers::correctTexturePath(tset->mTextures[5])));
+        }
+
+        // FIXME: just a guess
+        if (!tset->mTextures[6].empty())
+        {
+            // default is grey?
+            std::string texture = tset->mTextures[6];
+            if (texture.substr(1, 4) == "ata\\")
+                instance->setProperty("tintMap", sh::makeProperty("t"+texture.substr(6)));
+            else
+                instance->setProperty("tintMap", sh::makeProperty(
+                                           Misc::ResourceHelpers::correctTexturePath(tset->mTextures[6])));
+        }
+
+        // backlight map? also specular?
+        if (!tset->mTextures[7].empty())
+        {
+            if ((bsLightingShaderProperty->mShaderFlags2 & 0x08000000) != 0)
+            {
+                instance->setProperty("backlightMap", sh::makeProperty(
+                                           Misc::ResourceHelpers::correctTexturePath(tset->mTextures[7])));
+            }
+            else if ((bsLightingShaderProperty->mShaderFlags1 & 0x00000001) != 0)
+                instance->setProperty("specularMap", sh::makeProperty(
+                                           Misc::ResourceHelpers::correctTexturePath(tset->mTextures[7])));
+        }
+    }
+
+    if (vertexColor)
+        instance->setProperty("has_vertex_color", sh::makeProperty(new sh::BooleanValue(true)));
+#if 0
+    // Add transparency if NiAlphaProperty was present
+    if((alphaFlags&1))
+    {
+        std::string blend_mode;
+        blend_mode += getBlendFactor((alphaFlags>>1)&0xf);
+        blend_mode += " ";
+        blend_mode += getBlendFactor((alphaFlags>>5)&0xf);
+        instance->setProperty("scene_blend", sh::makeProperty(new sh::StringValue(blend_mode)));
+    }
+
+    if((alphaFlags>>9)&1)
+    {
+        std::string reject;
+        reject += getTestMode((alphaFlags>>10)&0x7);
+        reject += " ";
+        reject += std::to_string(alphaTest);
+        instance->setProperty("alpha_rejection", sh::makeProperty(new sh::StringValue(reject)));
+    }
+    else
+        instance->getMaterial()->setShadowCasterMaterial("openmw_shadowcaster_noalpha");
+
+    // Ogre usually only sorts if depth write is disabled, so we want "force" instead of "on"
+    instance->setProperty("transparent_sorting", sh::makeProperty(new sh::StringValue(
+        ((alphaFlags&1) && !((alphaFlags>>13)&1)) ? "force" : "off")));
+
+    instance->setProperty("depth_check", sh::makeProperty(new sh::StringValue((depthFlags&1) ? "on" : "off")));
+    instance->setProperty("depth_write", sh::makeProperty(new sh::StringValue(((depthFlags>>1)&1) ? "on" : "off")));
+    // depth_func???
+
+    if(vertMode == 0 || !vertexColor)
+    {
+        instance->setProperty("ambient", sh::makeProperty(new sh::Vector4(ambient.x, ambient.y, ambient.z, 1)));
+        instance->setProperty("diffuse", sh::makeProperty(new sh::Vector4(diffuse.x, diffuse.y, diffuse.z, alpha)));
+        instance->setProperty("emissive", sh::makeProperty(new sh::Vector4(emissive.x, emissive.y, emissive.z, 1)));
+        instance->setProperty("vertmode", sh::makeProperty(new sh::StringValue("0")));
+    }
+    else if(vertMode == 1)
+    {
+        instance->setProperty("ambient", sh::makeProperty(new sh::Vector4(ambient.x, ambient.y, ambient.z, 1)));
+        instance->setProperty("diffuse", sh::makeProperty(new sh::Vector4(diffuse.x, diffuse.y, diffuse.z, alpha)));
+        instance->setProperty("emissive", sh::makeProperty(new sh::StringValue("vertexcolour")));
+        instance->setProperty("vertmode", sh::makeProperty(new sh::StringValue("1")));
+    }
+    else if(vertMode == 2)
+    {
+        instance->setProperty("ambient", sh::makeProperty(new sh::StringValue("vertexcolour")));
+        instance->setProperty("diffuse", sh::makeProperty(new sh::StringValue("vertexcolour")));
+        instance->setProperty("emissive", sh::makeProperty(new sh::Vector4(emissive.x, emissive.y, emissive.z, 1)));
+        instance->setProperty("vertmode", sh::makeProperty(new sh::StringValue("2")));
+    }
+    else
+        std::cerr << "Unhandled vertex mode: " << vertMode << std::endl;
+
+    if(specFlags)
+    {
+        instance->setProperty("specular",
+                sh::makeProperty(new sh::Vector4(specular.x, specular.y, specular.z, glossiness)));
+    }
+
+    if(wireFlags)
+    {
+        instance->setProperty("polygon_mode", sh::makeProperty(new sh::StringValue("wireframe")));
+    }
+#endif
+
+    // Don't use texName, as it may be overridden
+    mNeedTangents = false;//!sh::retrieveValue<sh::StringValue>(instance->getProperty("normalMap"), instance).get().empty()
+        //&& (texName[NiTexturingProperty::Texture_BumpMap].find("_msn.") != std::string::npos); // FIXME: quick test
 
     return name;
 }

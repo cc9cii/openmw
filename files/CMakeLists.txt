@@ -16,6 +16,12 @@ set(MATERIAL_FILES
     objects.mat
     objects.shader
     objects.shaderset
+    tes5objects.mat
+    tes5objects.shader
+    tes5objects.shaderset
+    tes5msnobjects.mat
+    tes5msnobjects.shader
+    tes5msnobjects.shaderset
     openmw.configuration
     pathgrid_pt.nif
     quad.mat

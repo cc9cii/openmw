@@ -1127,3 +1127,4 @@ template class MWWorld::ForeignStore<ESM4::ItemMod>;
 template class MWWorld::ForeignStore<ESM4::PlaceableWater>;
 template class MWWorld::ForeignStore<ESM4::StaticCollection>;
 template class MWWorld::ForeignStore<ESM4::AnimObject>;
+template class MWWorld::ForeignStore<ESM4::Outfit>;

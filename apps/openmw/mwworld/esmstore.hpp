@@ -141,6 +141,7 @@ namespace MWWorld
         ForeignStore<ESM4::PlaceableWater> mPlaceableWaters;
         ForeignStore<ESM4::StaticCollection> mStaticCollections;
         ForeignStore<ESM4::SoundReference> mSoundReferences;
+        ForeignStore<ESM4::Outfit>     mOutfits;
 
         // Lookup of all IDs. Makes looking up references faster. Just
         // maps the id name to the record type.
@@ -322,6 +323,7 @@ namespace MWWorld
           //mForeignStores[ESM4::REC_CCRD] = &mCaravanCard;
           //mForeignStores[ESM4::REC_CMNY] = &mCaravanMoney;
             mForeignStores[ESM4::REC_SNDR] = &mSoundReferences;
+            mForeignStores[ESM4::REC_OTFT] = &mOutfits;
 
             mForeignStores[ESM4::REC_ANIO] = &mForeignAnimObjs;
 
@@ -985,6 +987,11 @@ namespace MWWorld
     template <>
     inline const ForeignStore<ESM4::SoundReference>& ESMStore::getForeign<ESM4::SoundReference>() const {
         return mSoundReferences;
+    }
+
+    template <>
+    inline const ForeignStore<ESM4::Outfit>& ESMStore::getForeign<ESM4::Outfit>() const {
+        return mOutfits;
     }
 }
 

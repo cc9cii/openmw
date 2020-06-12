@@ -199,13 +199,13 @@ NiBtOgre::NiTriBasedGeom *NiBtOgre::NiNode::getSubMeshChildFO3(bool hat)
 void NiBtOgre::NiNode::buildMesh(Ogre::Mesh *mesh)
 {
     BoundsFinder bounds;
-    bool needTangents = false;
+    bool needTangents = true;
 
     // create and update (i.e. apply materials, properties and controllers)
     // an Ogre::SubMesh for each in mSubMeshGeometry
     for (size_t i = 0; i < mSubMeshChildren.size(); ++i)
     {
-        needTangents |= mSubMeshChildren[i]->buildSubMesh(mesh, bounds);
+        needTangents &= mSubMeshChildren[i]->buildSubMesh(mesh, bounds);
     }
 
     // build tangents if at least one of the sub-mesh's material needs them

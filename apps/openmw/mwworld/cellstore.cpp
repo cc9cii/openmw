@@ -434,8 +434,20 @@ namespace MWWorld
     {
         if (!mIsForeignCell)
             mWaterLevel = cell->mWater;
+        else if (mCell)
+        {
+            // use the one from world, since the cell water height is for rivers, ponds, etc
+            //mWaterLevel = static_cast<const ForeignCell*>(mCell)->mWaterHeight; // Non-ocean water-height
+            const ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
+            const ForeignWorld* world
+                = store.getForeign<ForeignWorld>().find(static_cast<const ForeignCell*>(mCell)->mCell->mParent);
+            if (world)
+                mWaterLevel = world->mWaterLevel;
+            else
+                mWaterLevel = 0.f; // FIXME: throw?
+        }
         else
-            mWaterLevel = 0.f; // FIXME: should lookup formid and determine?
+            mWaterLevel = 0.f;
 
         mStores[ESM4::REC_SOUN] = &mSounds;
         mStores[ESM4::REC_ACTI] = &mForeignActivators;

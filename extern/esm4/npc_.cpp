@@ -38,7 +38,7 @@ ESM4::Npc::Npc() : mFormId(0), mFlags(0), mIsTES4(false), mIsFONV(false), mRace(
                    mEyes(0), mHairLength(0.f), mHairColourId(0), mDeathItem(0),
                    mScript(0), mCombatStyle(0), mSoundBase(0), mSound(0), mSoundChance(0),
                    mFootWeight(0.f), mBoundRadius(0.f), mBaseTemplate(0), mWornArmor(0), mFgRace(0),
-                   mDefaultOutfit(0), mSleepOutfit(0)
+                   mDefaultOutfit(0), mSleepOutfit(0), mDefaultPkg(0)
 {
     mEditorId.clear();
     mFullName.clear();
@@ -250,11 +250,13 @@ void ESM4::Npc::load(ESM4::Reader& reader)
             }
             case ESM4::SUB_DOFT: reader.getFormId(mDefaultOutfit); break;
             case ESM4::SUB_SOFT: reader.getFormId(mSleepOutfit); break;
+            case ESM4::SUB_DPLT: reader.getFormId(mDefaultPkg); break; // AI package list
+            case ESM4::SUB_NAM6: // height mult
+            case ESM4::SUB_NAM7: // weight mult
             case ESM4::SUB_ATKR:
             case ESM4::SUB_CRIF:
             case ESM4::SUB_CSDT:
             case ESM4::SUB_DNAM:
-            case ESM4::SUB_DPLT:
             case ESM4::SUB_ECOR:
             case ESM4::SUB_ANAM:
             case ESM4::SUB_ATKD:
@@ -266,8 +268,6 @@ void ESM4::Npc::load(ESM4::Reader& reader)
             case ESM4::SUB_KSIZ:
             case ESM4::SUB_KWDA:
             case ESM4::SUB_NAM5:
-            case ESM4::SUB_NAM6:
-            case ESM4::SUB_NAM7:
             case ESM4::SUB_NAM8:
             case ESM4::SUB_NAM9:
             case ESM4::SUB_NAMA:
@@ -297,6 +297,7 @@ void ESM4::Npc::load(ESM4::Reader& reader)
                 throw std::runtime_error("ESM4::NPC_::load - Unknown subrecord " + ESM4::printName(subHdr.typeId));
         }
     }
+    //std::cout << mEditorId << " " << formIdToString(mDefaultPkg) << std::endl;
 }
 
 //void ESM4::Npc::save(ESM4::Writer& writer) const

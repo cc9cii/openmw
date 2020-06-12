@@ -226,14 +226,17 @@ void MWWorld::Cells::initNewWorld(const ForeignWorld *world)
 #ifdef LANDSCAPE_LOD_TEST
         std::string worldIdDecimal = std::to_string(unsigned int(world->mFormId));
 
+        // TES5 seems to use meshes\terrain\<worldname>\<type>.<size>.<x>.<y>.btr
+        // where type can be objects, trees, <worldname> (e.g. tamriel)
+        // the .btr file looks like a NIF, starting with BSMultiBoundNode (Nifskope can open)
         const Ogre::StringVectorPtr res
             //= groupMgr.findResourceNames(locations[i], "meshes\\landscape\\lod\\"+worldIdDecimal+"*");
-            = groupMgr.findResourceNames(locations[i], "meshes\\landscape\\lod\\*");
+            = groupMgr.findResourceNames(locations[i], "meshes\\landscape\\lod\\*"); // TES4
         Ogre::StringVector::const_iterator it = res->begin();
         for (; it != res->end(); ++it)
         {
             std::int32_t lod[4];
-            std::size_t next = 21; // 'meshes\landscape\lod\'
+            std::size_t next = 21; // 'meshes\landscape\lod\', TES4
             std::size_t pos = 0;
             for (std::size_t j = 0; j < 4; ++j)
             {
@@ -252,17 +255,18 @@ void MWWorld::Cells::initNewWorld(const ForeignWorld *world)
             }
         }
 #endif // LANDSCAPE_LOD_TEST
+        // TES5 doesn't seem to have a file equivalent to ".cmp"
         // FIXME: this initialises *all* worlds, not just the parameter 'world'
         const Ogre::StringVectorPtr res2
             //= groupMgr.findResourceNames(locations[i], "distantlod\\"+world->mEditorId+"*");
-            = groupMgr.findResourceNames(locations[i], "distantlod\\*");
+            = groupMgr.findResourceNames(locations[i], "distantlod\\*"); // TES4
         Ogre::StringVector::const_iterator it2 = res2->begin();
         for (; it2 != res2->end(); ++it2)
         {
-            std::size_t pos = (*it2).find(".cmp");
+            std::size_t pos = (*it2).find(".cmp"); // TES4
             if (pos != std::string::npos)
             {
-                std::string worldEditorId = (*it2).substr(11, pos-11); // 11 for 'distantlod\'
+                std::string worldEditorId = (*it2).substr(11, pos-11); // 11 for 'distantlod\', TES4
                 if (Misc::StringUtils::lowerCase(world->mEditorId) == worldEditorId)
                     const_cast<ForeignWorld*>(world)->addVisibleDistGrids(*it2, locations[i]); // FIXME const
 

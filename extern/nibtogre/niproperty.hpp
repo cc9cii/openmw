@@ -200,6 +200,8 @@ namespace NiBtOgre
                                            std::vector<Ogre::Controller<float> >& controllers);
     };
 
+    struct BSShaderTextureSet;
+
     // Seen in NIF version 20.2.0.7
     class BSLightingShaderProperty : public NiProperty
     {
@@ -213,7 +215,7 @@ namespace NiBtOgre
         float mEmissiveMultiple;
         std::uint32_t mTextureClampMode;
         float mAlpha;
-        float mUnknown2;
+        float mRefractionStrength;
         float mGlossiness;
         Ogre::Vector3 mSpecularColor;
         float mSpecularStrength;
@@ -241,6 +243,10 @@ namespace NiBtOgre
 
         virtual void applyMaterialProperty(OgreMaterial& material,
                                            std::vector<Ogre::Controller<float> >& controllers);
+
+        std::uint32_t getSkyrimShaderType() const { return NiObjectNET::mSkyrimShaderType; }
+
+        const BSShaderTextureSet *getBSShaderTextureSet() const;
     };
 
     class BSShaderLightingProperty : public NiProperty

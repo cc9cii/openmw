@@ -459,7 +459,20 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
     Ogre::Matrix4 transform = Ogre::Matrix4(Ogre::Matrix4::IDENTITY);
     //if (!isStatic)
     if (mSkinInstanceRef != -1) // using the local transform doesn't seem to do much
+    {
+#if 1
         transform = mParent->getLocalTransform() * mLocalTransform;
+#else
+        const NiSkinInstance *skinInstance = mModel.getRef<NiSkinInstance>(mSkinInstanceRef);
+        const NiSkinData *skinData = mModel.getRef<NiSkinData>(skinInstance->mDataRef);
+
+        Ogre::Matrix4 skinTransform = Ogre::Matrix4(Ogre::Matrix4::IDENTITY);
+        skinTransform.makeTransform(skinData->mSkinTransform.translation,
+                                     Ogre::Vector3(skinData->mSkinTransform.scale),
+                                     Ogre::Quaternion(skinData->mSkinTransform.rotation));
+        transform = mParent->getLocalTransform() * mLocalTransform * skinTransform;
+#endif
+    }
     //else if (mModel.getName().find("geardoor") != std::string::npos)
         //transform = mParent->getLocalTransform() * mLocalTransform;
     else
@@ -771,6 +784,8 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
             if (nodeName == "Bip01 L Sholder" || nodeName == "Bip01 R Sholder")
                 continue;
 #endif
+            if (nodeName == "NPC Spine2 [Spn2]")
+                continue;
 
             boneInf.boneIndex = mModel.getSkeleton()->getBone(/*"#"+std::to_string(skinInstance->mBoneRefs[i])+"%"+*/nodeName)->getHandle();
 

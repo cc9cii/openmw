@@ -248,7 +248,7 @@ void ESMStore::loadTes4Group (ESM::ESMReader &esm)
                 hdr.group.label.value == ESM4::REC_PWAT || hdr.group.label.value == ESM4::REC_SCOL ||
                 hdr.group.label.value == ESM4::REC_MUSC || hdr.group.label.value == ESM4::REC_ALOC ||
                 hdr.group.label.value == ESM4::REC_MSET || hdr.group.label.value == ESM4::REC_DOBJ ||
-                hdr.group.label.value == ESM4::REC_SNDR
+                hdr.group.label.value == ESM4::REC_SNDR || hdr.group.label.value == ESM4::REC_OTFT
                 )
             {
                 reader.saveGroupStatus();
@@ -306,7 +306,7 @@ void ESMStore::loadTes4Group (ESM::ESMReader &esm)
 
                 // FIXME: come up with a better test, e.g. check if empty somehow? check the
                 // size of the stack before/after? etc
-                std::cout << "type " << reader.grp(1).type << std::endl; // FIXME
+                std::cout << "Grp_CellPersistentChild parent type " << reader.grp(1).type << std::endl; // FIXME
 
                 break; // return instead?
                 //throw std::runtime_error ("Unexpected group hierarchy in CellPersistentChild");
@@ -416,6 +416,7 @@ void ESMStore::loadTes4Record (ESM::ESMReader& esm)
             case ESM4::REC_IDLE: // TODO
             case ESM4::REC_CCRD: // TODO
             case ESM4::REC_CMNY: // TODO
+            case ESM4::REC_OTFT:
             {
                 break; // handled below
             }
@@ -663,6 +664,13 @@ void ESMStore::loadTes4Record (ESM::ESMReader& esm)
         // FIXME: should only get loaded in CellStore::loadTes4Record()?
         case ESM4::REC_PGRE: reader.getRecordData(); mPlacedGrenades.loadForeign(reader); break;
         case ESM4::REC_SNDR: reader.getRecordData(); mSoundReferences.loadForeign(reader); break;
+        case ESM4::REC_OTFT:
+        {
+            reader.getRecordData();
+            mOutfits.loadForeign(reader);
+
+            break;
+        }
         //case ESM4::REC_REGN:
         case ESM4::REC_PHZD: // Skyrim only?
         case ESM4::REC_ROAD: case ESM4::REC_NAVM: case ESM4::REC_NAVI:

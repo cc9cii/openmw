@@ -135,8 +135,23 @@ namespace MWClass
 
     void ForeignNpc::insertObject(const MWWorld::Ptr& ptr, const std::string& model, MWWorld::PhysicsSystem& physics) const
     {
+        // FIXME: in TES5 the skeletal model is in Race
         if (model == "")
-            return; // TES5 mEditorId = "EncSkeever"
+        {
+            const ESM4::Npc *npc = ptr.get<ESM4::Npc>()->mBase;
+            if (!npc)
+                return;
+
+            const MWWorld::ESMStore &store = MWBase::Environment::get().getWorld()->getStore();
+            const ESM4::Race *race = store.getForeign<ESM4::Race>().search(npc->mRace); // WARN: might be null
+            if (race && race->mModelMale != "" || race->mModelFemale != "")
+            {
+                //physics.addActor(ptr, /*skelModel*/model);
+                MWBase::Environment::get().getMechanicsManager()->add(ptr);
+            }
+
+            return;
+        }
 
 #if 0 // FIXME: doesn't work for FO3
             const MWWorld::ESMStore &store = MWBase::Environment::get().getWorld()->getStore();
@@ -495,10 +510,36 @@ namespace MWClass
             // inventory
             // setting ownership is used to make the NPC auto-equip his initial equipment only, and not bartered items
 
+            ESM::InventoryList inventory;
+            int gameType = data->mGameType;
+
+            if (gameType == 2) // TES5
+            {
+                // add default outfit before any other inventory items
+                // FIXME: should find a way to treat the outfit as a set rather than individual items
+                ESM4::FormId outfitId = ref->mBase->mDefaultOutfit;
+                if (outfitId)
+                {
+                    const ESM4::Outfit* outfit = store.getForeign<ESM4::Outfit>().search(outfitId);
+                    if (outfit)
+                    {
+                        for (std::size_t i = 0; i < outfit->mInventory.size(); ++i)
+                        {
+                            // get ARMO or LVLI
+                            // FIXME: search ESMStore?
+                            ESM::ContItem item;
+                            item.mCount = 1;
+                            item.mItem.assign(ESM4::formIdToString(outfit->mInventory[i]));
+
+                            inventory.mList.push_back(item);
+                        }
+                    }
+                }
+            }
 
             // make ESM4 inventory look like ESM::InventoryList so that we can pass it to
             // mInventoryStore.fill()
-            ESM::InventoryList inventory;
+            //ESM::InventoryList inventory;
             for (unsigned int i = 0; i < ref->mBase->mInventory.size(); ++i)
             {
                 ESM::ContItem item;
@@ -512,8 +553,6 @@ namespace MWClass
             data->mInventoryStore->fill(inventory, getId(ptr));
 
             data->mNpcStats.setGoldPool(gold);
-
-            int gameType = data->mGameType;
 
             // store the data
             ptr.getRefData().setCustomData (data.release());
