@@ -65,7 +65,8 @@ CubeReflection::CubeReflection(Ogre::SceneManager* sceneManager)
 
 CubeReflection::~CubeReflection ()
 {
-    Ogre::TextureManager::getSingleton ().remove("CubeReflection");
+    Ogre::TextureManager::getSingleton ().remove("CubeReflection",
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
     mSceneMgr->destroyCamera (mCamera);
 }
 
@@ -107,7 +108,8 @@ PlaneReflection::~PlaneReflection ()
     mRenderTarget->removeListener (this);
     mSceneMgr->destroyCamera (mCamera);
     mSceneMgr->removeRenderQueueListener(this);
-    TextureManager::getSingleton ().remove("WaterReflection");
+    TextureManager::getSingleton ().remove("WaterReflection",
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 }
 
 void PlaneReflection::renderQueueStarted (Ogre::uint8 queueGroupId, const Ogre::String &invocation, bool &skipThisInvocation)
@@ -290,7 +292,8 @@ void Water::setActive(bool active)
 
 Water::~Water()
 {
-    MeshManager::getSingleton().remove("water");
+    MeshManager::getSingleton().remove("water",
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 
     mWaterNode->detachObject(mWater);
     mSceneMgr->destroyEntity(mWater);

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <map>
 #include <cmath> // fmod
+#include <cfloat> // for gcc
 
 #include <OgreResourceGroupManager.h>
 

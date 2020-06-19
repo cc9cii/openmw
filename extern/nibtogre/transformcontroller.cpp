@@ -1,6 +1,7 @@
 #include "transformcontroller.hpp"
 
 #include <iostream> // FIXME
+#include <climits> // for gcc
 
 #include <OgreNode.h>
 #include <OgreBone.h> // FIXME: debugging

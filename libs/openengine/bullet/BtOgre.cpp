@@ -1175,7 +1175,12 @@ void RigidBodyState::setWorldTransform(const btTransform &centerOfMassWorldTrans
     DynamicLines::DynamicLines(OperationType opType)
     {
         initialize(opType,false);
+#if 0
         setMaterial("BaseWhiteNoLighting");
+#else
+        Ogre::MaterialPtr mat = Ogre::MaterialManager::getSingleton().getByName("BaseWhiteNoLighting");
+        setMaterial(mat);
+#endif
         mDirty = true;
     }
 

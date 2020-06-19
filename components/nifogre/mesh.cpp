@@ -165,7 +165,7 @@ void NIFMeshLoader::createSubMesh(Ogre::Mesh *mesh, const Nif::NiTriShape *shape
     else
     {
         Ogre::SkeletonManager *skelMgr = Ogre::SkeletonManager::getSingletonPtr();
-        if(!skelMgr->getByName(mName))
+        if(!skelMgr->getByName(mName, "General"))
         {
             // No skinning and no skeleton, so just transform the vertices and
             // normals into position.
@@ -294,7 +294,7 @@ void NIFMeshLoader::createSubMesh(Ogre::Mesh *mesh, const Nif::NiTriShape *shape
     // Assign bone weights for this TriShape
     if(skin != NULL)
     {
-        Ogre::SkeletonPtr skel = Ogre::SkeletonManager::getSingleton().getByName(mName);
+        Ogre::SkeletonPtr skel = Ogre::SkeletonManager::getSingleton().getByName(mName, "General");
 
         const Nif::NiSkinData *data = skin->data.getPtr();
         const Nif::NodeList &bones = skin->bones;
@@ -389,7 +389,7 @@ void NIFMeshLoader::loadResource(Ogre::Resource *resource)
     if(mShapeIndex >= nif->numRecords())
     {
         Ogre::SkeletonManager *skelMgr = Ogre::SkeletonManager::getSingletonPtr();
-        if(skelMgr->getByName(mName))
+        if(skelMgr->getByName(mName, "General"))
             mesh->setSkeletonName(mName);
         return;
     }

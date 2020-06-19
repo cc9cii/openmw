@@ -445,7 +445,7 @@ class TES4BSAArchive : public BSAArchive
     Bsa::TES4BSAFile arc;
 
 public:
-    TES4BSAArchive::TES4BSAArchive(const String& name) : BSAArchive(name, "TES4BSA") { arc.open(name); }
+    TES4BSAArchive(const String& name) : BSAArchive(name, "TES4BSA") { arc.open(name); }
 
     virtual DataStreamPtr open(const String& filename, bool readonly = true) const
     {

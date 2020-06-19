@@ -178,6 +178,8 @@ target_link_libraries(components
     ${OGRE_LIBRARIES}
     ${OENGINE_LIBRARY}
     ${BULLET_LIBRARIES}
+    ${ESM4_LIBRARIES}
+    ${BSAOPTHASH_LIBRARIES}
 )
 
 if (WIN32)

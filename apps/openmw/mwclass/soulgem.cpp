@@ -162,6 +162,7 @@ namespace MWClass
         MWWorld::Ptr newPtr(cell.getForeign<ESM4::SoulGem>().insert(*ref), &cell);
         cell.updateLookupMaps(newPtr.getBase()->mRef.getFormId(), ref, ESM4::REC_SLGM);
 
-        return std::move(newPtr);
+        //return std::move(newPtr);
+        return newPtr;
     }
 }

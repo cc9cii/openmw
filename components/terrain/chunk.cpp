@@ -96,7 +96,8 @@ namespace Terrain
 #if TERRAIN_USE_SHADER
             sh::Factory::getInstance().destroyMaterialInstance(mMaterial->getName());
 #endif
-            Ogre::MaterialManager::getSingleton().remove(mMaterial->getName());
+            Ogre::MaterialManager::getSingleton().remove(mMaterial->getName(),
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
         }
         OGRE_DELETE mVertexData;
         OGRE_DELETE mIndexData;
@@ -110,7 +111,8 @@ namespace Terrain
 #if TERRAIN_USE_SHADER
             sh::Factory::getInstance().destroyMaterialInstance(mMaterial->getName());
 #endif
-            Ogre::MaterialManager::getSingleton().remove(mMaterial->getName());
+            Ogre::MaterialManager::getSingleton().remove(mMaterial->getName(),
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
         }
 
         mMaterial = material;

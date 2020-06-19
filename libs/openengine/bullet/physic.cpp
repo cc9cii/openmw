@@ -225,9 +225,9 @@ namespace Physic
     RigidBody::RigidBody(btRigidBody::btRigidBodyConstructionInfo& CI,std::string name)
         : btRigidBody(CI)
         , mName(name)
-        , mPlaceable(false)
         , mLocalTransform(Ogre::Matrix4::IDENTITY)
         , mIsForeign(false)
+        , mPlaceable(false)
     {
     }
 
@@ -567,7 +567,15 @@ namespace Physic
             Ogre::Vector3 pos;
             Ogre::Vector3 nodeScale; // FIXME: apply scale?
             Ogre::Quaternion rot;
+#if 1
             iter->second.first.decomposition(pos, nodeScale, rot);
+#else
+            Ogre::Matrix3 matQ;
+            Ogre::Vector3 vecU;
+            iter->second.first.linear().QDUDecomposition(matQ, nodeScale, vecU);
+            pos = iter->second.first.getTrans();
+            rot = Ogre::Quaternion(matQ);
+#endif
 
             if (body->getCollisionShape()->getUserIndex() == 4) // useFullTransform
                 adjustRigidBody(body, position, rotation, Ogre::Vector3(0.f) * scale, Ogre::Quaternion::IDENTITY);
@@ -677,7 +685,15 @@ namespace Physic
                 Ogre::Vector3 pos;
                 Ogre::Vector3 nodeScale; // FIXME: apply scale?
                 Ogre::Quaternion rot;
+#if 1
                 iter->second.first.decomposition(pos, nodeScale, rot);
+#else
+                Ogre::Matrix3 matQ;
+                Ogre::Vector3 vecU;
+                iter->second.first.linear().QDUDecomposition(matQ, nodeScale, vecU);
+                pos = iter->second.first.getTrans();
+                rot = Ogre::Quaternion(matQ);
+#endif
 
                 if (body->getCollisionShape()->getUserIndex() == 4) // useFullTransform
                 {
@@ -905,7 +921,7 @@ namespace Physic
         // added in bullet 2.81
         // this is just a quick hack, as there does not seem to be a BULLET_VERSION macro?
 #if defined(BT_COLLISION_OBJECT_WRAPPER_H)
-        virtual	btScalar addSingleResult(btManifoldPoint& cp,
+        virtual btScalar addSingleResult(btManifoldPoint& cp,
                                             const btCollisionObjectWrapper* colObj0Wrap,int partId0,int index0,
                                             const btCollisionObjectWrapper* colObj1Wrap,int partId1,int index1)
         {
@@ -1091,13 +1107,13 @@ namespace Physic
     }
 
     // callback that ignores player in results
-    struct	OurClosestConvexResultCallback : public btCollisionWorld::ClosestConvexResultCallback
+    struct OurClosestConvexResultCallback : public btCollisionWorld::ClosestConvexResultCallback
     {
     public:
-        OurClosestConvexResultCallback(const btVector3&	convexFromWorld,const btVector3&	convexToWorld)
+        OurClosestConvexResultCallback(const btVector3& convexFromWorld,const btVector3&convexToWorld)
             : btCollisionWorld::ClosestConvexResultCallback(convexFromWorld, convexToWorld) {}
 
-        virtual	btScalar	addSingleResult(btCollisionWorld::LocalConvexResult& convexResult,bool normalInWorldSpace)
+        virtual btScalar addSingleResult(btCollisionWorld::LocalConvexResult& convexResult,bool normalInWorldSpace)
         {
             if (const RigidBody* body = dynamic_cast<const RigidBody*>(convexResult.m_hitCollisionObject))
                 if (body->mName == "player")

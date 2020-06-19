@@ -54,7 +54,7 @@ namespace FgLib
         FgEgm(const std::string& name);
         ~FgEgm();
 
-        inline const std::uint32_t numVertices() const { return mNumVertices; }
+        inline std::uint32_t numVertices() const { return mNumVertices; }
 
         inline const boost::scoped_array<float>& symMorphModeScales() const { return mSymMorphModeScales; }
         inline const boost::scoped_array<float>& asymMorphModeScales() const { return mAsymMorphModeScales; }

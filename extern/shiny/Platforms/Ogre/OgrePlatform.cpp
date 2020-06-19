@@ -86,7 +86,8 @@ namespace sh
 
 	void OgrePlatform::destroyGpuProgram(const std::string &name)
 	{
-		Ogre::HighLevelGpuProgramManager::getSingleton().remove(name);
+		Ogre::HighLevelGpuProgramManager::getSingleton().remove(name,
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 	}
 
 	boost::shared_ptr<GpuProgram> OgrePlatform::createGpuProgram (

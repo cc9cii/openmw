@@ -93,8 +93,8 @@ void Debugging::destroyGridMaterials()
 {
     if (mGridMatsCreated)
     {
-        MaterialManager::getSingleton().remove(PATHGRID_POINT_MATERIAL);
-        MaterialManager::getSingleton().remove(PATHGRID_LINE_MATERIAL);
+        MaterialManager::getSingleton().remove(PATHGRID_POINT_MATERIAL, DEBUGGING_GROUP);
+        MaterialManager::getSingleton().remove(PATHGRID_LINE_MATERIAL, DEBUGGING_GROUP);
         mGridMatsCreated = false;
     }
 }

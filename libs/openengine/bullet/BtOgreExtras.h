@@ -197,25 +197,36 @@ public:
         mNode->attachObject(mLineDrawer);
 
                 if (!Ogre::ResourceGroupManager::getSingleton().resourceGroupExists("BtOgre"))
+                {
                     Ogre::ResourceGroupManager::getSingleton().createResourceGroup("BtOgre");
-                if (!Ogre::MaterialManager::getSingleton().resourceExists("BtOgre/DebugLines"))
+                }
+
+                if (!Ogre::MaterialManager::getSingleton().resourceExists("BtOgre/DebugLines", "BtOgre"))
                 {
                     Ogre::MaterialPtr mat = Ogre::MaterialManager::getSingleton().create("BtOgre/DebugLines", "BtOgre");
                     mat->setReceiveShadows(false);
                     mat->setSelfIllumination(1,1,1);
+
+                    mLineDrawer->setMaterial(mat);
                 }
 
-        mLineDrawer->setMaterial("BtOgre/DebugLines");
+        //mLineDrawer->setMaterial("BtOgre/DebugLines");
 
         //mLineDrawer->setVisibilityFlags (1024);
     }
 
     ~DebugDrawer()
     {
-        if (Ogre::MaterialManager::getSingleton().resourceExists("BtOgre/DebugLines"))
-            Ogre::MaterialManager::getSingleton().remove("BtOgre/DebugLines");
+        if (Ogre::MaterialManager::getSingleton().resourceExists("BtOgre/DebugLines", "BtOgre"))
+        {
+            Ogre::MaterialManager::getSingleton().remove("BtOgre/DebugLines", "BtOgre");
+        }
+
         if (Ogre::ResourceGroupManager::getSingleton().resourceGroupExists("BtOgre"))
+        {
             Ogre::ResourceGroupManager::getSingleton().destroyResourceGroup("BtOgre");
+        }
+
         delete mLineDrawer;
     }
 

@@ -47,7 +47,7 @@ void ESM4::LevelledNpc::load(ESM4::Reader& reader)
     mFormId = reader.hdr().record.id;
     reader.adjustFormId(mFormId);
     mFlags  = reader.hdr().record.flags;
-    std::uint32_t esmVer = reader.esmVersion();
+    //std::uint32_t esmVer = reader.esmVersion(); // currently unused
 
     while (reader.getSubRecordHeader())
     {

@@ -64,8 +64,12 @@ namespace FgLib
             return nullptr; // should never be a new entry - throw?
     }
 
-    std::map<std::string, std::unique_ptr<FgTri> > FgFile<FgTri>::sFgFileMap;
-    std::map<std::string, std::unique_ptr<FgEgm> > FgFile<FgEgm>::sFgFileMap;
-    std::map<std::string, std::unique_ptr<FgEgt> > FgFile<FgEgt>::sFgFileMap;
-    std::map<std::string, std::unique_ptr<FgCtl> > FgFile<FgCtl>::sFgFileMap; // there is only one :-(
+    template<>
+    std::map<std::string, std::unique_ptr<FgTri> > FgFile<FgTri>::sFgFileMap = std::map<std::string, std::unique_ptr<FgTri> >();
+    template<>
+    std::map<std::string, std::unique_ptr<FgEgm> > FgFile<FgEgm>::sFgFileMap = std::map<std::string, std::unique_ptr<FgEgm> >();
+    template<>
+    std::map<std::string, std::unique_ptr<FgEgt> > FgFile<FgEgt>::sFgFileMap = std::map<std::string, std::unique_ptr<FgEgt> >();
+    template<>
+    std::map<std::string, std::unique_ptr<FgCtl> > FgFile<FgCtl>::sFgFileMap = std::map<std::string, std::unique_ptr<FgCtl> >();
 }

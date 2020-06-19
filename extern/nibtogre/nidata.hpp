@@ -295,7 +295,7 @@ namespace NiBtOgre
     };
 
     template<>
-    void Key<Ogre::Quaternion>::read(NiStream *stream, KeyType interpolation)
+    inline void Key<Ogre::Quaternion>::read(NiStream *stream, KeyType interpolation)
     {
         stream->read(time);
         stream->read(value);
@@ -351,6 +351,7 @@ namespace NiBtOgre
             Ogre::KeyFrame *kf);
     };
 
+    template<> // for gcc
     bool AnimTrackInterpolator<float>::getInterpolatedKeyFrame(const Ogre::AnimationTrack *t,
         const Ogre::TimeIndex& timeIndex, Ogre::KeyFrame *kf);
 

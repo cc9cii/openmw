@@ -76,7 +76,7 @@ namespace NiBtOgre
         }
 
         NiObject(std::uint32_t index, NiStream *stream, const NiModel& model, BuildData& data)
-            : mSelfRef(index), mModel(model)  {}
+            : mModel(model), mSelfRef(index) {}
 
         inline std::uint32_t selfRef() const { return mSelfRef; }
 

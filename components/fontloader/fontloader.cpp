@@ -248,7 +248,8 @@ namespace Gui
         std::string textureName = name;
         Ogre::Image image;
         image.loadDynamicImage(&textureData[0], width, height, Ogre::PF_BYTE_RGBA);
-        if (!Ogre::TextureManager::getSingleton().resourceExists(textureName))
+        if (!Ogre::TextureManager::getSingleton().resourceExists(textureName,
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME))
         {
             Ogre::TexturePtr texture = Ogre::TextureManager::getSingleton().createManual(textureName,
                 Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,

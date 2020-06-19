@@ -17,7 +17,7 @@
 #include <OgreMesh.h>
 #include <OgreTechnique.h>
 #include <OgreHardwarePixelBuffer.h>
-#include <OgreTexturemanager.h>
+#include <OgreTextureManager.h>
 #include <OgrePixelFormat.h>
 #include <OgreCommon.h> // Ogre::Box
 #include <OgreMaterialManager.h>

@@ -39,7 +39,7 @@
 #include <OgreSkeletonManager.h>
 #include <OgreSkeleton.h>
 #include <OgreBone.h>
-#include <OgreKeyframe.h>
+#include <OgreKeyFrame.h>
 
 #include <extern/fglib/fgtri.hpp>
 
@@ -880,7 +880,7 @@ void NiBtOgre::NiTriBasedGeom::buildFgPoses(Ogre::Mesh *mesh, const FgLib::FgTri
         // need an animation for each emotion, and make the length configurable?
         Ogre::Animation *animation = mesh->createAnimation(diffMorphs[i], endTime/*totalAnimLength*/);
         Ogre::VertexAnimationTrack* track
-            = animation->createVertexTrack(unsigned short(mSubMeshIndex+1), Ogre::VAT_POSE);
+            = animation->createVertexTrack((unsigned short)mSubMeshIndex+1, Ogre::VAT_POSE);
 
         // ------------------------- Base ------------------------
         Ogre::Pose* pose = mesh->createPose(Ogre::ushort(mSubMeshIndex + 1), "Base");

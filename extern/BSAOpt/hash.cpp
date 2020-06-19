@@ -31,6 +31,7 @@
 
 #include <cstdint>
 #include <algorithm>
+#include <string.h> // for gcc
 
 #include "hash.hpp"
 

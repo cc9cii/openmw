@@ -61,7 +61,8 @@ namespace Render
 
     SelectionBuffer::~SelectionBuffer()
     {
-        Ogre::TextureManager::getSingleton ().remove("SelectionBuffer");
+        Ogre::TextureManager::getSingleton ().remove("SelectionBuffer",
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
     }
 
     void SelectionBuffer::update ()

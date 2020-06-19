@@ -28,13 +28,11 @@ namespace
         MWMechanics::Movement mMovement;
         MWWorld::InventoryStoreTES4 mInventoryStore;
 
-        MWWorld::Ptr *mPlaced;
+        MWWorld::Ptr mPlaced;
 
-        ForeignCreatureCustomData() : mPlaced(0) {}
+        ForeignCreatureCustomData() : mPlaced(MWWorld::Ptr()) {}
         ~ForeignCreatureCustomData()
         {
-            //if (mPlaced)
-                //delete mPlaced; // FIXME: crash at exit
         }
 
         virtual MWWorld::CustomData *clone() const;
@@ -81,9 +79,9 @@ namespace MWClass
                 ForeignCreatureCustomData *data
                     = dynamic_cast<ForeignCreatureCustomData*>(ptr.getRefData().getCustomData());
 
-                if (!data->mPlaced)
+                if (data->mPlaced.isEmpty())
                 {
-                    data->mPlaced = &MWBase::Environment::get().getWorld()->safePlaceObject(ref.getPtr(),
+                    data->mPlaced = MWBase::Environment::get().getWorld()->safePlaceObject(ref.getPtr(),
                                    ptr.getCell() , ptr.getCellRef().getPosition());
                     //std::cout << "placed " << ptr.get<ESM4::Npc>()->mBase->mEditorId << std::endl;
                 }
@@ -239,6 +237,7 @@ namespace MWClass
         MWWorld::Ptr newPtr(cell.getForeign<ESM4::Creature>().insert(*ref), &cell);
         cell.updateLookupMaps(newPtr.getBase()->mRef.getFormId(), ref, ESM4::REC_CREA);
 
-        return std::move(newPtr);
+        //return std::move(newPtr);
+        return newPtr;
     }
 }

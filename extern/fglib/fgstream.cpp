@@ -53,7 +53,8 @@ namespace FgLib
     {
         std::string str;
         readSizedString(str);
-        return std::move(str);
+        //return std::move(str); // FIXME: test which is better
+        return str;
     }
 
     void FgStream::readSizedString(std::string& str)

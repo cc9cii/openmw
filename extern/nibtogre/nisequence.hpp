@@ -126,7 +126,7 @@ namespace NiBtOgre
 
         std::string getObjectName(std::uint32_t stringOffset) const;
         uint32_t getNameIndex() const { return NiSequence::mNameIndex; }
-        const float getTotalAnimLength() const { return mStopTime - mStartTime; }
+        float getTotalAnimLength() const { return mStopTime - mStartTime; }
     };
 }
 

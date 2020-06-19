@@ -231,7 +231,8 @@ Ogre::DataStreamPtr BSAFile::getFile(const char *file)
         const FileStruct &fs = it->second;
         return openConstrainedFileDataStream (filename.c_str (), fs.offset, fs.fileSize);
     }
-        fail("File not found: " + string(file));
+
+    fail("File not found: " + string(file));
 
 #if 0
     int i = getIndex(file);

@@ -243,9 +243,14 @@ size_t NIFFile::parseHeader(NIFStream nif,
     }
 
     if (mVer >= 0x0a000100) // 5.0.0.6
+    {
         nif.getUInt(); //unsigned int unknown
+    }
+
 	if (mVer == 0x0a000100)
+    {
 		nif.getUInt(); // hack
+    }
 
     return numBlocks;
 }

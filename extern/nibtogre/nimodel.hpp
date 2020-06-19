@@ -348,7 +348,7 @@ namespace NiBtOgre
         const std::map<std::string, NiAVObjectRef>& getObjectPalette() const { return mObjectPalette; }
 
         Ogre::SkeletonPtr getSkeleton() const { return mSkeleton; }
-        inline bool hasSkeleton() const { return !mSkeleton.isNull(); }
+        inline bool hasSkeleton() const { return mSkeleton.get() != nullptr; }
         void buildSkeleton(bool load = false);
 
         inline const std::vector<std::pair<Ogre::MeshPtr, NiNode*> >& getMeshes() const { return mMeshes; }

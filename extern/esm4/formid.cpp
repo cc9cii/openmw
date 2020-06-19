@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <cstdlib> // strtol
+#include <climits> // LONG_MIN, LONG_MAX for gcc
 
 #include <libs/platform/strings.h>
 

@@ -29,7 +29,7 @@
 #include <stdexcept>
 
 #include <OgreAnimationTrack.h>
-#include <OgreKeyframe.h>
+#include <OgreKeyFrame.h>
 
 #include "nistream.hpp"
 #include "ninode.hpp" // static_cast NiNode
@@ -179,6 +179,7 @@ NiBtOgre::KeyGroup<float>::KeyGroup(NiStream *stream)
 #endif
 
 // below code is copied from NifSkope
+template<>
 bool NiBtOgre::AnimTrackInterpolator<float>::getInterpolatedKeyFrame(const Ogre::AnimationTrack *t,
         const Ogre::TimeIndex& timeIndex, Ogre::KeyFrame *kf)
 {

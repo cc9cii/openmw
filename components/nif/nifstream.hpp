@@ -8,6 +8,7 @@
 #include <typeinfo>
 #include <string>
 
+#include <OgreAny.h>
 #include <OgreDataStream.h>
 #include <OgreVector2.h>
 #include <OgreVector3.h>
@@ -90,7 +91,7 @@ public:
     T getIfVer(unsigned int testVersion)
     {
         if (file->getVersion() == testVersion)
-            return get<T>();
+            return Ogre::Any::get<T>(); // FIXME: just a guess
         else
             return T();
     }

@@ -770,11 +770,11 @@ namespace NiBtOgre
             = (isFemale ? bInfo.race->mSymShapeModeCoeffFemale : bInfo.race->mSymShapeModeCoefficients);
         const std::vector<float>& aRaceCoeff
             = (isFemale ? bInfo.race->mAsymShapeModeCoeffFemale : bInfo.race->mAsymShapeModeCoefficients);
-        const std::vector<float>& sRaceTCoeff
-            = (isFemale ? bInfo.race->mSymTextureModeCoeffFemale : bInfo.race->mSymTextureModeCoefficients);
+        //const std::vector<float>& sRaceTCoeff // unused
+            //= (isFemale ? bInfo.race->mSymTextureModeCoeffFemale : bInfo.race->mSymTextureModeCoefficients);
         const std::vector<float>& sCoeff = bInfo.npc->mSymShapeModeCoefficients;
         const std::vector<float>& aCoeff = bInfo.npc->mAsymShapeModeCoefficients;
-        const std::vector<float>& sTCoeff = bInfo.npc->mSymTextureModeCoefficients;
+        //const std::vector<float>& sTCoeff = bInfo.npc->mSymTextureModeCoefficients; // unused
 
         FgLib::FgSam sam;
         std::string normalTexture;

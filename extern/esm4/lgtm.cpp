@@ -29,6 +29,7 @@
 #include "lgtm.hpp"
 
 #include <stdexcept>
+#include <cfloat> // FLT_MAX for gcc
 //#include <iostream> // FIXME: for debugging only
 
 #include "reader.hpp"

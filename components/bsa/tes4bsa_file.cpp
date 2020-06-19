@@ -162,7 +162,8 @@ void TES4BSAFile::readHeader()
         if ((archiveFlags & 0x1) != 0)
             getBZString(folder, input);
 
-        folderHash = GenOBHash(folder, std::string(""));
+        std::string empty = "";
+        folderHash = GenOBHash(folder, empty);
 
         std::map<std::uint64_t, FolderRecord>::iterator itFolder = mFolders.find(folderHash);
         if (itFolder == mFolders.end())

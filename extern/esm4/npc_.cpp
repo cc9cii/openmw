@@ -37,8 +37,8 @@
 ESM4::Npc::Npc() : mFormId(0), mFlags(0), mIsTES4(false), mIsFONV(false), mRace(0), mClass(0), mHair(0),
                    mEyes(0), mHairLength(0.f), mHairColourId(0), mDeathItem(0),
                    mScript(0), mCombatStyle(0), mSoundBase(0), mSound(0), mSoundChance(0),
-                   mFootWeight(0.f), mBoundRadius(0.f), mBaseTemplate(0), mWornArmor(0), mFgRace(0),
-                   mDefaultOutfit(0), mSleepOutfit(0), mDefaultPkg(0)
+                   mFootWeight(0.f), mBoundRadius(0.f), mBaseTemplate(0), mWornArmor(0),
+                   mDefaultOutfit(0), mSleepOutfit(0), mDefaultPkg(0), mFgRace(0)
 {
     mEditorId.clear();
     mFullName.clear();

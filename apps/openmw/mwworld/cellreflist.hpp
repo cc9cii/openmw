@@ -134,10 +134,10 @@ namespace MWWorld
                     if (exclude != 0 && distSq < exclude)
                         continue;
 #else
-                    if (exclude != 0 && i >= x - exclude && i <= x + exclude)
+                    if ((int)exclude != 0 && i >= x - (int)exclude && i <= x + (int)exclude)
                         continue;
 
-                    if (exclude != 0 && j >= y - exclude && j <= y + exclude)
+                    if ((int)exclude != 0 && j >= y - (int)exclude && j <= y + (int)exclude)
                         continue;
 #endif
 

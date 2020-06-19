@@ -110,7 +110,8 @@ namespace MWRender
             mSceneMgr->destroyAllCameras();
             delete mAnimation;
             Ogre::Root::getSingleton().destroySceneManager(mSceneMgr);
-            Ogre::TextureManager::getSingleton().remove(mName);
+            Ogre::TextureManager::getSingleton().remove(mName,
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
         }
     }
 

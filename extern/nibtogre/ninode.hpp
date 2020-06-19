@@ -119,8 +119,8 @@ namespace NiBtOgre
         void setSkinTexture(const std::string& texture) { mSkinTexture = texture; }
         inline const std::string& getSkinTexture() const { return mSkinTexture; }
 
-        void NiNode::getSkinIndices(std::vector<std::size_t>& skinIndices) const;
-        void NiNode::getDismemberParts(std::vector<std::vector<std::uint16_t> >& bodyParts) const;
+        void getSkinIndices(std::vector<std::size_t>& skinIndices) const;
+        void getDismemberParts(std::vector<std::vector<std::uint16_t> >& bodyParts) const;
 
         // an attempt to fix the head/ear/eyes rotation issue
         const Ogre::Quaternion getLocalRotation() const { return Ogre::Quaternion(NiAVObject::mRotation); }
@@ -131,7 +131,7 @@ namespace NiBtOgre
     // Seen in NIF version 20.2.0.7
     class BSBlastNode : public NiNode
     {
-        char mUnknown1;;
+        char mUnknown1;
         short mUnknown2;
 
     public:
@@ -144,7 +144,7 @@ namespace NiBtOgre
     // Seen in NIF version 20.2.0.7
     class BSDamageStage : public NiNode
     {
-        char mUnknown1;;
+        char mUnknown1;
         std::int16_t mUnknown2;
 
     public:

@@ -143,7 +143,6 @@ target_link_libraries(openmw
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
     ${Boost_WAVE_LIBRARY}
-    ${OPENAL_LIBRARY}
     ${FFMPEG_LIBRARIES}
     ${BULLET_LIBRARIES}
     ${MYGUI_LIBRARIES}

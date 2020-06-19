@@ -650,7 +650,7 @@ namespace NiBtOgre
         btCollisionShape *buildShape(const btTransform& transform) const;
 
         const btTransform& transform() const { return mTransform; }
-        const bhkShapeRef shapeRef() const { return mShapeRef; }
+        bhkShapeRef shapeRef() const { return mShapeRef; }
 
         bool isStaticShape() const;
     };

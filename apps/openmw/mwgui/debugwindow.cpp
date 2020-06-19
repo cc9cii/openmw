@@ -1,3 +1,4 @@
+#define BT_ENABLE_PROFILE
 #include "debugwindow.hpp"
 
 #include <MyGUI_TabControl.h>

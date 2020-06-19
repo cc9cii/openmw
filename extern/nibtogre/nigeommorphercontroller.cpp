@@ -32,7 +32,7 @@
 #include <OgreMesh.h>
 #include <OgreAnimation.h>
 #include <OgreAnimationTrack.h>
-#include <OgreKeyframe.h>
+#include <OgreKeyFrame.h>
 
 #include "nistream.hpp"
 #include "nimodel.hpp"

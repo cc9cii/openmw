@@ -48,13 +48,15 @@ namespace FgLib
     std::vector<float> FgSam::mDefaultNpcSymCoeff = [] {
         std::vector<float> v;
         v.resize(50, 1.f);
-        return std::move(v);
+        //return std::move(v);
+        return v;
     } ();
 
     std::vector<float> FgSam::mDefaultNpcAsymCoeff = [] {
         std::vector<float> v;
         v.resize(30, 1.f);
-        return std::move(v);
+        //return std::move(v);
+        return v;
     } ();
 
     bool FgSam::buildMorphedVertices(std::vector<Ogre::Vector3>& fgMorphVertices,

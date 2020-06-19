@@ -14,7 +14,7 @@
 #include <OgreStaticGeometry.h>
 #include <OgreTechnique.h>
 #include <OgreHardwarePixelBuffer.h>
-#include <OgreTexturemanager.h>
+#include <OgreTextureManager.h>
 
 #include <extern/esm4/formid.hpp> // mainly for debugging
 #include <extern/nibtogre/btogreinst.hpp>

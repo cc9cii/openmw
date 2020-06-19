@@ -387,6 +387,7 @@ namespace MWClass
         MWWorld::Ptr newPtr(cell.getForeign<ESM4::Door>().insert(*ref), &cell);
         cell.updateLookupMaps(newPtr.getBase()->mRef.getFormId(), ref, ESM4::REC_DOOR);
 
-        return std::move(newPtr);
+        //return std::move(newPtr);
+        return newPtr;
     }
 }

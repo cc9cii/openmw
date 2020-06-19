@@ -93,7 +93,8 @@ namespace SFO
         // just blitting doesn't seem to work on D3D9
         ImageRotate::rotate(tex->getName(), tempName, static_cast<float>(-rotDegrees));
 
-        Ogre::TexturePtr resultTexture = Ogre::TextureManager::getSingleton().getByName(tempName);
+        Ogre::TexturePtr resultTexture = Ogre::TextureManager::getSingleton().getByName(tempName,
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 
         // now blit to memory
         Ogre::Image destImage;
@@ -121,7 +122,8 @@ namespace SFO
 
         //clean up
         SDL_FreeSurface(surf);
-        Ogre::TextureManager::getSingleton().remove(tempName);
+        Ogre::TextureManager::getSingleton().remove(tempName,
+                Ogre::ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME);
 
         _setGUICursor(name);
     }

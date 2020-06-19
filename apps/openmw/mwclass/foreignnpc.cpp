@@ -36,9 +36,9 @@ namespace
         MWWorld::InventoryStore *mInventoryStore;
         int mGameType; // FIXME: make enum
 
-        MWWorld::Ptr *mPlaced;
+        MWWorld::Ptr mPlaced;
 
-        ForeignNpcCustomData(const ESM4::Npc& npc) : mPlaced(0)
+        ForeignNpcCustomData(const ESM4::Npc& npc) : mPlaced(MWWorld::Ptr())
         {
             bool isTES5 = false;
             const MWWorld::ESMStore &store = MWBase::Environment::get().getWorld()->getStore();
@@ -68,9 +68,6 @@ namespace
         {
             if (mInventoryStore)
                 delete mInventoryStore;
-
-            //if (mPlaced)
-                //delete mPlaced; // FIXME: exception
         }
 
         virtual MWWorld::CustomData *clone() const;
@@ -119,9 +116,9 @@ namespace MWClass
                 ForeignNpcCustomData *data
                     = dynamic_cast<ForeignNpcCustomData*>(ptr.getRefData().getCustomData());
 
-                if (!data->mPlaced)
+                if (data->mPlaced.isEmpty())
                 {
-                    data->mPlaced = &MWBase::Environment::get().getWorld()->safePlaceObject(ref.getPtr(),
+                    data->mPlaced = MWBase::Environment::get().getWorld()->safePlaceObject(ref.getPtr(),
                                    ptr.getCell() , ptr.getCellRef().getPosition());
                     //std::cout << "placed " << ptr.get<ESM4::Npc>()->mBase->mEditorId << std::endl;
                 }
@@ -705,6 +702,7 @@ namespace MWClass
         MWWorld::Ptr newPtr(cell.getForeign<ESM4::Npc>().insert(*ref), &cell);
         cell.updateLookupMaps(newPtr.getBase()->mRef.getFormId(), ref, ESM4::REC_NPC_);
 
-        return std::move(newPtr);
+        //return std::move(newPtr);
+        return newPtr;
     }
 }

@@ -73,15 +73,15 @@ namespace FgLib
         ~FgTri();
 
         // used by FgSam
-        inline const std::uint32_t numVertices() const { return mNumVertices; }
+        inline std::uint32_t numVertices() const { return mNumVertices; }
         inline const boost::scoped_array<float>& vertices() const { return mVertices; }
-        inline const std::uint32_t numStatMorphVertices() const { return mNumTotalStatMorphVertices; }
+        inline std::uint32_t numStatMorphVertices() const { return mNumTotalStatMorphVertices; }
 
         // simply means that the TRI file corresponding to the NIF was not found
-        inline const bool needsNifVertices() const { return mNeedsNifVertices; }
+        inline bool needsNifVertices() const { return mNeedsNifVertices; }
 
         // number of emotions, lip sync
-        inline const std::uint32_t numDiffMorphs() const { return mNumLabelledDiffMorphs; }
+        inline std::uint32_t numDiffMorphs() const { return mNumLabelledDiffMorphs; }
         inline const std::vector<std::string>& diffMorphs() const { return mLabelledDiffMorphs; }
         const std::pair<float, std::vector<std::int16_t> >& diffMorphVertices(const std::string& label) const;
 

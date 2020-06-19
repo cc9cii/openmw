@@ -56,10 +56,10 @@ namespace FgLib
         FgEgt(const std::string& name);
         ~FgEgt();
 
-        inline const std::uint32_t numRows() const { return mNumRows; }
-        inline const std::uint32_t numColumns() const { return mNumColumns; }
-        inline const std::uint32_t numSymTextureModes() const { return mNumSymTextureModes; }
-      //inline const std::uint32_t numAsymTextureModes() const { return mNumAsymTextureModes; }
+        inline std::uint32_t numRows() const { return mNumRows; }
+        inline std::uint32_t numColumns() const { return mNumColumns; }
+        inline std::uint32_t numSymTextureModes() const { return mNumSymTextureModes; }
+      //inline std::uint32_t numAsymTextureModes() const { return mNumAsymTextureModes; }
 
         inline const std::vector<Ogre::Vector3>& symTextureModes() const { return mSymTextureModes; }
         inline const std::vector<Ogre::Vector3>& asymTextureModes() const { return mAsymTextureModes; }

@@ -96,7 +96,8 @@ namespace MWGui
             int height = mWindow->getHeight();
             const std::string textureName = "@loading_background";
             Ogre::TexturePtr texture;
-            texture = Ogre::TextureManager::getSingleton().getByName(textureName);
+            texture = Ogre::TextureManager::getSingleton().getByName(textureName,
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
             if (!texture)
             {
                 texture = Ogre::TextureManager::getSingleton().createManual(textureName,

@@ -719,7 +719,7 @@ private:
         Misc::StringUtils::lowerCaseInPlace(fullname);
 
         Ogre::MeshManager &meshMgr = Ogre::MeshManager::getSingleton();
-        if(!meshMgr.getByName(fullname))
+        if(!meshMgr.getByName(fullname, "General"))
             NIFMeshLoader::createMesh(name, fullname, group, shape->recIndex);
 
         Ogre::Entity *entity = sceneMgr->createEntity(fullname);
@@ -1278,7 +1278,7 @@ private:
          * is to ensure we have an entity with a skeleton instance, even if all
          * other entities are attached to bones and not skinned. */
         Ogre::MeshManager &meshMgr = Ogre::MeshManager::getSingleton();
-        if(!meshMgr.getByName(name))
+        if(!meshMgr.getByName(name, "General"))
             NIFMeshLoader::createMesh(name, name, group, ~(size_t)0);
 
         scene->mSkelBase = sceneMgr->createEntity(name);
@@ -1342,7 +1342,7 @@ public:
             return;
         }
 
-        if(Ogre::SkeletonManager::getSingleton().resourceExists(name) ||
+        if(Ogre::SkeletonManager::getSingleton().resourceExists(name, "General") ||
            NIFSkeletonLoader::createSkeleton(name, group, node))
         {
             // Create a base skeleton entity if this NIF needs one

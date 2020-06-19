@@ -38,7 +38,7 @@
 //#include "writer.hpp"
 
 ESM4::MediaLocationController::MediaLocationController() : mFormId(0), mFlags(0),
-    mLocationDelay(0.f), mRetriggerDelay(0.f), mConditionalFaction(0), mDayStart(0), mNightStart(0)
+    mConditionalFaction(0), mLocationDelay(0.f), mRetriggerDelay(0.f), mDayStart(0), mNightStart(0)
 {
     mEditorId.clear();
     mFullName.clear();

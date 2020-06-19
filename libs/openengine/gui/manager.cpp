@@ -1,6 +1,8 @@
 #include "manager.hpp"
 #include "loglistener.hpp"
 
+#include <OgreWindowEventUtilities.h>
+
 #include <MyGUI_Gui.h>
 #include <MyGUI_OgrePlatform.h>
 #include <MyGUI_Timer.h>
@@ -484,7 +486,8 @@ public:
         MapTexture::const_iterator item = mTextures.find(_name);
         if (item == mTextures.end())
         {
-            Ogre::TexturePtr texture = (Ogre::TexturePtr)Ogre::TextureManager::getSingleton().getByName(_name);
+            Ogre::TexturePtr texture = (Ogre::TexturePtr)Ogre::TextureManager::getSingleton().getByName(_name,
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
             if (texture)
             {
                 ITexture* result = createTexture(_name);

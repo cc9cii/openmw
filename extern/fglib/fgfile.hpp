@@ -28,6 +28,8 @@
 #include <memory>
 #include <iostream>
 
+#include <boost/algorithm/string/case_conv.hpp>
+
 #include <OgreException.h>
 
 namespace FgLib
@@ -77,7 +79,7 @@ namespace FgLib
     template<typename T>
     const T *FgFile<T>::getOrLoadByNameImpl(const std::string& name) const
     {
-        std::map<std::string, std::unique_ptr<T> >::iterator lb = sFgFileMap.lower_bound(name);
+        typename std::map<std::string, std::unique_ptr<T> >::iterator lb = sFgFileMap.lower_bound(name);
         if (lb != sFgFileMap.end() && !(sFgFileMap.key_comp()(name, lb->first)))
         {
             return lb->second.get();
@@ -89,7 +91,7 @@ namespace FgLib
                 std::unique_ptr<T> fgFile = std::make_unique<T>(name);
 
                 lb = sFgFileMap.insert(lb,
-                        std::map<std::string, std::unique_ptr<T> >::value_type(name, std::move(fgFile)));
+                        typename std::map<std::string, std::unique_ptr<T> >::value_type(name, std::move(fgFile)));
 
                 return lb->second.get();
             }

@@ -95,7 +95,8 @@ void LocalMap::saveFogOfWar(MWWorld::CellStore* cell)
         std::auto_ptr<ESM::FogState> fog (new ESM::FogState());
         fog->mFogTextures.push_back(ESM::FogTexture());
 
-        TexturePtr tex = TextureManager::getSingleton().getByName(textureName);
+        TexturePtr tex = TextureManager::getSingleton().getByName(textureName,
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
         if (!tex)
             return;
 
@@ -135,7 +136,8 @@ void LocalMap::saveFogOfWar(MWWorld::CellStore* cell)
             {
                 std::string textureName = cell->getCell()->mName + "_" + coordStr(x,y) + "_fog";
 
-                TexturePtr tex = TextureManager::getSingleton().getByName(textureName);
+                TexturePtr tex = TextureManager::getSingleton().getByName(textureName,
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
                 if (!tex)
                     return;
 
@@ -335,7 +337,8 @@ void LocalMap::createFogOfWar(const std::string& texturePrefix)
 
 Ogre::TexturePtr LocalMap::createFogOfWarTexture(const std::string &texName)
 {
-    TexturePtr tex = TextureManager::getSingleton().getByName(texName);
+    TexturePtr tex = TextureManager::getSingleton().getByName(texName,
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
     if (!tex)
     {
         tex = TextureManager::getSingleton().createManual(
@@ -403,7 +406,8 @@ void LocalMap::render(const float x, const float y,
 
     TexturePtr tex;
     // try loading from memory
-    tex = TextureManager::getSingleton().getByName(texture);
+    tex = TextureManager::getSingleton().getByName(texture,
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
     if (!tex)
     {
         // render
@@ -571,7 +575,8 @@ void LocalMap::updatePlayer (const Ogre::Vector3& position, const Ogre::Quaterni
 
             std::string texName = texBaseName + coordStr(x+mx,y+my*-1);
 
-            TexturePtr tex = TextureManager::getSingleton().getByName(texName+"_fog");
+            TexturePtr tex = TextureManager::getSingleton().getByName(texName+"_fog",
+                Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
             if (tex)
             {
                 std::map <std::string, std::vector<Ogre::uint32> >::iterator anIter;

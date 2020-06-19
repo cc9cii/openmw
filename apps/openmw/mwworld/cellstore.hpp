@@ -161,8 +161,8 @@ namespace MWWorld
             CellStore& operator=(CellStore&& other); // move
 
             const ESM::Cell *getCell() const;
-            inline const bool isForeignCell() const { return mIsForeignCell; }
-            inline const bool isDummyCell() const { return mIsDummyCell; }
+            inline bool isForeignCell() const { return mIsForeignCell; }
+            inline bool isDummyCell() const { return mIsDummyCell; }
 
             inline ESM4::FormId getAudioLocation() const { return mAudioLocation; }
 

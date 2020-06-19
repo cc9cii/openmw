@@ -152,7 +152,7 @@ namespace ESM4
         // Maybe should throw an exception if called when not valid?
         const CellGrid& currCellGrid() const;
 
-        inline const bool hasCellGrid() const { return mCellGridValid; }
+        inline bool hasCellGrid() const { return mCellGridValid; }
 
         // This is set while loading a CELL record (XCLC sub record) and invalidated
         // each time loading a CELL (see clearCellGrid())

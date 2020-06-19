@@ -62,7 +62,8 @@ std::string NiBtOgre::NiStream::readString()
 {
     std::string str;
     readSizedString(str);
-    return std::move(str);
+    //return std::move(str);
+    return str;
 }
 
 void NiBtOgre::NiStream::readSizedString(std::string& str)

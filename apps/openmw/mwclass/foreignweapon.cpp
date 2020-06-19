@@ -205,6 +205,7 @@ namespace MWClass
         MWWorld::Ptr newPtr(cell.getForeign<ESM4::Weapon>().insert(*ref), &cell);
         cell.updateLookupMaps(newPtr.getBase()->mRef.getFormId(), ref, ESM4::REC_WEAP);
 
-        return std::move(newPtr);
+        //return std::move(newPtr);
+        return newPtr;
     }
 }
