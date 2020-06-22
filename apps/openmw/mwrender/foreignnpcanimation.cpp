@@ -935,9 +935,7 @@ void ForeignNpcAnimation::updateTES4NpcBase()
     std::map<int32_t, Ogre::Entity*>::const_iterator it(scene->mForeignObj->mEntities.begin());
     for (; it != scene->mForeignObj->mEntities.end(); ++it)
     {
-        // FIXME: linux crash workaround
-        if (Ogre::Root::getSingleton().getRenderSystem()->getName().find("OpenGL") == std::string::npos &&
-            mRace->mEditorId != "Dremora") // don't morph Dremora textures
+        if (mRace->mEditorId != "Dremora") // don't morph Dremora textures
         {
         Ogre::MaterialPtr mat = scene->mMaterialControllerMgr.getWritableMaterial(it->second);
         Ogre::Material::TechniqueIterator techIter = mat->getTechniqueIterator();
@@ -1214,14 +1212,18 @@ void ForeignNpcAnimation::updateTES4NpcBase()
                 if (!baseTexture)
                     return; // FIXME: throw?
 
+                baseTexture->load();
+
                 // dest: usually 256x256 (egt.numRows()*egt.numColumns())
                 Ogre::HardwarePixelBufferSharedPtr pixelBuffer = morphTexture->getBuffer();
-                pixelBuffer->unlock(); // prepare for blit()
+                //pixelBuffer->unlock(); // prepare for blit()
+
                 // src: can be 128x128
                 //Ogre::HardwarePixelBufferSharedPtr pixelBufferSrc = tus->_getTexturePtr()->getBuffer();
                 Ogre::HardwarePixelBufferSharedPtr pixelBufferSrc
                     = Ogre::static_pointer_cast<Ogre::Texture>(baseTexture)->getBuffer();
-                pixelBufferSrc->unlock(); // prepare for blit()
+                //pixelBufferSrc->unlock(); // prepare for blit()
+
                 // if source and destination dimensions don't match, scaling is done
                 pixelBuffer->blit(pixelBufferSrc);
 
@@ -1256,15 +1258,19 @@ void ForeignNpcAnimation::updateTES4NpcBase()
                     if (!ageTextureSrc)
                         return; // FIXME: throw?
 
+                    ageTextureSrc->load();
+
                     // age dest:
                     pixelBufferAge = ageTexture->getBuffer();
-                    pixelBufferAge->unlock(); // prepare for blit()
+                    //pixelBufferAge->unlock(); // prepare for blit()
+
                     // age src:
                     Ogre::HardwarePixelBufferSharedPtr pixelBufferAgeSrc
                         = Ogre::static_pointer_cast<Ogre::Texture>(ageTextureSrc)->getBuffer();
                     //if (!pixelBufferAgeSrc)
                         //std::cout << "detail texture null" << std::endl;
-                    pixelBufferAgeSrc->unlock(); // prepare for blit()
+                    //pixelBufferAgeSrc->unlock(); // prepare for blit()
+
                     // if source and destination dimensions don't match, scaling is done
                     pixelBufferAge->blit(pixelBufferAgeSrc); // FIXME: can't we just use the src?
 
@@ -1276,7 +1282,7 @@ void ForeignNpcAnimation::updateTES4NpcBase()
                 }
 
                 // Lock the pixel buffer and get a pixel box
-                //pixelBufferSrc->lock(Ogre::HardwareBuffer::HBL_NORMAL); // for best performance use HBL_DISCARD!
+                pixelBufferSrc->lock(Ogre::HardwareBuffer::HBL_NORMAL); // for best performance use HBL_DISCARD!
                 //const Ogre::PixelBox& pixelBoxSrc = pixelBufferSrc->getCurrentLock();
 
                 uint8_t* pDetail;
@@ -1308,10 +1314,12 @@ void ForeignNpcAnimation::updateTES4NpcBase()
                         faceDetailTexture->load();
                     }
                     pixelBufferDetail = detailTexture->getBuffer();
-                    pixelBufferDetail->unlock(); // prepare for blit()
+                    //pixelBufferDetail->unlock(); // prepare for blit()
+
                     Ogre::HardwarePixelBufferSharedPtr pixelBufferDetailSrc
                         = Ogre::static_pointer_cast<Ogre::Texture>(faceDetailTexture)->getBuffer();
-                    pixelBufferDetailSrc->unlock(); // prepare for blit()
+                    //pixelBufferDetailSrc->unlock(); // prepare for blit()
+
                     // if source and destination dimensions don't match, scaling is done
                     pixelBufferDetail->blit(pixelBufferDetailSrc); // FIXME: can't we just use the src?
 

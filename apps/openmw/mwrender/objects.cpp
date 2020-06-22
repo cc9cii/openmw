@@ -305,10 +305,6 @@ void Objects::insertLandscapeModel(ESM4::FormId worldId, int x, int y, const std
 // loaded again, the issue no longer occurs.
 void Objects::updateLandscapeTexture(ESM4::FormId worldId, int x, int y, bool hide)
 {
-    // FIXME: linux crash workaround
-    if (Ogre::Root::getSingleton().getRenderSystem()->getName().find("OpenGL") != std::string::npos)
-        return;
-
     std::map<ESM4::FormId, std::map<std::pair<int, int>, NifOgre::ObjectScenePtr> >::iterator
         iter = mLandscapeScene.find(worldId);
 
@@ -367,6 +363,7 @@ void Objects::updateLandscapeTexture(ESM4::FormId worldId, int x, int y, bool hi
                         std::string textureName = tex->getTextureName();
                         Ogre::TexturePtr texAlpha = Ogre::TextureManager::getSingleton().getByName(
                                textureName, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+                        texAlpha->load();
 
                         //std::cout << (hide ? "hiding " : "unhiding ")
                             //<< x << "," << y << " " << texName << std::endl; // FIXME
@@ -395,11 +392,11 @@ void Objects::updateLandscapeTexture(ESM4::FormId worldId, int x, int y, bool hi
                         // src
                         Ogre::HardwarePixelBufferSharedPtr pixelBufferSrc
                             = Ogre::static_pointer_cast<Ogre::Texture>(texAlpha)->getBuffer();
-                        pixelBufferSrc->unlock(); // prepare for blit()
+                        //pixelBufferSrc->unlock(); // prepare for blit()
 
                         // dest
                         Ogre::HardwarePixelBufferSharedPtr pixelBuffer = alphaTexture->getBuffer();
-                        pixelBuffer->unlock(); // prepare for blit()
+                        //pixelBuffer->unlock(); // prepare for blit()
 
                         // if source and destination dimensions don't match, scaling is done
                         pixelBuffer->blit(pixelBufferSrc);

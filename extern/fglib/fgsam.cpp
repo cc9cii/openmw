@@ -382,16 +382,6 @@ namespace FgLib
                                     const std::vector<float>& raceSymCoeff,
                                     const std::vector<float>& npcSymCoeff) const
     {
-        // FIXME: linux crash workaround
-        if (Ogre::Root::getSingleton().getRenderSystem()->getName().find("OpenGL") != std::string::npos)
-        {
-            morphTexture = Ogre::static_pointer_cast<Ogre::Texture>(
-                Ogre::TextureManager::getSingleton().createOrRetrieve(
-                    texture, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME).first);
-
-            return morphTexture.get() != nullptr;
-        }
-
         // try to retrieve previously created morph texture
         morphTexture = Ogre::TextureManager::getSingleton().getByName(
                npcName + "_" + texture,
@@ -416,13 +406,17 @@ namespace FgLib
         if (!baseTexture)
             return false; // FIXME: throw?
 
+        baseTexture->load();
+
         // dest: usually 256x256 (egt.numRows()*egt.numColumns())
         Ogre::HardwarePixelBufferSharedPtr pixelBuffer = morphTexture->getBuffer();
-        pixelBuffer->unlock(); // prepare for blit()
+        //pixelBuffer->unlock(); // prepare for blit()
+
         // src: can be 128x128
         Ogre::HardwarePixelBufferSharedPtr pixelBufferSrc
             = Ogre::static_pointer_cast<Ogre::Texture>(baseTexture)->getBuffer();
-        pixelBufferSrc->unlock(); // prepare for blit()
+        //pixelBufferSrc->unlock(); // prepare for blit()
+
         // if source and destination dimensions don't match, scaling is done
         pixelBuffer->blit(pixelBufferSrc);
 
