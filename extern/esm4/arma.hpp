@@ -52,7 +52,7 @@ namespace ESM4
         FormId mTextureFemale;
 
         FormId mRacePrimary;
-        std::vector<FormId> mRaces;
+        std::vector<FormId> mRaces; // TES5 only
 
         ArmorAddon();
         virtual ~ArmorAddon();

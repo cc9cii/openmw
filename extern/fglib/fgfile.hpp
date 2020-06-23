@@ -88,8 +88,11 @@ namespace FgLib
         {
             try
             {
+#if defined(__GNUC__) && __GNUC__ < 8
+                std::unique_ptr<T> fgFile = std::unique_ptr<T>(new T(name));
+#else
                 std::unique_ptr<T> fgFile = std::make_unique<T>(name);
-
+#endif
                 lb = sFgFileMap.insert(lb,
                         typename std::map<std::string, std::unique_ptr<T> >::value_type(name, std::move(fgFile)));
 

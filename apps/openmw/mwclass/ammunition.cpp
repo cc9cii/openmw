@@ -26,7 +26,7 @@ namespace MWClass
 
     void ForeignAmmo::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::Ammunition> *ref = ptr.get<ESM4::Ammunition>();
+        //MWWorld::LiveCellRef<ESM4::Ammunition> *ref = ptr.get<ESM4::Ammunition>(); // currently unused
 
         if (!model.empty()) {
             renderingInterface.getObjects().insertModel(ptr, model/*, !ref->mBase->mPersistent*/); // FIXME

@@ -26,7 +26,7 @@ namespace MWClass
 
     void ForeignApparatus::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::Apparatus> *ref = ptr.get<ESM4::Apparatus>();
+        //MWWorld::LiveCellRef<ESM4::Apparatus> *ref = ptr.get<ESM4::Apparatus>(); // currently unused
 
         if (!model.empty()) {
             renderingInterface.getObjects().insertModel(ptr, model/*, !ref->mBase->mPersistent*/); // FIXME
@@ -60,9 +60,9 @@ namespace MWClass
 
         MWGui::ToolTipInfo info;
 
-        const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
+        //const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore(); // currently unused
 
-        int count = ptr.getRefData().getCount();
+        //int count = ptr.getRefData().getCount(); // currently unused
 
         info.caption = ref->mBase->mFullName + MWGui::ToolTips::getCountString(ptr.getRefData().getCount());
         //info.icon = ref->mBase->mIconMale;

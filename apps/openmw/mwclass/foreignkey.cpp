@@ -25,7 +25,7 @@ namespace MWClass
 
     void ForeignKey::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::Key> *ref = ptr.get<ESM4::Key>();
+        //MWWorld::LiveCellRef<ESM4::Key> *ref = ptr.get<ESM4::Key>(); // currently unused
 
         if (!model.empty()) {
             renderingInterface.getObjects().insertModel(ptr, model/*, !ref->mBase->mPersistent*/); // FIXME

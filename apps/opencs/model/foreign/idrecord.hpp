@@ -32,7 +32,7 @@ namespace CSMForeign
     {
         RecordT::load(reader);
 
-        ESM4::formIdToString(mFormId, mId);
+        ESM4::formIdToString(RecordT::mFormId, mId);
     }
 }
 #endif // CSM_FOREIGN_IDRECORD_H

@@ -10,7 +10,7 @@ namespace CSVForeign
     {
     }
 
-    const ESM4Terrain::Land* TerrainStorage::getLand(int cellX, int cellY)
+    const ESM4Terrain::Land *TerrainStorage::getLand(int cellX, int cellY)
     {
         // The cell isn't guaranteed to have Land. This is because the terrain implementation
         // has to wrap the vertices of the last row and column to the next cell, which may be a nonexisting cell
@@ -24,13 +24,13 @@ namespace CSVForeign
         return &land;
     }
 
-    const ESM4::LandTexture* TerrainStorage::getLandTexture(ESM4::FormId formId)
+    const ESM4::LandTexture *TerrainStorage::getLandTexture(ESM4::FormId formId)
     {
         int numRecords = mData.getLandTextures().getSize();
 
         for (int i = 0; i < numRecords; ++i)
         {
-            const CSMForeign::IdRecord<ESM4::LandTexture>* ltex = &mData.getForeignLandTextures().getRecord(i).get();
+            const CSMForeign::IdRecord<ESM4::LandTexture> *ltex = &mData.getForeignLandTextures().getRecord(i).get();
             if (ltex->mFormId == formId/* && ltex->mPluginIndex == plugin*/)
                 return ltex;
         }

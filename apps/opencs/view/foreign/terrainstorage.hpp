@@ -35,6 +35,8 @@ namespace CSVForeign
         virtual const ESM4::LandTexture* getLandTexture(ESM4::FormId formId);
 
         virtual void getBounds(float& minX, float& maxX, float& minY, float& maxY);
+
+        virtual const ESM4::TextureSet *getTextureSet(ESM4::FormId formId) { return nullptr; } // FIXME
     };
 
 }

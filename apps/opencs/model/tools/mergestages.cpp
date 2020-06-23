@@ -100,9 +100,15 @@ void CSMTools::MergeReferencesStage::perform (int stage, CSMDoc::Messages& messa
         ref.mRefNum.mIndex = mIndex[Misc::StringUtils::lowerCase (ref.mCell)]++;
         ref.mRefNum.mContentFile = 0;
 
+#if defined(__GNUC__) && __GNUC__ < 8
+        mState.mTarget->getData().getReferences().appendRecord (
+                std::unique_ptr<CSMWorld::Record<CSMWorld::CellRef> >(new
+                    CSMWorld::Record<CSMWorld::CellRef>(CSMWorld::RecordBase::State_ModifiedOnly, 0, &ref)));
+#else
         mState.mTarget->getData().getReferences().appendRecord (
                 std::make_unique<CSMWorld::Record<CSMWorld::CellRef> >(
                     CSMWorld::Record<CSMWorld::CellRef>(CSMWorld::RecordBase::State_ModifiedOnly, 0, &ref)));
+#endif
     }
 }
 
@@ -188,9 +194,15 @@ void CSMTools::MergeLandTexturesStage::perform (int stage, CSMDoc::Messages& mes
             texture.mIndex = mNext->second-1;
             texture.mId = stream2.str();
 
+#if defined(__GNUC__) && __GNUC__ < 8
+            mState.mTarget->getData().getLandTextures().appendRecord (
+                std::unique_ptr<CSMWorld::Record<CSMWorld::LandTexture> >(new
+                    CSMWorld::Record<CSMWorld::LandTexture>(CSMWorld::RecordBase::State_ModifiedOnly, 0, &texture)));
+#else
             mState.mTarget->getData().getLandTextures().appendRecord (
                 std::make_unique<CSMWorld::Record<CSMWorld::LandTexture> >(
                     CSMWorld::Record<CSMWorld::LandTexture>(CSMWorld::RecordBase::State_ModifiedOnly, 0, &texture)));
+#endif
 
             found = true;
         }
@@ -248,8 +260,14 @@ void CSMTools::MergeLandStage::perform (int stage, CSMDoc::Messages& messages)
             }
         }
 
+#if defined(__GNUC__) && __GNUC__ < 8
+        mState.mTarget->getData().getLand().appendRecord (
+                std::unique_ptr<CSMWorld::Record<CSMWorld::Land> >(new
+                    CSMWorld::Record<CSMWorld::Land>(CSMWorld::RecordBase::State_ModifiedOnly, 0, &newLand)));
+#else
         mState.mTarget->getData().getLand().appendRecord (
                 std::make_unique<CSMWorld::Record<CSMWorld::Land> >(
                     CSMWorld::Record<CSMWorld::Land>(CSMWorld::RecordBase::State_ModifiedOnly, 0, &newLand)));
+#endif
     }
 }

@@ -18,7 +18,7 @@ namespace MWClass
 
     void SubSpace::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::SubSpace> *ref = ptr.get<ESM4::SubSpace>();
+        //MWWorld::LiveCellRef<ESM4::SubSpace> *ref = ptr.get<ESM4::SubSpace>(); // currently unused
 
         if (!model.empty()) {
             renderingInterface.getObjects().insertModel(ptr, model/*, !ref->mBase->mPersistent*/); // FIXME

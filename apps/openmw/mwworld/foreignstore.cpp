@@ -487,12 +487,14 @@ namespace MWWorld
         // Need to save these because cell->preload() may read into cell child group (where the ref's are)
         const ESM4::GroupTypeHeader& grp = reader.grp();
         int32_t groupType = grp.type;
+#ifdef TEST_GROUP_HEADER_LABELS
         ESM4::GroupLabel groupLabel = grp.label;
+#endif
 
         reader.getRecordData();
 
         // check for deleted record? does it matter if it is the base or a mod?
-        std::uint32_t flags  = reader.hdr().record.flags;
+        //std::uint32_t flags  = reader.hdr().record.flags; // currently unused
         if ((reader.hdr().record.flags & ESM4::Rec_Deleted) != 0)
         {
             std::cout << "some CELL deleted message" << std::endl; // FIXME
@@ -727,7 +729,7 @@ namespace MWWorld
     // FIXME: Is there a more efficient way than calling ForeignStore<ForeignWorld>::find() each time?
     RecordId ForeignStore<MWWorld::ForeignCell>::load(ESM::ESMReader& esm, ForeignStore<ForeignWorld>& worlds)
     {
-        ESM4::Reader& reader = static_cast<ESM::ESM4Reader*>(&esm)->reader();
+        //ESM4::Reader& reader = static_cast<ESM::ESM4Reader*>(&esm)->reader(); // currently unused
 
 // FIXME: below was before preload was implemented
 #if 0

@@ -25,7 +25,7 @@ namespace MWClass
 
     void Note::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::Note> *ref = ptr.get<ESM4::Note>();
+        //MWWorld::LiveCellRef<ESM4::Note> *ref = ptr.get<ESM4::Note>(); // currently unused
 
         if (!model.empty()) {
             renderingInterface.getObjects().insertModel(ptr, model/*, !ref->mBase->mPersistent*/); // FIXME

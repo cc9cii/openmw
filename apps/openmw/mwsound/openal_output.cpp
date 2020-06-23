@@ -545,8 +545,9 @@ OpenAL_Sound::~OpenAL_Sound()
     mOutput.mFreeSources.push_back(mSource);
     mOutput.bufferFinished(mBuffer);
 
-    mOutput.mActiveSounds.erase(std::find(mOutput.mActiveSounds.begin(),
-                                          mOutput.mActiveSounds.end(), this));
+    // FIXME: crashes with gcc
+    //mOutput.mActiveSounds.erase(std::find(mOutput.mActiveSounds.begin(),
+                                          //mOutput.mActiveSounds.end(), this));
 }
 
 void OpenAL_Sound::stop()
@@ -847,10 +848,13 @@ const CachedSound& OpenAL_Output::getBuffer(const std::string &fname)
 
 void OpenAL_Output::bufferFinished(ALuint buf)
 {
-    if(mBufferRefs.at(buf)-- == 1)
+    if (mBufferRefs.find(buf) != mBufferRefs.end())
     {
-        mBufferRefs.erase(mBufferRefs.find(buf));
-        mUnusedBuffers.push_back(buf);
+        if(mBufferRefs.at(buf)-- == 1)
+        {
+            mBufferRefs.erase(mBufferRefs.find(buf));
+            mUnusedBuffers.push_back(buf);
+        }
     }
 }
 

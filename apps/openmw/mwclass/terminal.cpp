@@ -24,7 +24,7 @@ namespace MWClass
 
     void Terminal::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::Terminal> *ref = ptr.get<ESM4::Terminal>();
+        //MWWorld::LiveCellRef<ESM4::Terminal> *ref = ptr.get<ESM4::Terminal>(); // currently unused
 
         if (!model.empty()) {
             renderingInterface.getObjects().insertModel(ptr, model/*, !ref->mBase->mPersistent*/); // FIXME

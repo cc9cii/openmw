@@ -581,7 +581,7 @@ void NiBtOgre::NiMultiTargetTransformController::registerTarget(const NiControll
     mControllerSequence = sequence;
 
     Ogre::SkeletonPtr skeleton = mModel.getSkeleton();
-    if (skeleton.isNull() || !skeleton->hasBone(targetName)) // FIXME: should not happen (not hasBone())
+    if (!skeleton || !skeleton->hasBone(targetName)) // FIXME: should not happen (not hasBone())
         return;
 
     Ogre::Bone *bone = skeleton->getBone(targetName);

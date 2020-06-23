@@ -113,7 +113,7 @@ namespace MWWorld
         }
 
         private:
-          typedef std::tr1::unordered_map<std::string, ContentLoader*> LoadersContainer;
+          typedef std::unordered_map<std::string, ContentLoader*> LoadersContainer;
           LoadersContainer mLoaders;
     };
 

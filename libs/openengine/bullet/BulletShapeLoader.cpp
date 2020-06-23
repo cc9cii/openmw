@@ -107,14 +107,14 @@ BulletShapeManager::~BulletShapeManager()
 
 BulletShapePtr BulletShapeManager::getByName(const Ogre::String& name, const Ogre::String& groupName)
 {
-    return getResourceByName(name, groupName).staticCast<BulletShape>();
+    return Ogre::static_pointer_cast<BulletShape>(getResourceByName(name, groupName));
 }
 
 BulletShapePtr BulletShapeManager::create (const Ogre::String& name, const Ogre::String& group,
                                 bool isManual, Ogre::ManualResourceLoader* loader,
                                 const Ogre::NameValuePairList* createParams)
 {
-    return createResource(name,group,isManual,loader,createParams).staticCast<BulletShape>();
+    return Ogre::static_pointer_cast<BulletShape>(createResource(name,group,isManual,loader,createParams));
 }
 
 Ogre::ResourcePtr BulletShapeManager::load(const Ogre::String &name, const Ogre::String &group,

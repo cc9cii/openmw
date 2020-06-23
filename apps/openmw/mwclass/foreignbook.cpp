@@ -26,7 +26,7 @@ namespace MWClass
 
     void ForeignBook::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::Book> *ref = ptr.get<ESM4::Book>();
+        //MWWorld::LiveCellRef<ESM4::Book> *ref = ptr.get<ESM4::Book>(); // currently unused
 
         if (!model.empty()) {
             renderingInterface.getObjects().insertModel(ptr, model/*, !ref->mBase->mPersistent*/); // FIXME

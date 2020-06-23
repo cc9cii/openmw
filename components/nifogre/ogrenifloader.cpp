@@ -24,6 +24,7 @@
 #include "ogrenifloader.hpp"
 
 #include <algorithm>
+#include <memory>
 
 #include <OgreTechnique.h>
 #include <OgreEntity.h>
@@ -1293,7 +1294,11 @@ public:
         {
             try
             {
+#if defined(__GNUC__) && __GNUC__ < 8
+                scene->mForeignObj = std::unique_ptr<NiBtOgre::BtOgreInst>(new NiBtOgre::BtOgreInst(sceneNode, /*scene,*/ name, group));
+#else
                 scene->mForeignObj = std::make_unique<NiBtOgre::BtOgreInst>(NiBtOgre::BtOgreInst(sceneNode, /*scene,*/ name, group));
+#endif
                 scene->mForeignObj->instantiate();
                 if (scene->mForeignObj)
                 {

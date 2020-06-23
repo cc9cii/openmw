@@ -18,7 +18,7 @@ namespace MWClass
 
     void ForeignFurniture::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::Furniture> *ref = ptr.get<ESM4::Furniture>();
+        //MWWorld::LiveCellRef<ESM4::Furniture> *ref = ptr.get<ESM4::Furniture>(); // currently unused
 
         if (!model.empty()) {
             renderingInterface.getObjects().insertModel(ptr, model/*, !ref->mBase->mPersistent*/); // FIXME

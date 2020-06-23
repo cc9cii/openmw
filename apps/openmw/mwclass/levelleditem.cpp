@@ -18,7 +18,7 @@ namespace MWClass
 
     void LevelledItem::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::LevelledItem> *ref = ptr.get<ESM4::LevelledItem>();
+        //MWWorld::LiveCellRef<ESM4::LevelledItem> *ref = ptr.get<ESM4::LevelledItem>(); // currently unused
 
         if (!model.empty()) {
             renderingInterface.getObjects().insertModel(ptr, model/*, !ref->mBase->mPersistent*/); // FIXME

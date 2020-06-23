@@ -70,8 +70,13 @@ NiBtOgre::NiModel::~NiModel()
 
 void NiBtOgre::NiModel::prepareImpl()
 {
+#if defined(__GNUC__) && __GNUC__ < 8
+    mNiStream = std::unique_ptr<NiBtOgre::NiStream>(new NiStream(mNif)); // WARN: may throw
+    mNiHeader = std::unique_ptr<NiBtOgre::NiHeader>(new NiHeader(mNiStream.get()));
+#else
     mNiStream = std::make_unique<NiBtOgre::NiStream>(mNif); // WARN: may throw
     mNiHeader = std::make_unique<NiBtOgre::NiHeader>(mNiStream.get());
+#endif
 }
 
 void NiBtOgre::NiModel::unprepareImpl()
@@ -182,7 +187,7 @@ void NiBtOgre::NiModel::createNiObjects()
                 if (blockType(std::uint32_t(i)) == "NiNode")
                     break;
 
-            if (mCurrIndex < mNiObjects.size()-1)
+            if (mCurrIndex < int(mNiObjects.size()-1))
                 mCurrIndex = int(mNiObjects.size()-1); // cheat
 
             mRoots[0] = std::uint32_t(i);
@@ -216,7 +221,7 @@ void NiBtOgre::NiModel::findBoneNodes(bool buildObjectPalette, size_t rootIndex)
         NiNodeRef boneRoot = leafNode->findBones(mRoots[rootIndex]); // populate NiNode::mChildBoneNodes
 
         // is skeleton root is different to scene root?  (-1 means we stopped midway so ignore)
-        if (boneRoot != -1 && boneRoot != rootIndex)
+        if (boneRoot != -1 && boneRoot != (std::int32_t)rootIndex)
             mBoneRootNode = getRef<NiNode>(boneRoot);
 
         if (buildObjectPalette)

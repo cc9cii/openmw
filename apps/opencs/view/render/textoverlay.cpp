@@ -37,7 +37,7 @@ TextOverlay::TextOverlay(const Ogre::MovableObject* obj, const Ogre::Camera* cam
 
     // setup font
     Ogre::FontManager &fontMgr = Ogre::FontManager::getSingleton();
-    if (fontMgr.resourceExists("DejaVuLGC"))
+    if (fontMgr.resourceExists("DejaVuLGC", "General"))
         mFont = fontMgr.getByName("DejaVuLGC","General");
     else
     {
@@ -64,7 +64,7 @@ TextOverlay::TextOverlay(const Ogre::MovableObject* obj, const Ogre::Camera* cam
     mOverlay = overlayMgr.create("CellIDPanel"+mId+Ogre::StringConverter::toString(mInstance));
 
     // create texture
-    Ogre::TexturePtr texture = Ogre::TextureManager::getSingleton().getByName("DynamicTransBlue");
+    Ogre::TexturePtr texture = Ogre::TextureManager::getSingleton().getByName("DynamicTransBlue", "General");
     if(!texture)
     {
         texture = Ogre::TextureManager::getSingleton().createManual(

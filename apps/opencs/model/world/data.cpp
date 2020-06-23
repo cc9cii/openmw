@@ -1153,8 +1153,13 @@ const CSMWorld::MetaData& CSMWorld::Data::getMetaData() const
 
 void CSMWorld::Data::setMetaData (const MetaData& metaData)
 {
+#if defined(__GNUC__) && __GNUC__ < 8
+    mMetaData.setRecord (0, std::unique_ptr<Record<MetaData> >(new
+            Record<MetaData>(RecordBase::State_ModifiedOnly, 0, &metaData)));
+#else
     mMetaData.setRecord (0, std::make_unique<Record<MetaData> >(
             Record<MetaData>(RecordBase::State_ModifiedOnly, 0, &metaData)));
+#endif
 }
 
 const CSMWorld::NpcAutoCalc& CSMWorld::Data::getNpcAutoCalc() const
@@ -1669,8 +1674,13 @@ int CSMWorld::Data::startLoading (const boost::filesystem::path& path, bool base
         metaData.mId = "sys::meta";
         metaData.load (*mReader);
 
+#if defined(__GNUC__) && __GNUC__ < 8
+        mMetaData.setRecord (0, std::unique_ptr<Record<MetaData> >(new
+                    Record<MetaData> (RecordBase::State_ModifiedOnly, 0, &metaData)));
+#else
         mMetaData.setRecord (0, std::make_unique<Record<MetaData> >(
                     Record<MetaData> (RecordBase::State_ModifiedOnly, 0, &metaData)));
+#endif
     }
 
     return mReader->getRecordCount();

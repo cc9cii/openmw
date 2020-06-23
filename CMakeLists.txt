@@ -372,10 +372,15 @@ if (NOT WIN32 AND NOT APPLE)
     configure_file(${OpenMW_SOURCE_DIR}/files/openmw-cs.desktop
         "${OpenMW_BINARY_DIR}/openmw-cs.desktop")
 endif()
-#-Wabi-tag -D_GLIBCXX_USE_CX11_ABI=0
+
 # CXX Compiler settings
+# gcc 9.3.0 / Ubuntu 20.04 supports std::make_unique but gcc 7.5.0 / Ubuntu 18.04 doesn't
 if (CMAKE_CXX_COMPILER_ID STREQUAL GNU OR CMAKE_CXX_COMPILER_ID STREQUAL Clang)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-parameter -std=c++14 -pedantic -Wno-long-long")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-parameter -std=c++14 -pedantic -Wno-long-long")
+
+    if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+    endif()
 
     if (CMAKE_CXX_COMPILER_ID STREQUAL Clang AND NOT APPLE)
         execute_process(COMMAND ${CMAKE_C_COMPILER} --version OUTPUT_VARIABLE CLANG_VERSION)

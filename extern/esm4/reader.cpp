@@ -346,8 +346,9 @@ void ESM4::Reader::checkGroupStatus()
     // pop finished groups
     while (!mCtx.groupStack.empty() && mCtx.groupStack.back().second == 0)
     {
+#if 0
         ESM4::GroupTypeHeader grp = mCtx.groupStack.back().first; // FIXME: grp is for debugging only
-
+#endif
         uint32_t groupSize = mCtx.groupStack.back().first.groupSize;
         mCtx.groupStack.pop_back();
 #if 0
@@ -407,7 +408,7 @@ void ESM4::Reader::getRecordData(bool dump)
         switch (ret)
         {
         case Z_NEED_DICT:
-            ret = Z_DATA_ERROR; /* and fall through */
+            ret = Z_DATA_ERROR; /* fall through */
         case Z_DATA_ERROR: //FONV.esm 0xB0CFF04 LAND record zlip DATA_ERROR
         case Z_MEM_ERROR:
             inflateEnd(&strm);

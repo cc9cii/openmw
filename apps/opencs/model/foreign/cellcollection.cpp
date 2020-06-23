@@ -11,6 +11,7 @@
 #include <libs/platform/strings.h>
 
 #include <extern/esm4/reader.hpp>
+#include <extern/esm4/common.hpp>
 
 #include "../world/record.hpp"
 #include "../world/universalid.hpp"

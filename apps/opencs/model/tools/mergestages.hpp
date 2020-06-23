@@ -82,9 +82,15 @@ namespace CSMTools
 
         const CSMWorld::Record<RecordType>& record = source.getRecord (stage);
 
+#if defined(__GNUC__) && __GNUC__ < 8
+        if (!record.isDeleted())
+            target.appendRecord (std::unique_ptr<CSMWorld::Record<RecordType> >(new
+                    CSMWorld::Record<RecordType>(CSMWorld::RecordBase::State_ModifiedOnly, 0, &record.get())));
+#else
         if (!record.isDeleted())
             target.appendRecord (std::make_unique<CSMWorld::Record<RecordType> >(
                     CSMWorld::Record<RecordType>(CSMWorld::RecordBase::State_ModifiedOnly, 0, &record.get())));
+#endif
     }
 
     class MergeRefIdsStage : public CSMDoc::Stage

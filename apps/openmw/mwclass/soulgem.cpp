@@ -26,7 +26,7 @@ namespace MWClass
 
     void SoulGem::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::SoulGem> *ref = ptr.get<ESM4::SoulGem>();
+        //MWWorld::LiveCellRef<ESM4::SoulGem> *ref = ptr.get<ESM4::SoulGem>(); // currently unused
 
         if (!model.empty()) {
             renderingInterface.getObjects().insertModel(ptr, model/*, !ref->mBase->mPersistent*/); // FIXME

@@ -80,7 +80,7 @@ Animation::Animation(const MWWorld::Ptr &ptr, Ogre::SceneNode *node)
     , mNullAnimationTimePtr(OGRE_NEW NullAnimationTime)
 {
     for(size_t i = 0;i < sNumGroups;i++)
-        mAnimationTimePtr[i].bind(OGRE_NEW AnimationTime(this));
+        mAnimationTimePtr[i].reset(OGRE_NEW AnimationTime(this));
 }
 
 Animation::~Animation()
@@ -527,7 +527,7 @@ bool Animation::hasAnimation(const std::string &anim)
             return true;
     }
 
-    if (!mObjectRoot.isNull() && mObjectRoot->mForeignObj)
+    if (mObjectRoot && mObjectRoot->mForeignObj)
         return mObjectRoot->mForeignObj->hasNodeAnimation(anim);   // HACK for foreign doors/activators
 
     return false;

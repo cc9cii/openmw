@@ -31,7 +31,7 @@ namespace MWClass
 
     void ForeignArmor::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::Armor> *ref = ptr.get<ESM4::Armor>();
+        //MWWorld::LiveCellRef<ESM4::Armor> *ref = ptr.get<ESM4::Armor>(); // currently unused
 
         if (!model.empty()) {
             // TES4 seems to lack _gnd models for shields
@@ -91,9 +91,9 @@ namespace MWClass
 
         MWGui::ToolTipInfo info;
 
-        const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
+        //const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore(); // currently unused
 
-        int count = ptr.getRefData().getCount();
+        //int count = ptr.getRefData().getCount(); // currently unused
 
         info.caption = ref->mBase->mFullName + MWGui::ToolTips::getCountString(ptr.getRefData().getCount());
         //info.icon = ref->mBase->mIconMale;

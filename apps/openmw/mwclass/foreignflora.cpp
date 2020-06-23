@@ -18,7 +18,7 @@ namespace MWClass
 
     void ForeignFlora::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::Flora> *ref = ptr.get<ESM4::Flora>();
+        //MWWorld::LiveCellRef<ESM4::Flora> *ref = ptr.get<ESM4::Flora>(); // currently unused
 
         if (!model.empty()) {
             renderingInterface.getObjects().insertModel(ptr, model/*, !ref->mBase->mPersistent*/); // FIXME

@@ -53,7 +53,7 @@ namespace MWClass
         if (model.find("FXspiderWeb") != std::string::npos)
             return; // std::cout << "stop" << std::endl;
 
-        MWWorld::LiveCellRef<ESM4::Activator> *ref = ptr.get<ESM4::Activator>();
+        //MWWorld::LiveCellRef<ESM4::Activator> *ref = ptr.get<ESM4::Activator>(); // currently unused
 
         if (!model.empty()) {
             renderingInterface.getObjects().insertModel(ptr, model/*, !ref->mBase->mPersistent*/); // FIXME
@@ -93,7 +93,7 @@ namespace MWClass
 
     std::string ForeignActivator::getScript (const MWWorld::Ptr& ptr) const
     {
-        MWWorld::LiveCellRef<ESM4::Activator> *ref = ptr.get<ESM4::Activator>();
+        //MWWorld::LiveCellRef<ESM4::Activator> *ref = ptr.get<ESM4::Activator>(); // currently unused
 
         return "";// ref->mBase->mScript; // FIXME: formid
     }
@@ -126,7 +126,7 @@ namespace MWClass
     // FIXME: only some actions supported for now
     boost::shared_ptr<MWWorld::Action> ForeignActivator::activate(const MWWorld::Ptr &ptr, const MWWorld::Ptr &actor) const
     {
-        MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
+        //MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr); // currently unused
         if (1)//anim->hasAnimation("Open") || anim->hasAnimation("Close"))
         {
             boost::shared_ptr<MWWorld::Action> action(new MWWorld::ActionDoor(ptr));
@@ -149,7 +149,7 @@ namespace MWClass
 
     int ForeignActivator::getDoorState (const MWWorld::Ptr &ptr) const
     {
-        MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
+        //MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr); // currently unused
         ensureCustomData(ptr);
         const DoorCustomData& customData = dynamic_cast<const DoorCustomData&>(*ptr.getRefData().getCustomData());
         return customData.mDoorState;

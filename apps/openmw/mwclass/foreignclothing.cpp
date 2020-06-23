@@ -29,7 +29,7 @@ namespace MWClass
 
     void ForeignClothing::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::Clothing> *ref = ptr.get<ESM4::Clothing>();
+        //MWWorld::LiveCellRef<ESM4::Clothing> *ref = ptr.get<ESM4::Clothing>(); // currently unused
 
         if (!model.empty()) {
             // TES4 seems to lack _gnd models for shields
@@ -194,7 +194,7 @@ namespace MWClass
 
     float ForeignClothing::getArmorRating (const MWWorld::Ptr& ptr) const
     {
-        MWWorld::LiveCellRef<ESM4::Clothing> *ref = ptr.get<ESM4::Clothing>();
+        //MWWorld::LiveCellRef<ESM4::Clothing> *ref = ptr.get<ESM4::Clothing>(); // currently unused
 
         return 0.f; // FIXME ref->mBase->mData.armor / 100.f;
     }

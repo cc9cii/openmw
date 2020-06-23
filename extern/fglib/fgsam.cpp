@@ -30,6 +30,7 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include <OgreRoot.h> // FIXME: for linux crash workaround
 #include <OgrePixelFormat.h>
 #include <OgreHardwarePixelBuffer.h>
 #include <OgreCommon.h> // Ogre::Box
@@ -88,7 +89,11 @@ namespace FgLib
                 name = name.substr(0, pos+1)+"tri";
 
             // use the supplied fgVertices to create a dummy TRI file then store it
+#if defined(__GNUC__) && __GNUC__ < 8
+            tri = triFile.replaceFile(name, std::unique_ptr<FgTri>(new FgTri(fgVertices)));
+#else
             tri = triFile.replaceFile(name, std::make_unique<FgTri>(fgVertices));
+#endif
         }
 
         return buildMorphedVerticesImpl(fgMorphVertices,
@@ -120,7 +125,13 @@ namespace FgLib
         if (tri->needsNifVertices())
         {
             name = nif.substr(0, pos+1)+"tri";
-            tri = triFile.replaceFile(boost::algorithm::to_lower_copy(name), std::make_unique<FgTri>(fgVertices));
+#if defined(__GNUC__) && __GNUC__ < 8
+            tri = triFile.replaceFile(boost::algorithm::to_lower_copy(name),
+                    std::unique_ptr<FgTri>(new FgTri(fgVertices)));
+#else
+            tri = triFile.replaceFile(boost::algorithm::to_lower_copy(name),
+                    std::make_unique<FgTri>(fgVertices));
+#endif
         }
 
         FgFile<FgEgm> egmFile;
@@ -383,10 +394,10 @@ namespace FgLib
                 Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
                 Ogre::TEX_TYPE_2D,  // type
                 egt->numRows(), egt->numColumns(), // width & height
-                0,                  // number of mipmaps; FIXME: should be 2? or 1?
+                1,                  // depth
+                0,                  // number of mipmaps
                 Ogre::PF_BYTE_RGBA,
-                Ogre::TU_DEFAULT);  // usage; should be TU_DYNAMIC_WRITE_ONLY_DISCARDABLE for
-                                    // textures updated very often (e.g. each frame)
+                Ogre::TU_DEFAULT);  // usage
         }
 
         // we need the base texture
@@ -395,13 +406,17 @@ namespace FgLib
         if (!baseTexture)
             return false; // FIXME: throw?
 
+        baseTexture->load();
+
         // dest: usually 256x256 (egt.numRows()*egt.numColumns())
         Ogre::HardwarePixelBufferSharedPtr pixelBuffer = morphTexture->getBuffer();
-        pixelBuffer->unlock(); // prepare for blit()
+        //pixelBuffer->unlock(); // prepare for blit()
+
         // src: can be 128x128
         Ogre::HardwarePixelBufferSharedPtr pixelBufferSrc
             = Ogre::static_pointer_cast<Ogre::Texture>(baseTexture)->getBuffer();
-        pixelBufferSrc->unlock(); // prepare for blit()
+        //pixelBufferSrc->unlock(); // prepare for blit()
+
         // if source and destination dimensions don't match, scaling is done
         pixelBuffer->blit(pixelBufferSrc);
 

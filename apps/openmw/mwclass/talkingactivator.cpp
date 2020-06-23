@@ -24,7 +24,7 @@ namespace MWClass
 
     void TalkingActivator::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::TalkingActivator> *ref = ptr.get<ESM4::TalkingActivator>();
+        //MWWorld::LiveCellRef<ESM4::TalkingActivator> *ref = ptr.get<ESM4::TalkingActivator>(); // currently unused
 
         if (!model.empty()) {
             renderingInterface.getObjects().insertModel(ptr, model/*, !ref->mBase->mPersistent*/); // FIXME

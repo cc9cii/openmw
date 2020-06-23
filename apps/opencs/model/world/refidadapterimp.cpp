@@ -461,6 +461,11 @@ CSMWorld::CreatureColumns::CreatureColumns (const ActorColumns& actorColumns)
   mMisc(NULL)
 {}
 
+// forward declare for gcc
+template<>
+QVariant CSMWorld::ActorRefIdAdapter<ESM::Creature>::getData (const RefIdColumn *column, const RefIdData& data,
+    int index) const;
+
 CSMWorld::CreatureRefIdAdapter::CreatureRefIdAdapter (const CreatureColumns& columns)
 : ActorRefIdAdapter<ESM::Creature> (UniversalId::Type_Creature, columns), mColumns (columns)
 {}
@@ -698,6 +703,11 @@ CSMWorld::NpcColumns::NpcColumns (const ActorColumns& actorColumns)
   mSkills(NULL),
   mMisc(NULL)
 {}
+
+// forward declare for gcc
+template<>
+QVariant CSMWorld::ActorRefIdAdapter<ESM::NPC>::getData (const RefIdColumn *column, const RefIdData& data,
+    int index) const;
 
 CSMWorld::NpcRefIdAdapter::NpcRefIdAdapter (const NpcColumns& columns, const CSMWorld::Data& data)
 : ActorRefIdAdapter<ESM::NPC> (UniversalId::Type_Npc, columns), mColumns (columns), mData(data)

@@ -71,6 +71,8 @@ NiBtOgre::BtOgreInst::~BtOgreInst()
     for (unsigned int i = 0; i < mInterpolators.size(); ++i)
         delete mInterpolators[i];
 
+    // FIXME: quick workaround for linux crash (but not for gcc 7.5.0 / Ubuntu 18.04)
+#if !defined(__GNUC__) || __GNUC__ < 8
     std::map<NiNodeRef, Ogre::Entity*>::iterator iter(mEntities.begin());
     for (; iter != mEntities.end(); ++iter)
     {
@@ -83,7 +85,7 @@ NiBtOgre::BtOgreInst::~BtOgreInst()
         }
         mEntities.erase(iter);
     }
-
+#endif
     mModel.reset();
 }
 

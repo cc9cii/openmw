@@ -14,7 +14,7 @@
 #include <extern/esm4/cont.hpp>
 #include <extern/esm4/acti.hpp>
 #include <extern/esm4/misc.hpp>
-#include <extern/esm4/Armo.hpp>
+#include <extern/esm4/armo.hpp>
 #include <extern/esm4/npc_.hpp>
 #include <extern/esm4/flor.hpp>
 #include <extern/esm4/gras.hpp>

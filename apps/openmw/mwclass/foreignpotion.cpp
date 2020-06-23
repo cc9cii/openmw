@@ -29,7 +29,7 @@ namespace MWClass
 
     void ForeignPotion::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::Potion> *ref = ptr.get<ESM4::Potion>();
+        //MWWorld::LiveCellRef<ESM4::Potion> *ref = ptr.get<ESM4::Potion>(); // currently unused
 
         if (!model.empty()) {
             renderingInterface.getObjects().insertModel(ptr, model/*, !ref->mBase->mPersistent*/); // FIXME
@@ -72,8 +72,8 @@ namespace MWClass
         //info.effects = MWGui::Widgets::MWEffectList::effectListFromESM(&ref->mBase->mEffects);
 
         // hide effects the player doesnt know about
-        MWWorld::Ptr player = MWBase::Environment::get().getWorld ()->getPlayerPtr();
-        MWMechanics::NpcStats& npcStats = player.getClass().getNpcStats (player);
+        //MWWorld::Ptr player = MWBase::Environment::get().getWorld ()->getPlayerPtr(); // currently unused
+        //MWMechanics::NpcStats& npcStats = player.getClass().getNpcStats (player); // currently unused
 #if 0
         int alchemySkill = npcStats.getSkill (ESM::Skill::Alchemy).getBase();
         int i=0;

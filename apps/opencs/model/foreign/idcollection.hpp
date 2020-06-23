@@ -3,6 +3,8 @@
 
 #include "collection.hpp"
 
+#include <extern/esm4/common.hpp>
+
 namespace ESM4
 {
     class Reader;

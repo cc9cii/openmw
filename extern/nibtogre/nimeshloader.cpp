@@ -191,7 +191,7 @@ namespace NiBtOgre
     // morphed meshes hold the shared pointer to NiModel so in theory the model should never be destroyed
     void NiMeshLoader::loadManualMorphedMesh(Ogre::Mesh* pMesh, const ModelBuildInfo& params)
     {
-        NiModelPtr model = params.modelPtr.staticCast<NiModel>();
+        NiModelPtr model = Ogre::static_pointer_cast<NiModel>(params.modelPtr);
         NiNode *node = model->getRef<NiNode>(params.ninodeIndex); // get NiNode
 
         // FIXME

@@ -40,7 +40,7 @@ namespace MWClass
 
     void ForeignMiscItem::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::MiscItem> *ref = ptr.get<ESM4::MiscItem>();
+        //MWWorld::LiveCellRef<ESM4::MiscItem> *ref = ptr.get<ESM4::MiscItem>(); // currently unused
 
         if (!model.empty()) {
             renderingInterface.getObjects().insertModel(ptr, model/*, !ref->mBase->mPersistent*/); // FIXME
@@ -73,7 +73,7 @@ namespace MWClass
 
         MWGui::ToolTipInfo info;
 
-        const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
+        //const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore(); // currently unused
 
         int count = ptr.getRefData().getCount();
 

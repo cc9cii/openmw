@@ -88,14 +88,23 @@ namespace CSMWorld
     template <typename ESXRecordT>
     std::unique_ptr<RecordBase> Record<ESXRecordT>::modifiedCopy() const
     {
+#if defined(__GNUC__) && __GNUC__ < 8
+        return std::unique_ptr<Record<ESXRecordT> >(new
+                Record<ESXRecordT>(State_ModifiedOnly, 0, &(this->get())));
+#else
         return std::make_unique<Record<ESXRecordT> >(
                 Record<ESXRecordT>(State_ModifiedOnly, 0, &(this->get())));
+#endif
     }
 
     template <typename ESXRecordT>
     std::unique_ptr<RecordBase> Record<ESXRecordT>::clone() const
     {
+#if defined(__GNUC__) && __GNUC__ < 8
+        return std::unique_ptr<Record<ESXRecordT> >(new Record<ESXRecordT>(*this));
+#else
         return std::make_unique<Record<ESXRecordT> >(Record<ESXRecordT>(*this));
+#endif
     }
 
     template <typename ESXRecordT>

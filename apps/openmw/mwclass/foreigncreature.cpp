@@ -91,7 +91,7 @@ namespace MWClass
         }
         else
         {
-            MWWorld::LiveCellRef<ESM4::Creature> *ref = ptr.get<ESM4::Creature>();
+            //MWWorld::LiveCellRef<ESM4::Creature> *ref = ptr.get<ESM4::Creature>(); // currently unused
 
             MWRender::Actors& actors = renderingInterface.getActors();
             actors.insertCreature(ptr, model, false/*(ref->mBase->mFlags & ESM::Creature::Weapon) != 0*/);

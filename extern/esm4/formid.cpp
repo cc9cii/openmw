@@ -56,7 +56,7 @@ namespace ESM4
 
         char *tmp;
         errno = 0;
-        unsigned long val = strtol(str.c_str(), &tmp, 16);
+        long int val = strtol(str.c_str(), &tmp, 16);
 
         if (tmp == str.c_str() || *tmp != '\0' || ((val == LONG_MIN || val == LONG_MAX) && errno == ERANGE))
             return false;

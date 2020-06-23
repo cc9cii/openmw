@@ -171,8 +171,13 @@ ForeignCreatureAnimation::ForeignCreatureAnimation(const MWWorld::Ptr &ptr, cons
         NifOgre::ObjectScenePtr scene
             = NifOgre::ObjectScenePtr (new NifOgre::ObjectScene(mInsert->getCreator()));
 
+#if defined(__GNUC__) && __GNUC__ < 8
+        scene->mForeignObj = std::unique_ptr<NiBtOgre::BtOgreInst>(new NiBtOgre::BtOgreInst(object,
+                             mInsert->createChildSceneNode()));
+#else
         scene->mForeignObj = std::make_unique<NiBtOgre::BtOgreInst>(NiBtOgre::BtOgreInst(object,
                              mInsert->createChildSceneNode()));
+#endif
 #if 1
         scene->mForeignObj->instantiateBodyPart(mInsert, mSkelBase);
 #else
@@ -541,8 +546,13 @@ NifOgre::ObjectScenePtr ForeignCreatureAnimation::createObject(const std::string
     NifOgre::ObjectScenePtr scene
         = NifOgre::ObjectScenePtr (new NifOgre::ObjectScene(mInsert->getCreator()));
 
+#if defined(__GNUC__) && __GNUC__ < 8
+        scene->mForeignObj
+            = std::unique_ptr<NiBtOgre::BtOgreInst>(new NiBtOgre::BtOgreInst(model, mInsert->createChildSceneNode()));
+#else
         scene->mForeignObj
             = std::make_unique<NiBtOgre::BtOgreInst>(NiBtOgre::BtOgreInst(model, mInsert->createChildSceneNode()));
+#endif
         scene->mForeignObj->instantiateBodyPart(mInsert, mSkelBase);
 
     return scene;

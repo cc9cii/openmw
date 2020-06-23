@@ -29,7 +29,7 @@ namespace MWClass
 
     void ForeignLight::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::Light> *ref = ptr.get<ESM4::Light>();
+        //MWWorld::LiveCellRef<ESM4::Light> *ref = ptr.get<ESM4::Light>(); // currently unused
 
         // some LIGH records have models (and most likely will have "AttachLight" node/bone) -
         // for those insertLight should specify to attach
@@ -73,7 +73,7 @@ namespace MWClass
 
         MWGui::ToolTipInfo info;
 
-        int count = ptr.getRefData().getCount();
+        //int count = ptr.getRefData().getCount(); // currently unused
 
         info.caption = ref->mBase->mFullName + MWGui::ToolTips::getCountString(ptr.getRefData().getCount());
         //info.icon = ref->mBase->mIconMale;

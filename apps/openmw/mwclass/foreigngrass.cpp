@@ -18,7 +18,7 @@ namespace MWClass
 
     void ForeignGrass::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::Grass> *ref = ptr.get<ESM4::Grass>();
+        //MWWorld::LiveCellRef<ESM4::Grass> *ref = ptr.get<ESM4::Grass>(); // currently unused
 
         if (!model.empty()) {
             renderingInterface.getObjects().insertModel(ptr, model/*, !ref->mBase->mPersistent*/); // FIXME

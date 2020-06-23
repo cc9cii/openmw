@@ -222,7 +222,7 @@ namespace MWWorld
                     std::find(mList.begin(), mList.end(), ref);
 
                 if (listIter != mList.end())
-                    *listIter = std::move(liveCellRef);
+                    *listIter = liveCellRef;
                 else
                     throw std::runtime_error ("CellStore: could not find "+ESM4::formIdToString(ref.mFormId));
 
@@ -231,7 +231,7 @@ namespace MWWorld
             }
             else
             {
-                mList.push_back(std::move(liveCellRef)); // insert
+                mList.push_back(liveCellRef); // insert
 
                 //std::size_t index = mList.size() -1;
                 LiveCellRefBase *refPtr = &mList.back();
@@ -297,7 +297,7 @@ namespace MWWorld
                     std::find(mList.begin(), mList.end(), ref);
 
                 if (listIter != mList.end())
-                    *listIter = std::move(liveCellRef);
+                    *listIter = liveCellRef;
                 else
                     throw std::runtime_error ("CellStore: could not find "+ESM4::formIdToString(ref.mFormId));
 
@@ -306,7 +306,7 @@ namespace MWWorld
             }
             else
             {
-                mList.push_back(std::move(liveCellRef)); // insert
+                mList.push_back(liveCellRef); // insert
 
                 //std::size_t index = mList.size() -1;
                 LiveCellRefBase *refPtr = &mList.back();
@@ -377,7 +377,7 @@ namespace MWWorld
                     std::find(mList.begin(), mList.end(), ref);
 
                 if (listIter != mList.end())
-                    *listIter = std::move(liveCellRef);
+                    *listIter = liveCellRef;
                 else
                     throw std::runtime_error ("CellStore: could not find "+ESM4::formIdToString(ref.mFormId));
 
@@ -386,7 +386,7 @@ namespace MWWorld
             }
             else
             {
-                mList.push_back(std::move(liveCellRef)); // insert
+                mList.push_back(liveCellRef); // insert
 
                 //std::size_t index = mList.size() -1;
                 LiveCellRefBase *refPtr = &mList.back();
@@ -1308,10 +1308,10 @@ namespace MWWorld
                         << ESM4::formIdToString(record.mFormId) << std::endl;
 #endif
 
-                const int cellSize = 4096;
-
-                int newX = static_cast<int>(std::floor(record.mPlacement.pos.x / cellSize));
-                int newY = static_cast<int>(std::floor(record.mPlacement.pos.y / cellSize));
+                // currently unused
+                //const int cellSize = 4096;
+                //int newX = static_cast<int>(std::floor(record.mPlacement.pos.x / cellSize));
+                //int newY = static_cast<int>(std::floor(record.mPlacement.pos.y / cellSize));
 
 
 

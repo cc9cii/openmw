@@ -38,7 +38,8 @@ namespace
 
         MWWorld::Ptr mPlaced;
 
-        ForeignNpcCustomData(const ESM4::Npc& npc) : mPlaced(MWWorld::Ptr())
+        ForeignNpcCustomData(const ESM4::Npc& npc)
+            : mInventoryStore(nullptr), mGameType(-1), mPlaced(MWWorld::Ptr())
         {
             bool isTES5 = false;
             const MWWorld::ESMStore &store = MWBase::Environment::get().getWorld()->getStore();
@@ -66,11 +67,14 @@ namespace
 
         ~ForeignNpcCustomData()
         {
+// FIXME: linux crash here (but not for gcc 9.3.0 / Ubuntu 20.04)
+#if !defined(__GNUC__) || __GNUC__ > 9
             if (mInventoryStore)
                 delete mInventoryStore;
+#endif
         }
 
-        virtual MWWorld::CustomData *clone() const;
+        MWWorld::CustomData *clone() const;
     };
 
     MWWorld::CustomData *ForeignNpcCustomData::clone() const
@@ -291,7 +295,7 @@ namespace MWClass
 
     int ForeignNpc::getBloodTexture(const MWWorld::Ptr &ptr) const
     {
-        MWWorld::LiveCellRef<ESM4::Npc> *ref = ptr.get<ESM4::Npc>();
+        //MWWorld::LiveCellRef<ESM4::Npc> *ref = ptr.get<ESM4::Npc>(); // currently unused
 
         // FIXME
 #if 0
@@ -664,7 +668,7 @@ namespace MWClass
 
     int ForeignNpc::getBaseFightRating (const MWWorld::Ptr& ptr) const
     {
-        MWWorld::LiveCellRef<ESM4::Npc> *ref = ptr.get<ESM4::Npc>();
+        //MWWorld::LiveCellRef<ESM4::Npc> *ref = ptr.get<ESM4::Npc>(); // currently unused
         //return ref->mBase->mAiData.mFight;
         return 5; // FIXME
     }
@@ -676,14 +680,14 @@ namespace MWClass
 
     std::string ForeignNpc::getPrimaryFaction (const MWWorld::Ptr& ptr) const
     {
-        MWWorld::LiveCellRef<ESM4::Npc> *ref = ptr.get<ESM4::Npc>();
+        //MWWorld::LiveCellRef<ESM4::Npc> *ref = ptr.get<ESM4::Npc>(); // currently unused
         //return ref->mBase->mFaction;
         return "foreign faction"; // FIXME
     }
 
     int ForeignNpc::getPrimaryFactionRank (const MWWorld::Ptr& ptr) const
     {
-        MWWorld::LiveCellRef<ESM4::Npc> *ref = ptr.get<ESM4::Npc>();
+        //MWWorld::LiveCellRef<ESM4::Npc> *ref = ptr.get<ESM4::Npc>(); // currently unused
         //return ref->mBase->getFactionRank();
         return 10; // FIXME
     }

@@ -61,7 +61,8 @@ CubeReflection::CubeReflection(Ogre::SceneManager* sceneManager)
 
 CubeReflection::~CubeReflection ()
 {
-    Ogre::TextureManager::getSingleton ().remove("CubeReflection");
+    Ogre::TextureManager::getSingleton ().remove("CubeReflection",
+                ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
     mSceneMgr->destroyCamera (mCamera);
 }
 
@@ -82,7 +83,8 @@ PlaneReflection::PlaneReflection(Ogre::SceneManager* sceneManager/*, SkyManager*
     mCamera = mSceneMgr->createCamera ("PlaneReflectionCamera");
     mSceneMgr->addRenderQueueListener(this);
 
-    mTexture = TextureManager::getSingleton().getByName("WaterReflection"); // FIXME FO3
+    mTexture = TextureManager::getSingleton().getByName("WaterReflection", // FIXME FO3
+                ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
     if (!mTexture)
     mTexture = TextureManager::getSingleton().createManual("WaterReflection",
         ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, TEX_TYPE_2D, 512, 512, 0, PF_R8G8B8, TU_RENDERTARGET);
@@ -105,7 +107,8 @@ PlaneReflection::~PlaneReflection ()
     mRenderTarget->removeListener (this);
     mSceneMgr->destroyCamera (mCamera);
     mSceneMgr->removeRenderQueueListener(this);
-    TextureManager::getSingleton ().remove("WaterReflection");
+    TextureManager::getSingleton ().remove("WaterReflection",
+                ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 }
 
 void PlaneReflection::renderQueueStarted (Ogre::uint8 queueGroupId, const Ogre::String &invocation, bool &skipThisInvocation)
@@ -203,7 +206,8 @@ Water::Water (Ogre::Camera *camera, SceneNode* root) :
 
     int waterScale = 30;
 
-    Ogre::MeshPtr mesh = MeshManager::getSingleton().getByName("water"); // FO3 temp FIXME
+    Ogre::MeshPtr mesh = MeshManager::getSingleton().getByName("water", // FO3 temp FIXME
+                ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
     if (!mesh)
     MeshManager::getSingleton().createPlane("water", ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, mWaterPlane,
         static_cast<Ogre::Real>(CELL_SIZE*5*waterScale), static_cast<Ogre::Real>(CELL_SIZE*5*waterScale),
@@ -286,7 +290,8 @@ void Water::setActive(bool active)
 
 Water::~Water()
 {
-    MeshManager::getSingleton().remove("water");
+    MeshManager::getSingleton().remove("water",
+                ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 
     mWaterNode->detachObject(mWater);
     mSceneMgr->destroyEntity(mWater);

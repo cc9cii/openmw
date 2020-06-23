@@ -68,7 +68,7 @@ void CSVRender::ForeignCell::destroyGridMaterials()
     if(Ogre::ResourceGroupManager::getSingleton().resourceGroupExists(DEBUGGING_GROUP))
     {
         if(Ogre::MaterialManager::getSingleton().getByName(PG_LINE_MATERIAL, DEBUGGING_GROUP))
-            Ogre::MaterialManager::getSingleton().remove(PG_LINE_MATERIAL);
+            Ogre::MaterialManager::getSingleton().remove(PG_LINE_MATERIAL, DEBUGGING_GROUP);
 
         Ogre::ResourceGroupManager::getSingleton().destroyResourceGroup(DEBUGGING_GROUP);
     }

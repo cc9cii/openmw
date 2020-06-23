@@ -179,6 +179,7 @@ target_link_libraries(components
     ${OENGINE_LIBRARY}
     ${BULLET_LIBRARIES}
     ${ESM4_LIBRARIES}
+    ${NIBTOGRE_LIBRARIES}
     ${BSAOPTHASH_LIBRARIES}
 )
 

@@ -127,6 +127,7 @@ namespace MWWorld
         public:
 
             InventoryStore();
+            virtual ~InventoryStore() {}
 
             InventoryStore (const InventoryStore& store);
 

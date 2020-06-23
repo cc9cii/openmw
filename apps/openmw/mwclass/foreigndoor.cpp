@@ -1,7 +1,6 @@
 #include "foreigndoor.hpp"
 
 #include <extern/esm4/cell.hpp>
-//#include <components/esm/loaddoor.hpp>
 #include <components/esm/doorstate.hpp>
 
 #include "../mwbase/environment.hpp"
@@ -119,8 +118,8 @@ namespace MWClass
     {
         MWWorld::LiveCellRef<ESM4::Door> *ref = ptr.get<ESM4::Door>();
 
-        const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
-        const MWWorld::ForeignStore<ESM4::Sound>& soundStore = store.getForeign<ESM4::Sound>();
+        //const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore(); // currently unused
+        //const MWWorld::ForeignStore<ESM4::Sound>& soundStore = store.getForeign<ESM4::Sound>(); // currently unused
         const ESM4::FormId openSoundId = ref->mBase->mOpenSound;
         const ESM4::FormId closeSoundId = ref->mBase->mCloseSound;
 
@@ -168,7 +167,7 @@ namespace MWClass
                 return action;
             }
 
-            Ogre::SceneNode* node = ptr.getRefData().getBaseNode();
+            //Ogre::SceneNode* node = ptr.getRefData().getBaseNode(); // currently unused
             MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
 
             if (ptr.getCellRef().getTeleport())
@@ -191,6 +190,7 @@ namespace MWClass
             {
                 boost::shared_ptr<MWWorld::Action> action(new MWWorld::ActionDoor(ptr));
                 if (anim->hasAnimation("Open"))
+                {
                     // NOTE: some doors have sound specified in the animation TextKey
                     // (see MWRender::Animation::handleTextKey() and activateAnimatedDoor())
                     // e.g. Oblivion\Architecture\Citadel\Interior\CitadelHall\CitadelHallDoor01Anim.NIF
@@ -199,9 +199,13 @@ namespace MWClass
                     //      sound: DRSMetalOpen02, sound: DRSMetalClose02
                     if (openSoundId)
                         action->setSound(openSound);
+                }
                 else
+                {
                     if (closeSoundId)
                         action->setSound(closeSound);
+                }
+
                 return action;
             }
             else
@@ -219,7 +223,7 @@ namespace MWClass
                 {
                     MWBase::Environment::get().getSoundManager()->fadeOutSound3D(ptr,
                             closeSound, 0.5f);
-                    float offset = ptr.getRefData().getLocalRotation().rot[2]/ 3.14159265f * 2.0f;
+                    //float offset = ptr.getRefData().getLocalRotation().rot[2]/ 3.14159265f * 2.0f; // currently unused
                     //action->setSoundOffset(offset); // FIXME: temp disable
                     //action->setSound(openSound); // FIXME: temp disable
                 }
@@ -227,7 +231,7 @@ namespace MWClass
                 {
                     MWBase::Environment::get().getSoundManager()->fadeOutSound3D(ptr,
                                                 openSound, 0.5f);
-                    float offset = 1.0f - ptr.getRefData().getLocalRotation().rot[2]/ 3.14159265f * 2.0f;
+                    //float offset = 1.0f - ptr.getRefData().getLocalRotation().rot[2]/ 3.14159265f * 2.0f; // currently unused
                     //most if not all door have closing bang somewhere in the middle of the sound,
                     //so we divide offset by two
                     //action->setSoundOffset(offset * 0.5f); // FIXME: temp disable
@@ -339,7 +343,7 @@ namespace MWClass
 
     int ForeignDoor::getDoorState (const MWWorld::Ptr &ptr) const
     {
-        MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
+        //MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr); // currently unused
         ensureCustomData(ptr);
         const DoorCustomData& customData = dynamic_cast<const DoorCustomData&>(*ptr.getRefData().getCustomData());
         return customData.mDoorState;

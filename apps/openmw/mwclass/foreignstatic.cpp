@@ -24,7 +24,7 @@ namespace MWClass
         if (dir.size() == 6 && boost::algorithm::to_lower_copy(dir) == "meshes")
             return;
 
-        MWWorld::LiveCellRef<ESM4::Static> *ref = ptr.get<ESM4::Static>();
+        //MWWorld::LiveCellRef<ESM4::Static> *ref = ptr.get<ESM4::Static>(); // currently unused
 
         if (!model.empty()) {
             renderingInterface.getObjects().insertModel(ptr, model/*, !ref->mBase->mPersistent*/); // FIXME

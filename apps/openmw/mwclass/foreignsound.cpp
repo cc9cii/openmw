@@ -18,7 +18,7 @@ namespace MWClass
 
     void ForeignSound::insertObjectRendering (const MWWorld::Ptr& ptr, const std::string& model, MWRender::RenderingInterface& renderingInterface) const
     {
-        MWWorld::LiveCellRef<ESM4::Sound> *ref = ptr.get<ESM4::Sound>();
+        //MWWorld::LiveCellRef<ESM4::Sound> *ref = ptr.get<ESM4::Sound>(); // currently unused
 
         // FIXME: do SOUN ever have a model?
         if (!model.empty()) {
@@ -34,7 +34,9 @@ namespace MWClass
 
     std::string ForeignSound::getModel(const MWWorld::Ptr &ptr) const
     {
+#if !defined NDEBUG
         MWWorld::LiveCellRef<ESM4::Sound> *ref = ptr.get<ESM4::Sound>();
+#endif
         assert(ref->mBase != NULL);
 
 // No model for sounds
