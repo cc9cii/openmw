@@ -32,6 +32,7 @@
 #include <vector>
 
 #include "formid.hpp"
+#include "actor.hpp" // BodyTemplate
 
 namespace ESM4
 {
@@ -53,6 +54,8 @@ namespace ESM4
 
         FormId mRacePrimary;
         std::vector<FormId> mRaces; // TES5 only
+
+        BodyTemplate mBodyTemplate; // TES5
 
         ArmorAddon();
         virtual ~ArmorAddon();

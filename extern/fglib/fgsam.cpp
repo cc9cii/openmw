@@ -30,7 +30,6 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <OgreRoot.h> // FIXME: for linux crash workaround
 #include <OgrePixelFormat.h>
 #include <OgreHardwarePixelBuffer.h>
 #include <OgreCommon.h> // Ogre::Box

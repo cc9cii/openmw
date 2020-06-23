@@ -3,7 +3,6 @@
 #include <cmath>
 #include <iostream> // FIXME: testing only
 
-#include <OgreRoot.h> // FIXME: for linux crash workaround
 #include <OgreSceneNode.h>
 #include <OgreSceneManager.h>
 #include <OgreEntity.h>
@@ -439,6 +438,8 @@ void Objects::updateLandscapeTexture(ESM4::FormId worldId, int x, int y, bool hi
 
 // IDEA: put world in a FIFO and keep the last one (so that if one pops into a store to offload
 // some loot and come back out we don't have to reload all the landscape for that world)
+//
+// FIXME: linux crash
 void Objects::removeLandscapeModel(ESM4::FormId worldId, int x, int y)
 {
     std::map<ESM4::FormId, std::map<std::pair<int, int>, Ogre::StaticGeometry*> >::iterator

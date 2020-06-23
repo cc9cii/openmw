@@ -582,11 +582,13 @@ std::string NiBtOgre::OgreMaterial::getOrCreateLSMaterial(const std::string& nam
     instance->setProperty("alpha", sh::makeProperty(new sh::FloatValue(bsLightingShaderProperty->mAlpha)));
 
     // uv
-    instance->setProperty("uv_offset", sh::makeProperty(new sh::Vector2(
+    //instance->setProperty("uv_offset", sh::makeProperty(new sh::Vector2(
+    sh::Factory::getInstance().setSharedParameter("uv_offset", sh::makeProperty(new sh::Vector2(
                 bsLightingShaderProperty->mUVOffset.u,
                 bsLightingShaderProperty->mUVOffset.v)));
 
-    instance->setProperty("uv_scale", sh::makeProperty(new sh::Vector2(
+    //instance->setProperty("uv_scale", sh::makeProperty(new sh::Vector2(
+    sh::Factory::getInstance().setSharedParameter("uv_scale", sh::makeProperty(new sh::Vector2(
                 bsLightingShaderProperty->mUVScale.u,
                 bsLightingShaderProperty->mUVScale.v)));
 
@@ -616,7 +618,8 @@ std::string NiBtOgre::OgreMaterial::getOrCreateLSMaterial(const std::string& nam
     {
         instance->setProperty("has_tint_color", sh::makeProperty(new sh::BooleanValue(true)));
 
-        instance->setProperty("tintColor", sh::makeProperty(new sh::Vector3(
+        //instance->setProperty("tintColor", sh::makeProperty(new sh::Vector3(
+        sh::Factory::getInstance().setSharedParameter("tintColor", sh::makeProperty(new sh::Vector3(
                     bsLightingShaderProperty->mSkinTintColor.x,
                     bsLightingShaderProperty->mSkinTintColor.y,
                     bsLightingShaderProperty->mSkinTintColor.z)));
@@ -636,15 +639,18 @@ std::string NiBtOgre::OgreMaterial::getOrCreateLSMaterial(const std::string& nam
     {
         instance->setProperty("has_specular", sh::makeProperty(new sh::BooleanValue(true)));
 
-        instance->setProperty("specularColor", sh::makeProperty(new sh::Vector3(
+        //instance->setProperty("specularColor", sh::makeProperty(new sh::Vector3(
+        sh::Factory::getInstance().setSharedParameter("specularColor", sh::makeProperty(new sh::Vector3(
                     bsLightingShaderProperty->mSpecularColor.x,
                     bsLightingShaderProperty->mSpecularColor.y,
                     bsLightingShaderProperty->mSpecularColor.z)));
 
-        instance->setProperty("specular_strength", sh::makeProperty(new sh::FloatValue(
+        //instance->setProperty("specular_strength", sh::makeProperty(new sh::FloatValue(
+        sh::Factory::getInstance().setSharedParameter("specular_strength", sh::makeProperty(new sh::FloatValue(
                     bsLightingShaderProperty->mSpecularStrength)));
 
-        instance->setProperty("specular_glossiness", sh::makeProperty(new sh::FloatValue(
+        //instance->setProperty("specular_glossiness", sh::makeProperty(new sh::FloatValue(
+        sh::Factory::getInstance().setSharedParameter("specular_glossiness", sh::makeProperty(new sh::FloatValue(
                     bsLightingShaderProperty->mGlossiness)));
     }
     //else
@@ -658,18 +664,25 @@ std::string NiBtOgre::OgreMaterial::getOrCreateLSMaterial(const std::string& nam
     //}
 
     // emissive
-    instance->setProperty("emissiveColor", sh::makeProperty(new sh::Vector3(
+    sh::Factory::getInstance().setSharedParameter("emissiveColor", sh::makeProperty(new sh::Vector3(
                 bsLightingShaderProperty->mEmissiveColor.x,
                 bsLightingShaderProperty->mEmissiveColor.y,
                 bsLightingShaderProperty->mEmissiveColor.z)));
 
-    instance->setProperty("emissive_mult", sh::makeProperty(new sh::FloatValue(
+    //instance->setProperty("emissive_mult", sh::makeProperty(new sh::FloatValue(
+    sh::Factory::getInstance().setSharedParameter("emissive_mult", sh::makeProperty(new sh::FloatValue(
                 bsLightingShaderProperty->mEmissiveMultiple)));
+
+    sh::Factory::getInstance().setSharedParameter("lighting_effect1", sh::makeProperty(new sh::FloatValue(
+                bsLightingShaderProperty->mLightingEffect1)));
+
+    sh::Factory::getInstance().setSharedParameter("lighting_effect2", sh::makeProperty(new sh::FloatValue(
+                bsLightingShaderProperty->mLightingEffect2)));
 
     if (tset)
     {
         // base/diffuse map
-        if (!tset->mTextures[0].empty())
+        if (tset->mTextures[0] != "")
         {
             instance->setProperty("diffuseMap", sh::makeProperty(
                                            Misc::ResourceHelpers::correctTexturePath(tset->mTextures[0])));
@@ -677,7 +690,7 @@ std::string NiBtOgre::OgreMaterial::getOrCreateLSMaterial(const std::string& nam
         }
 
         // normal map
-        if (!tset->mTextures[1].empty())
+        if (tset->mTextures[1] != "")
         {
             instance->setProperty("normalMap", sh::makeProperty(
                                            Misc::ResourceHelpers::correctTexturePath(tset->mTextures[1])));
@@ -688,7 +701,7 @@ std::string NiBtOgre::OgreMaterial::getOrCreateLSMaterial(const std::string& nam
 
         // glow/specular map
         // FIXME: also light mask?
-        if (!tset->mTextures[2].empty())
+        if (tset->mTextures[2] != "")
         {
             // FIXME: glow is 5? (same as env?)
             if ((bsLightingShaderProperty->mShaderFlags2 & 0x00000040) != 0)
@@ -700,7 +713,7 @@ std::string NiBtOgre::OgreMaterial::getOrCreateLSMaterial(const std::string& nam
         }
 
         // height map (default shader) / detail map (msn)
-        if (!tset->mTextures[3].empty())
+        if (tset->mTextures[3] != "")
         {
             if (bsLightingShaderProperty->getSkyrimShaderType() == 3 && // parallax/height
                (bsLightingShaderProperty->mShaderFlags1 & 0x00000800) != 0)
@@ -722,21 +735,21 @@ std::string NiBtOgre::OgreMaterial::getOrCreateLSMaterial(const std::string& nam
         // FIXME: use default?
 
         // environment/cube map; default shader only
-        if (!tset->mTextures[4].empty())
+        if (tset->mTextures[4] != "")
         {
             instance->setProperty("environmentMap", sh::makeProperty(
                                            Misc::ResourceHelpers::correctTexturePath(tset->mTextures[4])));
         }
 
         // FIXME: just a guess
-        if (!tset->mTextures[5].empty())
+        if (tset->mTextures[5] != "")
         {
             instance->setProperty("environmentMask", sh::makeProperty(
                                            Misc::ResourceHelpers::correctTexturePath(tset->mTextures[5])));
         }
 
         // FIXME: just a guess
-        if (!tset->mTextures[6].empty())
+        if (tset->mTextures[6] != "")
         {
             // default is grey?
             std::string texture = tset->mTextures[6];
@@ -748,7 +761,7 @@ std::string NiBtOgre::OgreMaterial::getOrCreateLSMaterial(const std::string& nam
         }
 
         // backlight map? also specular?
-        if (!tset->mTextures[7].empty())
+        if (tset->mTextures[7] != "")
         {
             if ((bsLightingShaderProperty->mShaderFlags2 & 0x08000000) != 0)
             {

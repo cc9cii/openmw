@@ -575,9 +575,20 @@ void ESM4::Race::load(ESM4::Reader& reader)
             {
                 reader.get(mBodyTemplate.bodyPart);
                 reader.get(mBodyTemplate.flags);
-                reader.get(mBodyTemplate.unknown1);
-                reader.get(mBodyTemplate.unknown2);
-                reader.get(mBodyTemplate.unknown3);
+                reader.get(mBodyTemplate.unknown1); // probably padding
+                reader.get(mBodyTemplate.unknown2); // probably padding
+                reader.get(mBodyTemplate.unknown3); // probably padding
+                reader.get(mBodyTemplate.type);
+
+                break;
+            }
+            case ESM4::SUB_BOD2: // TES5
+            {
+                reader.get(mBodyTemplate.bodyPart);
+                mBodyTemplate.flags = 0;
+                mBodyTemplate.unknown1 = 0; // probably padding
+                mBodyTemplate.unknown2 = 0; // probably padding
+                mBodyTemplate.unknown3 = 0; // probably padding
                 reader.get(mBodyTemplate.type);
 
                 break;

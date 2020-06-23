@@ -555,6 +555,8 @@ namespace MWClass
 
             data->mNpcStats.setGoldPool(gold);
 
+            //int gameType = data->mGameType;
+
             // store the data
             ptr.getRefData().setCustomData (data.release());
 

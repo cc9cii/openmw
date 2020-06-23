@@ -1,7 +1,7 @@
 #include "core.h"
 
 
-//#define FOG @shGlobalSettingBool(fog)
+#define FOG @shGlobalSettingBool(fog)
 
 #define SHADOWS_PSSM @shGlobalSettingBool(shadows_pssm)
 #define SHADOWS @shGlobalSettingBool(shadows)
@@ -10,8 +10,7 @@
     #include "shadows.h"
 #endif
 
-//#if FOG || SHADOWS_PSSM
-#if SHADOWS_PSSM
+#if FOG || SHADOWS_PSSM
 #define NEED_DEPTH
 #endif
 
@@ -35,6 +34,7 @@
 #define PARALLAX_BIAS -0.02
 
 // right now we support 2 UV sets max. implementing them is tedious, and we're probably not going to need more
+//#define SECOND_UV_SET (@xhPropertyString(emissiveMapUVSet) || @xhPropertyString(detailMapUVSet) || @xhPropertyString(diffuseMapUVSet) || @xhPropertyString(darkMapUVSet))
 
 // if normal mapping is enabled, we force pixel lighting
 #define VERTEX_LIGHTING (!@shPropertyHasValue(normalMap))
@@ -45,7 +45,8 @@
 
 #define VIEWPROJ_FIX @shGlobalSettingBool(viewproj_fix)
 
-#define ENV_MAP @shPropertyBool(env_map)
+//#define ENV_MAP @shPropertyBool(env_map)
+#define ENV_MAP ENVIRONMENT_MAP
 
 #define NEED_NORMAL (!VERTEX_LIGHTING || ENV_MAP) || SPECULAR
 
@@ -114,11 +115,6 @@
 
 #endif
 
-#if BACKLIGHT_MAP
-    //shOutput(float3, lightMSNDir)
-    //shOutput(float4, colourMSN)
-#endif
-
 #if SHADOWS
         shOutput(float4, lightSpacePos0)
         shUniform(float4x4, texViewProjMatrix0) @shAutoConstant(texViewProjMatrix0, texture_viewproj_matrix)
@@ -139,6 +135,7 @@
     shOutput(float4, lightResult)
     shOutput(float3, directionalResult)
 #endif
+
     SH_START_PROGRAM
     {
         shOutputPosition = shMatrixMult(wvp, shInputPosition);
@@ -162,11 +159,6 @@
         UV.w = r.y/m + 0.5;
 #endif
 
-#if BACKLIGHT_MAP
-    //lightMSNDir = lightPosition[0].xyz;
-    //colourMSN = colour;
-#endif
-
 #if NORMAL_MAP
         tangentPassthrough = tangent.xyz;
 #endif
@@ -177,8 +169,8 @@
         colourPassthrough = colour;
 #endif
 
-#ifdef NEED_DEPTH
 
+#ifdef NEED_DEPTH
 
 #if VIEWPROJ_FIX
         float4x4 vpFixed = vpMatrix;
@@ -199,12 +191,12 @@
 #endif
 
 #endif
-
         objSpacePositionPassthrough.xyz = shInputPosition.xyz;
 
 #if SHADOWS
         lightSpacePos0 = shMatrixMult(texViewProjMatrix0, shMatrixMult(worldMatrix, shInputPosition));
 #endif
+
 #if SHADOWS_PSSM
         float4 wPos = shMatrixMult(worldMatrix, shInputPosition);
     @shForeach(3)
@@ -306,30 +298,43 @@
         shUniform(float3, env_map_color) @shUniformProperty3f(env_map_color, env_map_color)
 #endif
 
-#if SPEC_MAP
+// we always need this
+//#if SPEC_MAP
         shSampler2D(specularMap)
-#endif
+//#endif
 
         //alpha $alpha
-    shUniform(float2, uv_offset) @shUniformProperty2f(uv_offset, uv_offset)
-    shUniform(float2, uv_scale) @shUniformProperty2f(uv_scale, uv_scale)
+    //shUniform(float2, uv_offset) @shUniformProperty2f(uv_offset, uv_offset)
+    //shUniform(float2, uv_scale) @shUniformProperty2f(uv_scale, uv_scale)
         //has_own_emit $has_own_emit
         //has_soft_light $has_soft_light
         //has_rim_light $has_rim_light
         //has_back_light $has_back_light
         //has_detail_mask $has_detail_mask
         //has_tint_color $has_tint_color
-    shUniform(float3, tintColor) @shUniformProperty3f(tintColor, tintColor)
+    //shUniform(float3, tintColor) @shUniformProperty3f(tintColor, tintColor)
         //has_specular $has_specular
-    shUniform(float3, specularColor) @shUniformProperty3f(specularColor, specularColor)
-    shUniform(float, specular_strength) @shUniformProperty1f(specular_strength, specular_strength)
-    shUniform(float, specular_glossiness) @shUniformProperty1f(specular_glossiness, specular_glossiness)
-    shUniform(float3, emissiveColor) @shUniformProperty3f(emissiveColor, emissiveColor)
-    shUniform(float, emissive_mult) @shUniformProperty1f(emissive_mult, emissive_mult)
+    //shUniform(float3, specularColor) @shUniformProperty3f(specularColor, specularColor)
+    //shUniform(float, specular_strength) @shUniformProperty1f(specular_strength, specular_strength)
+    //shUniform(float, specular_glossiness) @shUniformProperty1f(specular_glossiness, specular_glossiness)
+    //shUniform(float3, emissiveColor) @shUniformProperty3f(emissiveColor, emissiveColor)
+    //shUniform(float, emissive_mult) @shUniformProperty1f(emissive_mult, emissive_mult)
+
+    shUniform(float2, uv_offset) @shSharedParameter(uv_offset)
+    shUniform(float2, uv_scale) @shSharedParameter(uv_scale)
+    shUniform(float3, tintColor) @shSharedParameter(tintColor)
+    shUniform(float3, specularColor) @shSharedParameter(specularColor)
+    shUniform(float, specular_strength) @shSharedParameter(specular_strength)
+    shUniform(float, specular_glossiness) @shSharedParameter(specular_glossiness)
+    shUniform(float3, emissiveColor) @shSharedParameter(emissiveColor)
+    shUniform(float, emissive_mult) @shSharedParameter(emissive_mult)
+    shUniform(float, lighting_effect1) @shSharedParameter(lighting_effect1)
+    shUniform(float, lighting_effect2) @shSharedParameter(lighting_effect2)
 
 #if ENV_MAP || SPECULAR || PARALLAX
     shUniform(float3, cameraPosObjSpace) @shAutoConstant(cameraPosObjSpace, camera_position_object_space)
 #endif
+
 // FIXME:
 #if SPECULAR || BACKLIGHT_MAP
     shUniform(float3, lightSpec0) @shAutoConstant(lightSpec0, light_specular_colour, 0)
@@ -350,16 +355,15 @@
 
         shInput(float4, objSpacePositionPassthrough)
 
-#if (VERTEXCOLOR_MODE != 0 && !VERTEX_LIGHTING) || BACKLIGHT_MAP
+#if VERTEXCOLOR_MODE != 0 && !VERTEX_LIGHTING
         shInput(float4, colourPassthrough)
-        //shInput(float4, colourMSN)
 #endif
 
 
-//#if FOG
-//        shUniform(float3, fogColour) @shAutoConstant(fogColour, fog_colour)
-//        shUniform(float4, fogParams) @shAutoConstant(fogParams, fog_params)
-//#endif
+#if FOG
+        shUniform(float3, fogColour) @shAutoConstant(fogColour, fog_colour)
+        shUniform(float4, fogParams) @shAutoConstant(fogParams, fog_params)
+#endif
 
 #if SHADOWS
         shInput(float4, lightSpacePos0)
@@ -375,16 +379,11 @@
     shUniform(float3, pssmSplitPoints)  @shSharedParameter(pssmSplitPoints)
 #endif
 
-//#if BACKLIGHT_MAP
-//        shInput(float3, lightMSNDir)
-//#endif
-
 #if SHADOWS || SHADOWS_PSSM
         shUniform(float4, shadowFar_fadeStart) @shSharedParameter(shadowFar_fadeStart)
 #endif
 
-//#if (UNDERWATER) || (FOG)
-#if (UNDERWATER)
+#if (UNDERWATER) || (FOG)
         shUniform(float4x4, worldMatrix) @shAutoConstant(worldMatrix, world_matrix)
         shUniform(float4, cameraPos) @shAutoConstant(cameraPos, camera_position)
 #endif
@@ -480,71 +479,6 @@
         discard;
 #endif
 
-#if BACKLIGHT_MAP
-        float2 offset = UVorig * uv_scale
-        // FIXME: dupl?
-        // lightDir
-        float3 lightMSNDir = lightPosition[0].xyz;
-
-        float3 testColor = emissiveColor.xyz;
-
-        // L
-        float3 lightDirNorm = normalize (lightMSNDir);
-        // FIXME: dupl
-        // E
-        //float3 viewDirNorm = normalize (viewDir);
-        float3 viewDirNorm = normalize(cameraPosObjSpace.xyz - objSpacePositionPassthrough.xyz);
-
-        // normal
-        float3 normalMSN = normalize (shMatrixMult( transpose(tbn), normalTex.xzy * 2.0 - 1.0 ));
-
-        float3 vecH = normalize( lightDirNorm + viewDirNorm );
-        // NdotH
-        float NdotH = max( dot(normalMSN, vecH), 0.0 );
-
-        // NdotL
-        float NdotLMSN = max( dot(normalMSN, lightDirNorm), 0.0);
-        // NdotNegL
-        float NdotNegL = max( dot(normalMSN, -lightDirNorm), 0.0);
-
-        float s = normalTex.a;
-
-        // FIXME: hard coded values
-        //float3 spec = clamp( specColor * specStrength * s * pow(NdotH, specGlossiness), 0.0, 1.0 );
-        float3 spec = clamp( float3(1,1,1) * float(3.0) * s * pow(NdotH, float(30.0)), 0.0, 1.0 );
-        // FIXME: not sure if correct
-        //spec *= D.rgb;
-        spec *= lightDiffuse[0].xyz;
-
-        //float3 lightMSNDir = normalize(lightPosObjSpace0.xyz);
-        //float NdotNegL = max( dot(normalMSN, -lightMSNDir), 0.0);
-
-        float3 backlight = float3(0, 0, 0);
-        backlight = shSample(backlightMap, UV.xy).xyz;
-        //backlight *= NdotNegL;
-        backlight *= NdotLMSN;
-        //emissive += backlight * D.rgb;
-        float3 emissive = backlight * lightDiffuse[0].xyz;
-
-        // FIXME: not sure
-        float3 albedo = diffuse.rgb * colourPassthrough.xyz;
-        //float3 albedo = diffuse.rgb * colourMSN.xyz;
-        float3 diffuseMSN = lightAmbient.rgb + (lightDiffuse[0].xyz * NdotLMSN);
-#endif
-
-#if TINT_MAP
-        float3 tint = shSample(tintMap, UV.xy).rgb;
-        //albedo = overlay( albedo, tint );
-#endif
-
-#if DETAIL_MAP
-        diffuse *= shSample(detailMap, newUV.xy)*2;
-#endif
-
-//#if DARK_MAP
-//        diffuse *= shSample(darkMap, newUV.xy);
-//#endif
-
         shOutputColour(0) = diffuse;
 
 #if !VERTEX_LIGHTING
@@ -610,8 +544,7 @@
 
 
 
-//#if (UNDERWATER) || (FOG)
-#if (UNDERWATER)
+#if (UNDERWATER) || (FOG)
     float3 worldPos = shMatrixMult(worldMatrix, float4(objSpacePositionPassthrough.xyz,1)).xyz;
 #endif
 
@@ -625,9 +558,121 @@
         shOutputColour(0) *= lightResult;
 #endif
 
-#if EMISSIVE_MAP
-        shOutputColour(0).xyz += shSample(emissiveMap, newUV.xy).xyz;
+//#if BACKLIGHT_MAP
+        float2 offsetMSN = UVorig * uv_scale + uv_offset;
+        //offsetMSN = UV.xy;
+        //offsetMSN = newUV.xy;
+
+        float4 baseMapMSN = shSample(diffuseMap, offsetMSN);
+        float4 normalMapMSN = shSample(normalMap, offsetMSN);
+
+        // FIXME: which?
+        float3 normalMSN = normalMapMSN.rgb * 2.0 - 1.0;
+        // FIXME: assumed transpose(tbn) == viewMatrix
+        normalMSN = normalize (shMatrixMult( transpose(tbn), float4(normalMSN.rbg, 0.0)));
+        //normalMSN = normalize (shMatrixMult( transpose(tbn), float4((normalTex.xzy * 2.0 - 1.0), 0.0) ));
+        //normalMSN = normalize (shMatrixMult( transpose(tbn), normalTex.xyz * 2.0 - 1.0 ));
+
+        // FIXME: assumed
+        float3 lightDirMSN = lightPosition[0].xyz;
+        //float3 lightDirMSN = lightDir;
+
+        // FIXME: which?
+        // L
+        float3 lightDirNorm = normalize (lightDirMSN);
+        //float3 lightDirNorm = normalize(lightPosObjSpace0.xyz);
+
+        // FIXME: which?
+        // E
+        //float3 viewDirNorm = normalize (viewDir);
+        float3 viewDirNorm = normalize(cameraPosObjSpace.xyz - objSpacePositionPassthrough.xyz);
+        // R (unused?)
+        //float3 reflectDir = reflect (-lightDirNorm, normalMSN);
+        float3 reflectDir = reflect (-lightDirNorm, normal);
+        // H
+        float3 vecH = normalize( lightDirNorm + viewDirNorm );
+
+        // NdotL (also used ro soft light, i.e. lightingEffect1)
+        //float NdotLMSN = max( dot(normalMSN, lightDirNorm), 0.0);
+        float NdotLMSN = max( dot(normal, lightDirNorm), 0.0);
+        // NdotH
+        //float NdotH = max( dot(normalMSN, vecH), 0.0 );
+        float NdotH = max( dot(normal, vecH), 0.0 );
+        // EdotN (used for Rim light, i.e. lightingEffect2)
+        //float EdotN = max( dot(normalMSN, viewDirNorm), 0.0 );
+        float EdotN = max( dot(normal, viewDirNorm), 0.0 );
+        // NdotNegL
+        //float NdotNegL = max( dot(normalMSN, -lightDirNorm), 0.0);
+        float NdotNegL = max( dot(normal, -lightDirNorm), 0.0);
+
+
+        // FIXME: not sure
+        //float3 albedo = baseMapMSN.rgb * colourPassthrough.xyz;
+        float3 albedo = diffuse.rgb;
+        //float3 albedo = diffuse.rgb * colourPassthrough.xyz;
+        //float3 diffuseMSN = lightAmbient.rgb + (lightDiffuse[0].xyz * NdotLMSN);
+        float3 diffuseMSN = lightAmbient.rgb + (lightResult.xyz * NdotLMSN);
+
+        float3 emissiveMSN = float3(0.0, 0.0, 0.0);
+
+        emissiveMSN = emissiveColor * emissive_mult;
+
+        float s = shSample(specularMap, offsetMSN).r;
+#if !SPEC_MAP || BACKLIGHT_MAP
+        s = normalMapMSN.a;
+        //s = normalTex.a;
 #endif
+        float3 spec = clamp( specularColor * specular_strength * s * pow(NdotH, specular_glossiness), 0.0, 1.0 );
+        // FIXME: not sure if correct
+        //spec *= D.rgb;
+        //spec *= lightDiffuse[0].xyz;
+        spec *= lightResult.xyz;
+
+        float3 backlight = float3(0.0, 0.0, 0.0);
+#if BACKLIGHT_MAP
+        backlight = shSample(backlightMap, offsetMSN).xyz;
+        //backlight = shSample(backlightMap, UV.xy).xyz;
+        backlight *= NdotNegL;
+
+        //emissive += backlight * D.rgb;
+        //emissiveMSN += backlight * lightDiffuse[0].xyz;
+        emissiveMSN += backlight * lightResult.xyz;
+#endif
+
+        float3 detailMSN = float3(0.0, 0.0, 0.0);
+#if DETAIL_MAP
+        detailMSN = shSample(detailMap, offsetMSN).xyz;
+
+        albedo = overlay( albedo, detailMSN );
+#endif
+
+        float3 tintMSN = float3(0.0, 0.0, 0.0);
+#if TINT_MAP
+        tintMSN = shSample(tintMap, offsetMSN).rgb;
+        //tintMSN = shSample(tintMap, UV.xy).rgb;
+
+        albedo = overlay( albedo, tintMSN );
+#endif
+
+
+//#endif
+
+
+#if DETAIL_MAP
+        albedo += albedo;
+        //diffuse *= shSample(detailMap, newUV.xy)*2;
+#endif
+
+#if TINT_MAP
+        albedo *= tintColor;
+#endif
+//#if DARK_MAP
+//        diffuse *= shSample(darkMap, newUV.xy);
+//#endif
+
+//#if EMISSIVE_MAP
+        //shOutputColour(0).xyz += shSample(emissiveMap, newUV.xy).xyz;
+//#endif
 
 #if ENV_MAP
         // Everything looks better with fresnel
@@ -643,13 +688,13 @@
         float NdotL = max(dot(normal, light0Dir), 0.0);
         float3 halfVec = normalize (light0Dir + eyeDir);
 
-        float shininess = matShininess;
+        float shininess = specular_glossiness;
 #if SPEC_MAP
         float4 specTex = shSample(specularMap, UV.xy);
-        shininess *= (specTex.a);
+        shininess *= (specTex.r);
 #endif
 
-        float3 specular = pow(max(dot(normal, halfVec), 0.0), shininess) * lightSpec0 * matSpec;
+        float3 specular = pow(max(dot(normal, halfVec), 0.0), shininess) * lightSpec0 * specularColor * specular_strength;
 #if SPEC_MAP
         specular *= specTex.xyz;
 #else
@@ -659,34 +704,55 @@
         shOutputColour(0).xyz += specular * shadow;
 #endif
 
-//#if FOG
-//        float fogValue = shSaturate((depthPassthrough - fogParams.y) * fogParams.w);
+#if FOG
+        float fogValue = shSaturate((depthPassthrough - fogParams.y) * fogParams.w);
 
 
 #if UNDERWATER
         shOutputColour(0).xyz = shLerp (shOutputColour(0).xyz, UNDERWATER_COLOUR, shSaturate(length(waterEyePos-worldPos) / VISIBILITY));
-//#else
-//        shOutputColour(0).xyz = shLerp (shOutputColour(0).xyz, fogColour, fogValue);
-//#endif
+#else
+        shOutputColour(0).xyz = shLerp (shOutputColour(0).xyz, fogColour, fogValue);
+#endif
 
 #endif
 
-#if BACKLIGHT_MAP
+//#if BACKLIGHT_MAP
         // FIXME: not sure if correct
-        shOutputColour(0).xyz += backlight * lightDiffuse[0].xyz;
-        shOutputColour(0).xyz += spec;
+        //shOutputColour(0).xyz += backlight * lightDiffuse[0].xyz;
+        //shOutputColour(0).xyz += spec;
 
         // FIXME: overwriting
-        shOutputColour(0).xyz = albedo * (diffuseMSN + emissive) + spec;
-        //color.rgb = tonemap( color.rgb ) / tonemap( vec3(1.0) );
-        shOutputColour(0).xyz = tonemap (shOutputColour(0).xyz) / tonemap (float3(1.0, 1.0, 1.0));
+        //shOutputColour(0).xyz = albedo * (diffuseMSN + emissiveMSN) + spec;
+        //shOutputColour(0).xyz = baseMapMSN.rgb * colourPassthrough.xyz;
 
-#endif
+
+
+
+
+
+
+
+        //shOutputColour(0).xyz = baseMapMSN.rgb;
+        //shOutputColour(0).xyz = baseMapMSN.rgb * (lightAmbient.rgb + (lightDiffuse[0].xyz * NdotLMSN)) + spec;
+        //shOutputColour(0).xyz = baseMapMSN.rgb * (diffuseMSN + emissiveMSN) + spec;
+        //shOutputColour(0).xyz = baseMapMSN.rgb + spec;
+        //shOutputColour(0).xyz = baseMapMSN.rgb * lightResult.xyz + spec;
+
+
+
+
+
+
+
+        //shOutputColour(0).xyz = tonemap (shOutputColour(0).xyz) / tonemap (float3(1.0, 1.0, 1.0));
+        //shOutputColour(0).w = colourPassthrough.a * baseMapMSN.a;
+        //shOutputColour(0).w = baseMapMSN.a;
+        //shOutputColour(0).w = colourPassthrough.a * diffuse.a;
+
+//#endif
 
         // prevent negative colour output (for example with negative lights)
         shOutputColour(0).xyz = max(shOutputColour(0).xyz, float3(0.0,0.0,0.0));
-        // FIXME: temp testing
-        //shOutputColour(0).xyz += float3(0.5,0.5,0.5);
     }
 #if NORMAL_MAP && SH_GLSLES
          mat3 transpose(mat3 m){

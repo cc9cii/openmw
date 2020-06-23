@@ -6,7 +6,6 @@
 
 //#include <boost/thread/recursive_mutex.hpp>
 
-#include <OgreRoot.h> // FIXME: for linux crash workaround
 #include <OgreSceneManager.h>
 #include <OgreEntity.h>
 #include <OgreParticleSystem.h>
@@ -1282,7 +1281,7 @@ void ForeignNpcAnimation::updateTES4NpcBase()
                 }
 
                 // Lock the pixel buffer and get a pixel box
-                pixelBufferSrc->lock(Ogre::HardwareBuffer::HBL_NORMAL); // for best performance use HBL_DISCARD!
+                //pixelBufferSrc->lock(Ogre::HardwareBuffer::HBL_NORMAL); // for best performance use HBL_DISCARD!
                 //const Ogre::PixelBox& pixelBoxSrc = pixelBufferSrc->getCurrentLock();
 
                 uint8_t* pDetail;
@@ -1311,6 +1310,7 @@ void ForeignNpcAnimation::updateTES4NpcBase()
                     {
                         faceDetailTexture = Ogre::TextureManager::getSingleton().create(
                             faceDetailFile, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+
                         faceDetailTexture->load();
                     }
                     pixelBufferDetail = detailTexture->getBuffer();
@@ -2581,7 +2581,7 @@ void ForeignNpcAnimation::updateTES5NpcBase()
                 //continue;
         }
 
-        std::cout << "skin " << arma->mEditorId << std::endl; // FIXME
+        //std::cout << "skin " << arma->mEditorId << std::endl; // FIXME
 
         bodyMeshName = "meshes\\" + (isFemale ? arma->mModelFemale : arma->mModelMale);
 
@@ -2601,7 +2601,7 @@ void ForeignNpcAnimation::updateTES5NpcBase()
         Misc::StringUtils::lowerCaseInPlace(skeletonName);
         NiModelPtr model = modelManager.getByName(mRace->mEditorId + skeletonName + "_" + bodyMeshName, group);
 
-        std::cout << bodyTextureName << std::endl;
+        //std::cout << "body texture " << bodyTextureName << std::endl;
 
         if (!model)
             model = modelManager.createSkinnedModel(bodyMeshName,
@@ -4068,7 +4068,7 @@ Ogre::Vector3 ForeignNpcAnimation::runAnimation(float timepassed)
         return Ogre::Vector3::ZERO; // FIXME: FO3
 
     mHeadAnimationTime->update(timepassed);
-#//if 0 // FIXME: FO3 head rotation
+//#if 0 // FIXME: FO3 head rotation
     if (mSkelBase)
     {
         Ogre::SkeletonInstance *baseinst = mSkelBase->getSkeleton();
@@ -4114,7 +4114,7 @@ Ogre::Vector3 ForeignNpcAnimation::runAnimation(float timepassed)
     }
 //#endif
 
-    // FIXME: demo code for vertex pose animation
+// FIXME: demo code for vertex pose animation
 //#if 0
     if (mStartTimer > 1)
         mStartTimer -= timepassed;

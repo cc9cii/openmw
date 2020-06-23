@@ -67,7 +67,7 @@ namespace
             }
             catch (std::exception&)
             {
-                std::cout << "no far model " << model << std::endl;
+                //std::cout << "no far model " << model << std::endl;
                 rendering.addObject(ptr, model);
             }
 #endif

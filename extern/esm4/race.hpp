@@ -32,7 +32,7 @@
 #include <map>
 
 #include "formid.hpp"
-#include "actor.hpp" // AttributeValues
+#include "actor.hpp" // AttributeValues, BodyTemplate
 
 namespace ESM4
 {
@@ -104,48 +104,6 @@ namespace ESM4
         {
             std::string mesh;    // can be empty for arms, hands, etc
             std::string texture; // can be empty e.g. eye left, eye right
-        };
-
-        struct BodyTemplate // TES5
-        {
-            // 0x00000001 - Head
-            // 0x00000002 - Hair
-            // 0x00000004 - Body
-            // 0x00000008 - Hands
-            // 0x00000010 - Forearms
-            // 0x00000020 - Amulet
-            // 0x00000040 - Ring
-            // 0x00000080 - Feet
-            // 0x00000100 - Calves
-            // 0x00000200 - Shield
-            // 0x00000400 - Tail
-            // 0x00000800 - Long Hair
-            // 0x00001000 - Circlet
-            // 0x00002000 - Ears
-            // 0x00004000 - Body AddOn 3
-            // 0x00008000 - Body AddOn 4
-            // 0x00010000 - Body AddOn 5
-            // 0x00020000 - Body AddOn 6
-            // 0x00040000 - Body AddOn 7
-            // 0x00080000 - Body AddOn 8
-            // 0x00100000 - Decapitate Head
-            // 0x00200000 - Decapitate
-            // 0x00400000 - Body AddOn 9
-            // 0x00800000 - Body AddOn 10
-            // 0x01000000 - Body AddOn 11
-            // 0x02000000 - Body AddOn 12
-            // 0x04000000 - Body AddOn 13
-            // 0x08000000 - Body AddOn 14
-            // 0x10000000 - Body AddOn 15
-            // 0x20000000 - Body AddOn 16
-            // 0x40000000 - Body AddOn 17
-            // 0x80000000 - FX01
-            std::uint32_t bodyPart;
-            std::uint8_t flags;
-            std::uint8_t unknown1; // probably padding
-            std::uint8_t unknown2; // probably padding
-            std::uint8_t unknown3; // probably padding
-            std::uint32_t type; // 0 = light, 1 = heavy, 2 = none (cloth?)
         };
 
         FormId mFormId;       // from the header

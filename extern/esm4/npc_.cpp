@@ -297,7 +297,6 @@ void ESM4::Npc::load(ESM4::Reader& reader)
                 throw std::runtime_error("ESM4::NPC_::load - Unknown subrecord " + ESM4::printName(subHdr.typeId));
         }
     }
-    //std::cout << mEditorId << " " << formIdToString(mDefaultPkg) << std::endl;
 }
 
 //void ESM4::Npc::save(ESM4::Writer& writer) const
