@@ -56,7 +56,7 @@ namespace Gui
     {
         if (getAlign().isHStretch())
             throw std::runtime_error("AutoSizedEditBox can't have HStretch align (" + getName() + ")");
-        return MyGUI::IntSize(getSize().width, getTextSize().height);
+        return MyGUI::IntSize(getSize().width, getTextSize().height+80);// FIXME: temp add 80
     }
 
     void AutoSizedEditBox::setCaption(const MyGUI::UString& _value)
