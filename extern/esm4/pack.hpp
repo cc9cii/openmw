@@ -59,17 +59,19 @@ namespace ESM4
         struct PLDT
         {
             std::int32_t type;
-            std::uint32_t location;
+            FormId location; // uint32_t if type = 5
             std::int32_t radius;
         };
 
         struct PTDT
         {
             std::int32_t type;
-            std::uint32_t location;
+            FormId location; // uint32_t if type = 2
             std::int32_t count;
         };
 
+        // NOTE: param1/param2 can be FormId or number, but assume FormId so that adjustFormId
+        // can be called
         struct CTDA
         {
             std::uint8_t condition;
@@ -78,8 +80,8 @@ namespace ESM4
             std::uint8_t unknown3; // probably padding
             float compValue;
             std::int32_t fnIndex;
-            std::uint32_t param1;
-            std::uint32_t param2;
+            FormId param1;
+            FormId param2;
             std::uint32_t unknown4; // probably padding
         };
 #pragma pack(pop)

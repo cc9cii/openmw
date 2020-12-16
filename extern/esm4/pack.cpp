@@ -84,12 +84,16 @@ void ESM4::AIPackage::load(ESM4::Reader& reader)
 
                 break;
             }
-            case ESM4::SUB_PLDT: //reader.get(mLocation); break;
+            case ESM4::SUB_PLDT:
             {
                 if (subHdr.dataSize != sizeof(mLocation))
                     reader.skipSubRecordData(); // FIXME:
                 else
+                {
                     reader.get(mLocation); // TES4
+                    if (mLocation.type != 5)
+                        reader.adjustFormId(mLocation.location);
+                }
 
                 break;
             }
@@ -98,7 +102,11 @@ void ESM4::AIPackage::load(ESM4::Reader& reader)
                 if (subHdr.dataSize != sizeof(mTarget))
                     reader.skipSubRecordData(); // FIXME: FO3
                 else
+                {
                     reader.get(mTarget); // TES4
+                    if (mLocation.type != 2)
+                        reader.adjustFormId(mTarget.location);
+                }
 
                 break;
             }
@@ -112,6 +120,9 @@ void ESM4::AIPackage::load(ESM4::Reader& reader)
 
                 static CTDA condition;
                 reader.get(condition);
+                // FIXME: how to "unadjust" if not FormId?
+                //adjustFormId(condition.param1);
+                //adjustFormId(condition.param2);
                 mConditions.push_back(condition);
 
                 break;

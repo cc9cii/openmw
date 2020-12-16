@@ -542,12 +542,15 @@ void ESM4::Reader::skipSubRecordData(std::uint32_t size)
 // FIXME: probably should add a parameter to check for mHeader::mOverrides
 //        (ACHR, LAND, NAVM, PGRE, PHZD, REFR), but not sure what exactly overrides mean
 //        i.e. use the modindx of its master?
+// FIXME: Apparently ModIndex '00' in an ESP means the object is defined in one of its masters.
+//        This means we may need to search multiple times to get the correct id.
+//        (see https://www.uesp.net/wiki/Tes4Mod:Formid#ModIndex_Zero)
 void ESM4::Reader::adjustFormId(FormId& id)
 {
     if (mHeader.mModIndices.empty())
         return;
 
-    unsigned int index = (id >> 24) & 0xff;
+    std::size_t index = (id >> 24) & 0xff;
 
     if (index < mHeader.mModIndices.size())
         id = mHeader.mModIndices[index] | (id & 0x00ffffff);
