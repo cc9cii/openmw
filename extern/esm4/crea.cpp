@@ -39,7 +39,7 @@
 #undef NDEBUG
 #endif
 
-ESM4::Creature::Creature() : mFormId(0), mFlags(0), mDeathItem(0), mScript(0), mCombatStyle(0),
+ESM4::Creature::Creature() : mFormId(0), mFlags(0), mDeathItem(0), mScriptId(0), mCombatStyle(0),
                              mSoundBase(0), mSound(0), mSoundChance(0), mBaseScale(0.f),
                              mTurningSpeed(0.f), mFootWeight(0.f), mBoundRadius(0.f)
 {
@@ -108,7 +108,7 @@ void ESM4::Creature::load(ESM4::Reader& reader)
                 break;
             }
             case ESM4::SUB_INAM: reader.getFormId(mDeathItem);   break;
-            case ESM4::SUB_SCRI: reader.getFormId(mScript);      break;
+            case ESM4::SUB_SCRI: reader.getFormId(mScriptId);      break;
             case ESM4::SUB_AIDT:
             {
                 if (subHdr.dataSize == 20) // FO3

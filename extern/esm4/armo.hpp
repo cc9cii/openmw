@@ -176,7 +176,7 @@ namespace ESM4
 
         std::uint32_t mArmorFlags;
         std::uint32_t mGeneralFlags;
-        FormId        mScript;
+        FormId        mScriptId;
         std::uint16_t mEnchantmentPoints;
         FormId        mEnchantment;
 

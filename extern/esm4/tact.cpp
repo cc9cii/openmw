@@ -32,7 +32,7 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::TalkingActivator::TalkingActivator() : mFormId(0), mFlags(0), mScript(0), mVoiceType(0), mLoopSound(0),
+ESM4::TalkingActivator::TalkingActivator() : mFormId(0), mFlags(0), mScriptId(0), mVoiceType(0), mLoopSound(0),
     mRadioTemplate(0)
 {
     mEditorId.clear();
@@ -65,7 +65,7 @@ void ESM4::TalkingActivator::load(ESM4::Reader& reader)
 
                 break;
             }
-            case ESM4::SUB_SCRI: reader.getFormId(mScript); break;
+            case ESM4::SUB_SCRI: reader.getFormId(mScriptId); break;
             case ESM4::SUB_VNAM: reader.getFormId(mVoiceType); break;
             case ESM4::SUB_SNAM: reader.getFormId(mLoopSound); break;
             case ESM4::SUB_INAM: reader.getFormId(mRadioTemplate); break; // FONV

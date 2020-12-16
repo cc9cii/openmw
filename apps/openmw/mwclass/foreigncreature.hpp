@@ -3,6 +3,8 @@
 
 #include "../mwworld/class.hpp"
 
+#include "../mwgui/tooltips.hpp"
+
 namespace MWWorld
 {
     class InventoryStoreTES4;
@@ -29,6 +31,18 @@ namespace MWClass
             ///< \return name (the one that is to be presented to the user; not the internal one);
             /// can return an empty string.
 
+            virtual bool hasToolTip (const MWWorld::Ptr& ptr) const;
+
+            virtual MWGui::ToolTipInfo getToolTipInfo (const MWWorld::Ptr& ptr) const;
+
+            virtual MWWorld::InventoryStore& getInventoryStore (const MWWorld::Ptr& ptr) const;
+            MWWorld::InventoryStoreTES4& getInventoryStoreTES4 (const MWWorld::Ptr& ptr) const;
+            MWMechanics::CreatureStats& getCreatureStats (const MWWorld::Ptr& ptr) const;
+
+            virtual std::string getScript (const MWWorld::Ptr& ptr) const;
+
+            virtual MWMechanics::Movement& getMovementSettings (const MWWorld::Ptr& ptr) const;
+
             static void registerSelf();
 
             virtual std::string getModel(const MWWorld::Ptr &ptr) const;
@@ -41,10 +55,6 @@ namespace MWClass
             //    return false;
             //}
 
-            MWWorld::InventoryStore& getInventoryStore (const MWWorld::Ptr& ptr) const;
-            MWWorld::InventoryStoreTES4& getInventoryStoreTES4 (const MWWorld::Ptr& ptr) const;
-            MWMechanics::CreatureStats& getCreatureStats (const MWWorld::Ptr& ptr) const;
-            MWMechanics::Movement& getMovementSettings (const MWWorld::Ptr& ptr) const;
     };
 }
 

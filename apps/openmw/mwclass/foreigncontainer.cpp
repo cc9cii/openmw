@@ -19,6 +19,7 @@
 #include "../mwworld/failedaction.hpp"
 #include "../mwworld/containerstore.hpp"
 #include "../mwworld/customdata.hpp"
+#include "../mwworld/esmstore.hpp"
 
 #include "../mwrender/objects.hpp"
 #include "../mwrender/renderinginterface.hpp"
@@ -122,7 +123,11 @@ namespace MWClass
 
         if (MWBase::Environment::get().getWindowManager()->getFullHelp()) {
             text += MWGui::ToolTips::getCellRefString(ptr.getCellRef());
-            //text += MWGui::ToolTips::getMiscString(ref->mBase->mScript, "Script");
+
+            const MWWorld::ESMStore &store = MWBase::Environment::get().getWorld()->getStore();
+            const ESM4::Script *script = store.getForeign<ESM4::Script>().search(ref->mBase->mScriptId);
+            if (script)
+                text += MWGui::ToolTips::getMiscString(script->mScript.scriptSource, "Script");
         }
 
         info.text = text;
@@ -200,6 +205,16 @@ namespace MWClass
             //action->setSound(lockedSound);
             return action;
         }
+    }
+
+    std::string ForeignContainer::getScript (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::Container> *ref = ptr.get<ESM4::Container>();
+
+        if (ref->mBase->mScriptId)
+            return ESM4::formIdToString(ref->mBase->mScriptId);
+        else
+            return "";
     }
 
     MWWorld::ContainerStore& ForeignContainer::getContainerStore (const MWWorld::Ptr& ptr)

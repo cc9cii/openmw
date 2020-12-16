@@ -54,7 +54,7 @@ namespace ESM4
 
         FormId mOpenSound;
         FormId mCloseSound;
-        FormId mScript; // TES4 only
+        FormId mScriptId; // TES4 only
 
         std::vector<InventoryItem> mInventory;
 

@@ -58,7 +58,7 @@ namespace ESM4
 
         std::string mModel;
 
-        FormId mScript;
+        FormId mScriptId;
         FormId mVoiceType;     // VTYP
         FormId mLoopSound;     // SOUN
         FormId mRadioTemplate; // SOUN

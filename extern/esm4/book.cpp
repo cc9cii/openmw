@@ -31,7 +31,7 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::Book::Book() : mFormId(0), mFlags(0), mBoundRadius(0.f), mScript(0),
+ESM4::Book::Book() : mFormId(0), mFlags(0), mBoundRadius(0.f), mScriptId(0),
                      mEnchantmentPoints(0), mEnchantment(0), mPickUpSound(0), mDropSound(0)
 {
     mEditorId.clear();
@@ -109,7 +109,7 @@ void ESM4::Book::load(ESM4::Reader& reader)
             }
             case ESM4::SUB_ICON: reader.getZString(mIcon);  break;
             case ESM4::SUB_MODL: reader.getZString(mModel); break;
-            case ESM4::SUB_SCRI: reader.getFormId(mScript);      break;
+            case ESM4::SUB_SCRI: reader.getFormId(mScriptId);      break;
             case ESM4::SUB_ANAM: reader.get(mEnchantmentPoints); break;
             case ESM4::SUB_ENAM: reader.getFormId(mEnchantment); break;
             case ESM4::SUB_MODB: reader.get(mBoundRadius);  break;

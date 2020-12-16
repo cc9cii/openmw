@@ -67,7 +67,7 @@ namespace ESM4
         FormId mPickUpSound;
         FormId mDropSound;
 
-        FormId mScript;
+        FormId mScriptId;
         ScriptEffect mEffect;
 
         float mBoundRadius;

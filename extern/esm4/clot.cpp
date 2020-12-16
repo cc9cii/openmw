@@ -33,7 +33,7 @@
 //#include "writer.hpp"
 
 ESM4::Clothing::Clothing() : mFormId(0), mFlags(0), mBoundRadius(0.f), mClothingFlags(0),
-                             mScript(0), mEnchantmentPoints(0), mEnchantment(0)
+                             mScriptId(0), mEnchantmentPoints(0), mEnchantment(0)
 {
     mEditorId.clear();
     mFullName.clear();
@@ -67,7 +67,7 @@ void ESM4::Clothing::load(ESM4::Reader& reader)
             case ESM4::SUB_FULL: reader.getZString(mFullName); break;
             case ESM4::SUB_DATA: reader.get(mData);            break;
             case ESM4::SUB_BMDT: reader.get(mClothingFlags);   break;
-            case ESM4::SUB_SCRI: reader.getFormId(mScript);      break;
+            case ESM4::SUB_SCRI: reader.getFormId(mScriptId);      break;
             case ESM4::SUB_ENAM: reader.getFormId(mEnchantment); break;
             case ESM4::SUB_ANAM: reader.get(mEnchantmentPoints); break;
             case ESM4::SUB_MODB: reader.get(mBoundRadius);     break;

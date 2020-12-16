@@ -31,7 +31,7 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::SoulGem::SoulGem() : mFormId(0), mFlags(0), mBoundRadius(0.f), mScript(0), mSoul(0), mSoulCapacity(0)
+ESM4::SoulGem::SoulGem() : mFormId(0), mFlags(0), mBoundRadius(0.f), mScriptId(0), mSoul(0), mSoulCapacity(0)
 {
     mEditorId.clear();
     mFullName.clear();
@@ -70,7 +70,7 @@ void ESM4::SoulGem::load(ESM4::Reader& reader)
             case ESM4::SUB_MODL: reader.getZString(mModel); break;
             case ESM4::SUB_ICON: reader.getZString(mIcon);  break;
             case ESM4::SUB_DATA: reader.get(mData);         break;
-            case ESM4::SUB_SCRI: reader.getFormId(mScript); break;
+            case ESM4::SUB_SCRI: reader.getFormId(mScriptId); break;
             case ESM4::SUB_SOUL: reader.get(mSoul);         break;
             case ESM4::SUB_SLCP: reader.get(mSoulCapacity); break;
             case ESM4::SUB_MODB: reader.get(mBoundRadius);  break;

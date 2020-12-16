@@ -19,6 +19,10 @@ namespace MWClass
 
             virtual void insertObject(const MWWorld::Ptr& ptr, const std::string& model, MWWorld::PhysicsSystem& physics) const;
 
+            virtual bool hasToolTip (const MWWorld::Ptr& ptr) const;
+
+            virtual MWGui::ToolTipInfo getToolTipInfo (const MWWorld::Ptr& ptr) const;
+
             virtual std::string getName (const MWWorld::Ptr& ptr) const;
 
             static void registerSelf();
@@ -26,11 +30,9 @@ namespace MWClass
             virtual boost::shared_ptr<MWWorld::Action> activate (const MWWorld::Ptr& ptr,
                 const MWWorld::Ptr& actor) const;
 
+            virtual std::string getScript (const MWWorld::Ptr& ptr) const;
+
             virtual MWWorld::ContainerStore& getContainerStore (const MWWorld::Ptr& ptr) const;
-
-            virtual bool hasToolTip (const MWWorld::Ptr& ptr) const;
-
-            virtual MWGui::ToolTipInfo getToolTipInfo (const MWWorld::Ptr& ptr) const;
 
             virtual std::string getModel(const MWWorld::Ptr &ptr) const;
     };

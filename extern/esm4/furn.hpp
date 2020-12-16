@@ -48,7 +48,7 @@ namespace ESM4
 
         float mBoundRadius;
 
-        FormId      mScript;
+        FormId mScriptId;
         std::uint32_t mActiveMarkerFlags;
 
         Furniture();

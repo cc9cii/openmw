@@ -23,16 +23,14 @@ namespace MWClass
 
             virtual std::string getName (const MWWorld::Ptr& ptr) const;
 
-            static void registerSelf();
+            virtual bool hasToolTip (const MWWorld::Ptr& ptr) const;
 
-            virtual std::string getModel(const MWWorld::Ptr &ptr) const;
+            virtual MWGui::ToolTipInfo getToolTipInfo (const MWWorld::Ptr& ptr) const;
 
             virtual boost::shared_ptr<MWWorld::Action> activate (const MWWorld::Ptr& ptr,
                 const MWWorld::Ptr& actor) const;
 
-            virtual bool hasToolTip (const MWWorld::Ptr& ptr) const;
-
-            virtual MWGui::ToolTipInfo getToolTipInfo (const MWWorld::Ptr& ptr) const;
+            virtual std::string getScript (const MWWorld::Ptr& ptr) const;
 
             static std::string getDestination (const MWWorld::LiveCellRef<ESM4::Door>& door);
 
@@ -46,6 +44,10 @@ namespace MWClass
 
             virtual void writeAdditionalState (const MWWorld::Ptr& ptr, ESM::ObjectState& state)
                 const;
+
+            virtual std::string getModel(const MWWorld::Ptr &ptr) const;
+
+            static void registerSelf();
     };
 }
 

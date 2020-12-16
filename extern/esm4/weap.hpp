@@ -77,7 +77,7 @@ namespace ESM4
 
         float mBoundRadius;
 
-        FormId      mScript;
+        FormId mScriptId;
         std::uint16_t mEnchantmentPoints;
         FormId      mEnchantment;
 

@@ -32,7 +32,7 @@
 //#include "writer.hpp"
 
 ESM4::Container::Container() : mFormId(0), mFlags(0), mBoundRadius(0.f), mDataFlags(0), mWeight(0.f),
-                               mOpenSound(0), mCloseSound(0), mScript(0)
+                               mOpenSound(0), mCloseSound(0), mScriptId(0)
 {
     mEditorId.clear();
     mFullName.clear();
@@ -81,7 +81,7 @@ void ESM4::Container::load(ESM4::Reader& reader)
             case ESM4::SUB_MODL: reader.getZString(mModel);     break;
             case ESM4::SUB_SNAM: reader.getFormId(mOpenSound);  break;
             case ESM4::SUB_QNAM: reader.getFormId(mCloseSound); break;
-            case ESM4::SUB_SCRI: reader.getFormId(mScript);     break;
+            case ESM4::SUB_SCRI: reader.getFormId(mScriptId);     break;
             case ESM4::SUB_MODB: reader.get(mBoundRadius);      break;
             case ESM4::SUB_MODT:
             case ESM4::SUB_MODS: // TES5 only

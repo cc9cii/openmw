@@ -45,8 +45,8 @@ namespace ESM4
 
         std::string mEditorId;
 
-        FormId      mScript;
-        FormId      mTemplate;
+        FormId mScriptId;
+        FormId mTemplate;
         std::int8_t mChanceNone;
 
         bool mHasLvlCreaFlags;

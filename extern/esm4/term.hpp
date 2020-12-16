@@ -49,7 +49,7 @@ namespace ESM4
         std::string mModel;
         std::string mResultText;
 
-        FormId mScript;
+        FormId mScriptId;
         FormId mPasswordNote;
         FormId mSound;
 

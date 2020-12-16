@@ -34,7 +34,7 @@
 
 ESM4::Armor::Armor() : mFormId(0), mFlags(0), mIsTES4(false), mIsFO3(false), mIsFONV(false),
                        mPickUpSound(0), mDropSound(0), mBoundRadius(0.f),
-                       mArmorFlags(0), mGeneralFlags(0)
+                       mArmorFlags(0), mGeneralFlags(0), mScriptId(0), mEnchantmentPoints(0), mEnchantment(0)
 {
     mEditorId.clear();
     mFullName.clear();
@@ -167,7 +167,7 @@ void ESM4::Armor::load(ESM4::Reader& reader)
                 mGeneralFlags |= TYPE_TES5;
                 break;
             }
-            case ESM4::SUB_SCRI: reader.getFormId(mScript);      break;
+            case ESM4::SUB_SCRI: reader.getFormId(mScriptId);      break;
             case ESM4::SUB_ANAM: reader.get(mEnchantmentPoints); break;
             case ESM4::SUB_ENAM: reader.getFormId(mEnchantment); break;
             case ESM4::SUB_MODB: reader.get(mBoundRadius);       break;

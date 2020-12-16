@@ -5,6 +5,7 @@
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/world.hpp"
+#include "../mwbase/windowmanager.hpp"
 #include "../mwbase/mechanicsmanager.hpp"
 
 #include "../mwworld/ptr.hpp"
@@ -141,7 +142,34 @@ namespace MWClass
 
     std::string ForeignCreature::getName (const MWWorld::Ptr& ptr) const
     {
-        return "";
+        MWWorld::LiveCellRef<ESM4::Npc> *ref = ptr.get<ESM4::Npc>();
+        return ref->mBase->mFullName;
+    }
+
+    bool ForeignCreature::hasToolTip (const MWWorld::Ptr& ptr) const
+    {
+        return !ptr.getClass().getCreatureStats(ptr).getAiSequence().isInCombat() || getCreatureStats(ptr).isDead();
+    }
+
+    MWGui::ToolTipInfo ForeignCreature::getToolTipInfo (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::Creature> *ref = ptr.get<ESM4::Creature>();
+
+        MWGui::ToolTipInfo info;
+        info.caption = getName(ptr);
+
+        bool fullHelp = MWBase::Environment::get().getWindowManager()->getFullHelp();
+        if(fullHelp)
+        {
+            const MWWorld::ESMStore &store = MWBase::Environment::get().getWorld()->getStore();
+            const ESM4::Script *script = store.getForeign<ESM4::Script>().search(ref->mBase->mScriptId);
+            if (script)
+            {
+                info.text = MWGui::ToolTips::getMiscString(script->mScript.scriptSource, "Script");
+            }
+        }
+
+        return info;
     }
 
     void ForeignCreature::ensureCustomData (const MWWorld::Ptr& ptr) const
@@ -207,6 +235,16 @@ namespace MWClass
         ensureCustomData (ptr);
 
         return dynamic_cast<ForeignCreatureCustomData&> (*ptr.getRefData().getCustomData()).mInventoryStore;
+    }
+
+    std::string ForeignCreature::getScript (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::Creature> *ref = ptr.get<ESM4::Creature>();
+
+        if (ref->mBase->mScriptId)
+            return ESM4::formIdToString(ref->mBase->mScriptId);
+        else
+            return "";
     }
 
     MWMechanics::CreatureStats& ForeignCreature::getCreatureStats (const MWWorld::Ptr& ptr) const

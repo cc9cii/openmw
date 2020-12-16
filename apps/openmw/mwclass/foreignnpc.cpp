@@ -205,7 +205,8 @@ namespace MWClass
 
     std::string ForeignNpc::getName (const MWWorld::Ptr& ptr) const
     {
-        return "";
+        MWWorld::LiveCellRef<ESM4::Npc> *ref = ptr.get<ESM4::Npc>();
+        return ref->mBase->mFullName;
     }
 
     MWMechanics::CreatureStats& ForeignNpc::getCreatureStats (const MWWorld::Ptr& ptr) const
@@ -260,9 +261,7 @@ namespace MWClass
 
     bool ForeignNpc::hasToolTip (const MWWorld::Ptr& ptr) const
     {
-        //FIXME
-        //return !ptr.getClass().getCreatureStats(ptr).getAiSequence().isInCombat() || getCreatureStats(ptr).isDead();
-        return false;
+        return !ptr.getClass().getCreatureStats(ptr).getAiSequence().isInCombat() || getCreatureStats(ptr).isDead();
     }
 
     MWGui::ToolTipInfo ForeignNpc::getToolTipInfo (const MWWorld::Ptr& ptr) const
@@ -280,8 +279,15 @@ namespace MWClass
             info.caption += ")";
         }
 
-        //if(fullHelp)
-            //info.text = MWGui::ToolTips::getMiscString(ref->mBase->mScript, "Script");
+        if(fullHelp)
+        {
+            const MWWorld::ESMStore &store = MWBase::Environment::get().getWorld()->getStore();
+            const ESM4::Script *script = store.getForeign<ESM4::Script>().search(ref->mBase->mScriptId);
+            if (script)
+            {
+                info.text = MWGui::ToolTips::getMiscString(script->mScript.scriptSource, "Script");
+            }
+        }
 
         return info;
     }
@@ -568,6 +574,16 @@ namespace MWClass
             else
                 static_cast<MWWorld::InventoryStoreTES5&>(getInventoryStore(ptr)).autoEquip(ptr);
         }
+    }
+
+    std::string ForeignNpc::getScript (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::Npc> *ref = ptr.get<ESM4::Npc>();
+
+        if (ref->mBase->mScriptId)
+            return ESM4::formIdToString(ref->mBase->mScriptId);
+        else
+            return "";
     }
 
     MWMechanics::Movement& ForeignNpc::getMovementSettings (const MWWorld::Ptr& ptr) const

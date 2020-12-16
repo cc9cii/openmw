@@ -90,7 +90,11 @@ namespace MWClass
 
         if (MWBase::Environment::get().getWindowManager()->getFullHelp()) {
             text += MWGui::ToolTips::getCellRefString(ptr.getCellRef());
-            //text += MWGui::ToolTips::getMiscString(ref->mBase->mScript, "Script");
+
+            const MWWorld::ESMStore &store = MWBase::Environment::get().getWorld()->getStore();
+            const ESM4::Script *script = store.getForeign<ESM4::Script>().search(ref->mBase->mScriptId);
+            if (script)
+                text += MWGui::ToolTips::getMiscString(script->mScript.scriptSource, "Script");
         }
 
         info.text = text;
@@ -114,6 +118,16 @@ namespace MWClass
         action->setSound ("Drink"); // FIXME
 
         return action;
+    }
+
+    std::string ForeignPotion::getScript (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::Potion> *ref = ptr.get<ESM4::Potion>();
+
+        if (ref->mBase->mScriptId)
+            return ESM4::formIdToString(ref->mBase->mScriptId);
+        else
+            return "";
     }
 
     int ForeignPotion::getValue (const MWWorld::Ptr& ptr) const

@@ -32,7 +32,7 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::Potion::Potion() : mFormId(0), mFlags(0), mPickUpSound(0), mDropSound(0), mScript(0), mBoundRadius(0.f)
+ESM4::Potion::Potion() : mFormId(0), mFlags(0), mPickUpSound(0), mDropSound(0), mScriptId(0), mBoundRadius(0.f)
 {
     mEditorId.clear();
     mFullName.clear();
@@ -74,7 +74,7 @@ void ESM4::Potion::load(ESM4::Reader& reader)
             case ESM4::SUB_ICON: reader.getZString(mIcon);  break;
             case ESM4::SUB_MICO: reader.getZString(mMiniIcon); break; // FO3
             case ESM4::SUB_DATA: reader.get(mData);         break;
-            case ESM4::SUB_SCRI: reader.getFormId(mScript); break;
+            case ESM4::SUB_SCRI: reader.getFormId(mScriptId); break;
             case ESM4::SUB_MODB: reader.get(mBoundRadius);  break;
             case ESM4::SUB_SCIT:
             {

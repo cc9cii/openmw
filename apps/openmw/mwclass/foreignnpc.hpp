@@ -54,6 +54,8 @@ namespace MWClass
             MWWorld::InventoryStoreTES5& getInventoryStoreTES5 (const MWWorld::Ptr& ptr) const;
             ///< Return inventory store
 
+            virtual std::string getScript (const MWWorld::Ptr& ptr) const;
+
             virtual MWMechanics::Movement& getMovementSettings (const MWWorld::Ptr& ptr) const;
             ///< Return desired movement.
 

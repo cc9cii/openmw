@@ -112,7 +112,7 @@ namespace ESM4
 
         FormId mDeathItem;
         std::vector<FormId> mSpell;
-        FormId mScript;
+        FormId mScriptId;
 
         AIData mAIData;
         std::vector<FormId> mAIPackages;

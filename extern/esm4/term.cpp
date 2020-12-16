@@ -32,7 +32,7 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::Terminal::Terminal() : mFormId(0), mFlags(0), mScript(0), mPasswordNote(0), mSound(0)
+ESM4::Terminal::Terminal() : mFormId(0), mFlags(0), mScriptId(0), mPasswordNote(0), mSound(0)
 {
     mEditorId.clear();
     mFullName.clear();
@@ -81,7 +81,7 @@ void ESM4::Terminal::load(ESM4::Reader& reader)
 
                 break;
             }
-            case ESM4::SUB_SCRI: reader.getFormId(mScript); break;
+            case ESM4::SUB_SCRI: reader.getFormId(mScriptId); break;
             case ESM4::SUB_PNAM: reader.getFormId(mPasswordNote); break;
             case ESM4::SUB_SNAM: reader.getFormId(mSound); break;
             case ESM4::SUB_MODL: reader.getZString(mModel); break;

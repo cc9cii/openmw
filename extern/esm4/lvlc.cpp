@@ -32,7 +32,7 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::LevelledCreature::LevelledCreature() : mFormId(0), mFlags(0), mScript(0), mTemplate(0),
+ESM4::LevelledCreature::LevelledCreature() : mFormId(0), mFlags(0), mScriptId(0), mTemplate(0),
                                            mChanceNone(0), mLvlCreaFlags(0)
 {
     mEditorId.clear();
@@ -54,7 +54,7 @@ void ESM4::LevelledCreature::load(ESM4::Reader& reader)
         switch (subHdr.typeId)
         {
             case ESM4::SUB_EDID: reader.getZString(mEditorId); break;
-            case ESM4::SUB_SCRI: reader.getFormId(mScript);    break;
+            case ESM4::SUB_SCRI: reader.getFormId(mScriptId);    break;
             case ESM4::SUB_TNAM: reader.getFormId(mTemplate);  break;
             case ESM4::SUB_LVLD: reader.get(mChanceNone);      break;
             case ESM4::SUB_LVLF: reader.get(mLvlCreaFlags);    break;

@@ -113,6 +113,49 @@ namespace MWClass
         return ref->mBase->mFullName;
     }
 
+    bool ForeignDoor::hasToolTip (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::Door> *ref = ptr.get<ESM4::Door>();
+
+        return (ref->mBase->mFullName != "");
+    }
+
+    MWGui::ToolTipInfo ForeignDoor::getToolTipInfo (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::Door> *ref = ptr.get<ESM4::Door>();
+
+        MWGui::ToolTipInfo info;
+        info.caption = ref->mBase->mFullName;
+
+        std::string text;
+
+        if (ptr.getCellRef().getTeleport())
+        {
+            text += "\n#{sTo}";
+            text += "\n" + getDestination(*ref);
+        }
+
+        if (ptr.getCellRef().getLockLevel() > 0)
+            text += "\n#{sLockLevel}: " + MWGui::ToolTips::toString(ptr.getCellRef().getLockLevel());
+        else if (ptr.getCellRef().getLockLevel() < 0)
+            text += "\n#{sUnlocked}";
+        if (ptr.getCellRef().getTrap() != "")
+            text += "\n#{sTrapped}";
+
+        if (MWBase::Environment::get().getWindowManager()->getFullHelp())
+        {
+            text += MWGui::ToolTips::getCellRefString(ptr.getCellRef());
+
+            const MWWorld::ESMStore &store = MWBase::Environment::get().getWorld()->getStore();
+            const ESM4::Script *script = store.getForeign<ESM4::Script>().search(ref->mBase->mScriptId);
+            if (script)
+                text += MWGui::ToolTips::getMiscString(script->mScript.scriptSource, "Script");
+        }
+        info.text = text;
+
+        return info;
+    }
+
     boost::shared_ptr<MWWorld::Action> ForeignDoor::activate (const MWWorld::Ptr& ptr,
         const MWWorld::Ptr& actor) const
     {
@@ -250,43 +293,14 @@ namespace MWClass
         }
     }
 
-    bool ForeignDoor::hasToolTip (const MWWorld::Ptr& ptr) const
+    std::string ForeignDoor::getScript (const MWWorld::Ptr& ptr) const
     {
         MWWorld::LiveCellRef<ESM4::Door> *ref = ptr.get<ESM4::Door>();
 
-        return (ref->mBase->mFullName != "");
-    }
-
-    MWGui::ToolTipInfo ForeignDoor::getToolTipInfo (const MWWorld::Ptr& ptr) const
-    {
-        MWWorld::LiveCellRef<ESM4::Door> *ref = ptr.get<ESM4::Door>();
-
-        MWGui::ToolTipInfo info;
-        info.caption = ref->mBase->mFullName;
-
-        std::string text;
-
-        if (ptr.getCellRef().getTeleport())
-        {
-            text += "\n#{sTo}";
-            text += "\n" + getDestination(*ref);
-        }
-
-        if (ptr.getCellRef().getLockLevel() > 0)
-            text += "\n#{sLockLevel}: " + MWGui::ToolTips::toString(ptr.getCellRef().getLockLevel());
-        else if (ptr.getCellRef().getLockLevel() < 0)
-            text += "\n#{sUnlocked}";
-        if (ptr.getCellRef().getTrap() != "")
-            text += "\n#{sTrapped}";
-
-        if (MWBase::Environment::get().getWindowManager()->getFullHelp())
-        {
-            text += MWGui::ToolTips::getCellRefString(ptr.getCellRef());
-            //text += MWGui::ToolTips::getMiscString(ref->mBase->mScript, "Script");
-        }
-        info.text = text;
-
-        return info;
+        if (ref->mBase->mScriptId)
+            return ESM4::formIdToString(ref->mBase->mScriptId);
+        else
+            return "";
     }
 
     std::string ForeignDoor::getDestination (const MWWorld::LiveCellRef<ESM4::Door>& door)

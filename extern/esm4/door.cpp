@@ -31,7 +31,7 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::Door::Door() : mFormId(0), mFlags(0), mBoundRadius(0.f), mDoorFlags(0), mScript(0),
+ESM4::Door::Door() : mFormId(0), mFlags(0), mBoundRadius(0.f), mDoorFlags(0), mScriptId(0),
                      mOpenSound(0), mCloseSound(0), mLoopSound(0), mRandomTeleport(0)
 {
     mEditorId.clear();
@@ -65,7 +65,7 @@ void ESM4::Door::load(ESM4::Reader& reader)
                 break;
             }
             case ESM4::SUB_MODL: reader.getZString(mModel);     break;
-            case ESM4::SUB_SCRI: reader.getFormId(mScript);     break;
+            case ESM4::SUB_SCRI: reader.getFormId(mScriptId);     break;
             case ESM4::SUB_SNAM: reader.getFormId(mOpenSound);  break;
             case ESM4::SUB_ANAM: reader.getFormId(mCloseSound); break;
             case ESM4::SUB_BNAM: reader.getFormId(mLoopSound);  break;

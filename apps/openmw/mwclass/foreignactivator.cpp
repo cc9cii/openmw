@@ -1,5 +1,6 @@
 #include "foreignactivator.hpp"
 
+#include <extern/esm4/formid.hpp>
 #include <extern/esm4/acti.hpp>
 
 #include <components/esm/doorstate.hpp> // FIXME: pretending to be a door
@@ -16,6 +17,7 @@
 #include "../mwworld/action.hpp"
 #include "../mwworld/nullaction.hpp"
 #include "../mwworld/actiondoor.hpp"
+#include "../mwworld/esmstore.hpp"
 
 #include "../mwrender/objects.hpp"
 #include "../mwrender/renderinginterface.hpp"
@@ -91,13 +93,6 @@ namespace MWClass
         return ref->mBase->mFullName;
     }
 
-    std::string ForeignActivator::getScript (const MWWorld::Ptr& ptr) const
-    {
-        //MWWorld::LiveCellRef<ESM4::Activator> *ref = ptr.get<ESM4::Activator>(); // currently unused
-
-        return "";// ref->mBase->mScript; // FIXME: formid
-    }
-
     bool ForeignActivator::hasToolTip (const MWWorld::Ptr& ptr) const
     {
         MWWorld::LiveCellRef<ESM4::Activator> *ref = ptr.get<ESM4::Activator>();
@@ -116,7 +111,11 @@ namespace MWClass
         if (MWBase::Environment::get().getWindowManager()->getFullHelp())
         {
             text += MWGui::ToolTips::getCellRefString(ptr.getCellRef());
-            text += MWGui::ToolTips::getMiscString(""/*ref->mBase->mScript*/, "Script"); // FIXME formid lookup
+
+            const MWWorld::ESMStore &store = MWBase::Environment::get().getWorld()->getStore();
+            const ESM4::Script *script = store.getForeign<ESM4::Script>().search(ref->mBase->mScriptId);
+            if (script)
+                text += MWGui::ToolTips::getMiscString(script->mScript.scriptSource, "Script");
         }
         info.text = text;
 
@@ -134,6 +133,16 @@ namespace MWClass
         }
         else
             return boost::shared_ptr<MWWorld::Action>(new MWWorld::NullAction);
+    }
+
+    std::string ForeignActivator::getScript (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::Activator> *ref = ptr.get<ESM4::Activator>();
+
+        if (ref->mBase->mScriptId)
+            return ESM4::formIdToString(ref->mBase->mScriptId);
+        else
+            return "";
     }
 
     void ForeignActivator::ensureCustomData(const MWWorld::Ptr &ptr) const

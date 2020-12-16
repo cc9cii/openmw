@@ -64,7 +64,7 @@ namespace ESM4
         float mBoundRadius;
 
         std::vector<std::string> mScriptEffect; // FIXME: prob. should be in a struct
-        FormId mScript;
+        FormId mScriptId;
         ScriptEffect mEffect;
         ENIT   mEnchantment;
 

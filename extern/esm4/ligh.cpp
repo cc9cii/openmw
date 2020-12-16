@@ -31,7 +31,7 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::Light::Light() : mFormId(0), mFlags(0), mBoundRadius(0.f), mScript(0), mSound(0),
+ESM4::Light::Light() : mFormId(0), mFlags(0), mBoundRadius(0.f), mScriptId(0), mSound(0),
                        mFade(0.f)
 {
     mEditorId.clear();
@@ -101,7 +101,7 @@ void ESM4::Light::load(ESM4::Reader& reader)
             }
             case ESM4::SUB_MODL: reader.getZString(mModel); break;
             case ESM4::SUB_ICON: reader.getZString(mIcon);  break;
-            case ESM4::SUB_SCRI: reader.getFormId(mScript); break;
+            case ESM4::SUB_SCRI: reader.getFormId(mScriptId); break;
             case ESM4::SUB_SNAM: reader.getFormId(mSound);  break;
             case ESM4::SUB_MODB: reader.get(mBoundRadius);  break;
             case ESM4::SUB_FNAM: reader.get(mFade);         break;

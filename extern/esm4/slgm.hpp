@@ -57,7 +57,7 @@ namespace ESM4
 
         float mBoundRadius;
 
-        FormId mScript;
+        FormId mScriptId;
         std::uint8_t mSoul;         // 0 = None, 1 = Petty, 2 = Lesser, 3 = Common, 4 = Greater, 5 = Grand
         std::uint8_t mSoulCapacity; // 0 = None, 1 = Petty, 2 = Lesser, 3 = Common, 4 = Greater, 5 = Grand
 

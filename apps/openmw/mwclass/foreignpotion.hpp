@@ -28,6 +28,8 @@ namespace MWClass
 
             virtual boost::shared_ptr<MWWorld::Action> use (const MWWorld::Ptr& ptr) const;
 
+            virtual std::string getScript (const MWWorld::Ptr& ptr) const;
+
             virtual int getValue (const MWWorld::Ptr& ptr) const;
 
             virtual std::string getUpSoundId (const MWWorld::Ptr& ptr) const;

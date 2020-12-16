@@ -64,7 +64,7 @@ namespace ESM4
         float mBoundRadius;
 
         std::uint32_t mClothingFlags; // see Armor::ArmorFlags for the values
-        FormId        mScript;
+        FormId        mScriptId;
         std::uint16_t mEnchantmentPoints;
         FormId        mEnchantment;
 

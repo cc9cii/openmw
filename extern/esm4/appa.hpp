@@ -58,7 +58,7 @@ namespace ESM4
 
         float mBoundRadius;
 
-        FormId mScript;
+        FormId mScriptId;
 
         Data mData;
 

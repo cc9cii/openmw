@@ -57,7 +57,7 @@ namespace ESM4
         float mBoundRadius;
 
         std::uint8_t mDoorFlags;
-        FormId mScript;
+        FormId mScriptId;
         FormId mOpenSound;  // SNDR for TES5, SOUN for others
         FormId mCloseSound; // SNDR for TES5, SOUN for others
         FormId mLoopSound;

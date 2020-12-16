@@ -60,7 +60,7 @@ namespace ESM4
 
         float mBoundRadius;
 
-        FormId mScript;
+        FormId mScriptId;
         FormId mIngredient;
         FormId mSound;
         Production mPercentHarvest;

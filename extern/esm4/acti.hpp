@@ -46,7 +46,7 @@ namespace ESM4
         std::string mFullName;
         std::string mModel;
 
-        FormId mScript;
+        FormId mScriptId;
         FormId mLoopingSound;    // SOUN
         FormId mActivationSound; // SOUN
 

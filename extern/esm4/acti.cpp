@@ -32,7 +32,7 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::Activator::Activator() : mFormId(0), mFlags(0), mScript(0), mLoopingSound(0), mActivationSound(0),
+ESM4::Activator::Activator() : mFormId(0), mFlags(0), mScriptId(0), mLoopingSound(0), mActivationSound(0),
     mBoundRadius(0.f), mRadioTemplate(0), mRadioStation(0)
 {
     mEditorId.clear();
@@ -68,7 +68,7 @@ void ESM4::Activator::load(ESM4::Reader& reader)
                 break;
             }
             case ESM4::SUB_MODL: reader.getZString(mModel); break;
-            case ESM4::SUB_SCRI: reader.getFormId(mScript); break;
+            case ESM4::SUB_SCRI: reader.getFormId(mScriptId); break;
             case ESM4::SUB_SNAM: reader.getFormId(mLoopingSound);  break;
             case ESM4::SUB_VNAM: reader.getFormId(mActivationSound);  break;
             case ESM4::SUB_MODB: reader.get(mBoundRadius);  break;
