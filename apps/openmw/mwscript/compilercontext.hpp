@@ -27,14 +27,14 @@ namespace MWScript
             /// Is the compiler allowed to declare local variables?
             virtual bool canDeclareLocals() const;
 
-            /// 'l: long, 's': short, 'f': float, ' ': does not exist.
+            /// 'l: long, 's': short, 'f': float, 'r': ref, ' ': does not exist.
             virtual char getGlobalType (const std::string& name) const;
 
             virtual std::pair<char, bool> getMemberType (const std::string& name,
                 const std::string& id) const;
             ///< Return type of member variable \a name in script \a id or in script of reference of
             /// \a id
-            /// \return first: 'l: long, 's': short, 'f': float, ' ': does not exist.
+            /// \return first: 'l: long, 's': short, 'f': float, 'r': ref, ' ': does not exist.
             /// second: true: script of reference
 
             virtual bool isId (const std::string& name) const;

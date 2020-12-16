@@ -88,6 +88,11 @@ namespace Interpreter
         interpreter.installSegment5 (37,
             new OpCompare<Type_Float, std::greater_equal<Type_Float> >);
 
+        interpreter.installSegment5 (72,
+            new OpLogical<Type_Integer, std::logical_and<Type_Integer> >);
+        interpreter.installSegment5 (73,
+            new OpLogical<Type_Integer, std::logical_or<Type_Integer> >);
+
         // control structures
         interpreter.installSegment5 (20, new OpReturn);
         interpreter.installSegment5 (24, new OpSkipZero);

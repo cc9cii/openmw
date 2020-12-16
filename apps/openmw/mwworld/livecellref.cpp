@@ -40,6 +40,7 @@ void MWWorld::LiveCellRefBase::loadImp (const ESM::ObjectState& state)
 
     if (state.mHasLocals)
     {
+        // FIXME: scriptId can be a FormId string which must be converted back
         std::string scriptId = mClass->getScript (ptr);
         // Make sure we still have a script. It could have been coming from a content file that is no longer active.
         if (!scriptId.empty())
@@ -55,6 +56,23 @@ void MWWorld::LiveCellRefBase::loadImp (const ESM::ObjectState& state)
                 {
                     std::cerr
                         << "failed to load state for local script " << scriptId
+                        << " because an exception has been thrown: " << exception.what()
+                        << std::endl;
+                }
+            }
+            // FIXME: is this method used only for loading save files?
+            else if (const ESM4::Script* script
+                    = MWBase::Environment::get().getWorld()->getStore().getForeign<ESM4::Script>().search (ESM4::stringToFormId(scriptId)))
+            {
+                try
+                {
+                    mData.setForeignLocals (*script);
+                    mData.getLocals().read (state.mLocals, scriptId);
+                }
+                catch (const std::exception& exception)
+                {
+                    std::cerr
+                        << "failed to load state for local script " << script->mEditorId
                         << " because an exception has been thrown: " << exception.what()
                         << std::endl;
                 }

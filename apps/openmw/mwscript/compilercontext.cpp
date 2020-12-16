@@ -40,6 +40,11 @@ namespace MWScript
         {
             script = scriptRecord->mId;
         }
+        else if (const ESM4::Script *scriptRecord =
+            MWBase::Environment::get().getWorld()->getStore().getForeign<ESM4::Script>().search (ESM4::stringToFormId(id)))
+        {
+            script = scriptRecord->mEditorId;
+        }
         else
         {
             MWWorld::Ptr ptr = MWBase::Environment::get().getWorld()->getPtr (id, false);

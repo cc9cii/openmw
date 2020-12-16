@@ -5,6 +5,10 @@
 #include <sstream>
 #include <exception>
 #include <algorithm>
+#include <iomanip> // FIXME
+
+#include <extern/esm4/formid.hpp>
+#include <extern/esm4/scpt.hpp>
 
 #include <components/esm/loadscpt.hpp>
 
@@ -12,8 +16,10 @@
 
 #include <components/compiler/scanner.hpp>
 #include <components/compiler/context.hpp>
+#include <components/tes4compiler/scanner.hpp>
 #include <components/compiler/exception.hpp>
 #include <components/compiler/quickfileparser.hpp>
+#include <components/tes4compiler/quickfileparser.hpp>
 
 #include "../mwworld/esmstore.hpp"
 
@@ -22,10 +28,11 @@
 namespace MWScript
 {
     ScriptManager::ScriptManager (const MWWorld::ESMStore& store, bool verbose,
-        Compiler::Context& compilerContext, int warningsMode,
+        Compiler::Context& compilerContext, Compiler::Context& tes4CompilerContext, int warningsMode,
         const std::vector<std::string>& scriptBlacklist)
     : mErrorHandler (std::cerr), mStore (store), mVerbose (verbose),
       mCompilerContext (compilerContext), mParser (mErrorHandler, mCompilerContext),
+      mTes4CompilerContext(tes4CompilerContext), mTes4Parser (mErrorHandler, mTes4CompilerContext),
       mOpcodesInstalled (false), mGlobalScripts (store)
     {
         mErrorHandler.setWarningsMode (warningsMode);
@@ -91,8 +98,65 @@ namespace MWScript
         return false;
     }
 
+    bool ScriptManager::compileForeign (const std::string& name)
+    {
+        mTes4Parser.reset();
+        mErrorHandler.reset();
+
+        if (const ESM4::Script *script = mStore.getForeign<ESM4::Script>().search (ESM4::stringToFormId(name)))
+        {
+            if (mVerbose)
+                std::cout << "compiling script: " << name << std::endl;
+
+            bool Success = true;
+            try
+            {
+                std::istringstream input (script->mScript.scriptSource);
+
+                Tes4Compiler::Scanner scanner (mErrorHandler, input, mTes4CompilerContext.getExtensions());
+
+                scanner.scan (mTes4Parser);
+
+                if (!mErrorHandler.isGood())
+                    Success = false;
+            }
+            catch (const Compiler::SourceException&)
+            {
+                // error has already been reported via error handler
+                Success = false;
+            }
+            catch (const std::exception& error)
+            {
+                std::cerr << "An exception has been thrown: " << error.what() << std::endl;
+                Success = false;
+            }
+
+            if (!Success)
+            {
+                std::cerr
+                    << "compiling failed: " << name << std::endl;
+                if (mVerbose)
+                    std::cerr << script->mScript.scriptSource << std::endl << std::endl;
+            }
+
+            if (Success)
+            {
+                std::vector<Interpreter::Type_Code> code;
+                mTes4Parser.getCode (code);
+                mScripts.insert (std::make_pair (name, std::make_pair (code, mTes4Parser.getLocals())));
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     void ScriptManager::run (const std::string& name, Interpreter::Context& interpreterContext)
     {
+        if (ESM4::isFormId(name))
+            return runForeign(name, interpreterContext);
+
         // compile script
         ScriptCollection::iterator iter = mScripts.find (name);
 
@@ -131,6 +195,63 @@ namespace MWScript
             }
     }
 
+    // FIXME: Variables in interpreter context and compiler context
+    //
+    // The local variables in interpreter context come from the run-time data of the object to which
+    // the script is attached.  See World::activate() as an example.
+    //
+    // It is unclear how and when those local variables are created.  If the run-time data were saved
+    // then they are restored.  But how are they created to begin with?
+    //
+    // When a script is compiled the compiler context may have local variables declared by the script.
+    // During execution of the compiled script the interpreter context is used.  But it doesn't know
+    // about the declared local variables!
+    void ScriptManager::runForeign (const std::string& name, Interpreter::Context& interpreterContext)
+    {
+        // compile script
+        ScriptCollection::iterator iter = mScripts.find (name);
+
+        if (iter == mScripts.end())
+        {
+            if (!compileForeign(name))
+            {
+                // failed -> ignore script from now on.
+                std::vector<Interpreter::Type_Code> empty;
+                mScripts.insert (std::make_pair (name, std::make_pair (empty, Compiler::Locals())));
+                return;
+            }
+
+            iter = mScripts.find (name);
+            assert (iter != mScripts.end());
+        }
+
+        std::cout << "run foreign script: " << name << std::endl; // FIXME: temp testing
+
+        // execute script
+        if (!iter->second.first.empty())
+            try
+            {
+                if (!mOpcodesInstalled)
+                {
+                    installOpcodes (mInterpreter);
+                    mOpcodesInstalled = true;
+                }
+
+#if 0 // FIXME: temp testing
+                for (unsigned int i = 0; i < iter->second.first.size(); ++i)
+                    std::cout << "0x" << std::setfill('0') << std::setw(8) << std::hex << iter->second.first[i] << std::endl;
+#endif
+                mInterpreter.run (&iter->second.first[0], iter->second.first.size(), interpreterContext);
+            }
+            catch (const std::exception& e)
+            {
+                std::cerr << "Execution of foreign script " << name << " failed:" << std::endl;
+                std::cerr << e.what() << std::endl;
+
+                iter->second.first.clear(); // don't execute again.
+            }
+    }
+
     std::pair<int, int> ScriptManager::compileAll()
     {
         int count = 0;
@@ -154,6 +275,9 @@ namespace MWScript
 
     const Compiler::Locals& ScriptManager::getLocals (const std::string& name)
     {
+        if (ESM4::isFormId(name))
+            return getForeignLocals(name);
+
         std::string name2 = Misc::StringUtils::lowerCase (name);
 
         {
@@ -188,6 +312,41 @@ namespace MWScript
                 mOtherLocals.insert (std::make_pair (name2, locals)).first;
 
             return iter->second;
+        }
+
+        throw std::logic_error ("script " + name + " does not exist");
+    }
+
+    const Compiler::Locals& ScriptManager::getForeignLocals (const std::string& name)
+    {
+        ScriptCollection::iterator iter = mScripts.find (name);
+
+        if (iter != mScripts.end())
+            return iter->second.second;
+
+        std::map<std::string, Compiler::Locals>::iterator iterOther = mOtherLocals.find (name);
+
+        if (iterOther != mOtherLocals.end())
+            return iterOther->second;
+
+        if (const ESM4::Script *script = mStore.getForeign<ESM4::Script>().search (ESM4::stringToFormId(name)))
+        {
+            if (mVerbose)
+                std::cout
+                    << "scanning script for local variable declarations: " << name
+                    << std::endl;
+
+            Compiler::Locals locals;
+
+            std::istringstream stream (script->mScript.scriptSource);
+            Tes4Compiler::QuickFileParser parser (mErrorHandler, mTes4CompilerContext, locals);
+            Tes4Compiler::Scanner scanner (mErrorHandler, stream, mTes4CompilerContext.getExtensions());
+            scanner.scan (parser);
+
+            std::map<std::string, Compiler::Locals>::iterator iterOther2 =
+                mOtherLocals.insert (std::make_pair (name, locals)).first;
+
+            return iterOther2->second;
         }
 
         throw std::logic_error ("script " + name + " does not exist");

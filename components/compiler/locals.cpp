@@ -17,6 +17,7 @@ namespace Compiler
             case 's': return mShorts;
             case 'l': return mLongs;
             case 'f': return mFloats;
+            case 'r': return mRefs; // TES4 scripts only
         }
 
         throw std::logic_error ("unknown variable type");
@@ -47,6 +48,7 @@ namespace Compiler
             case 's': return mShorts;
             case 'l': return mLongs;
             case 'f': return mFloats;
+            case 'r': return mRefs; // TES4 scripts only
         }
 
         throw std::logic_error ("unknown variable type");
@@ -63,6 +65,9 @@ namespace Compiler
         if (search ('f', name))
             return 'f';
 
+        if (search ('r', name)) // TES4 scripts only
+            return 'r';
+
         return ' ';
     }
 
@@ -78,7 +83,12 @@ namespace Compiler
         if (index!=-1)
             return index;
 
-        return searchIndex ('f', name);
+        index = searchIndex ('f', name);
+
+        if (index!=-1)
+            return index;
+
+        return searchIndex ('r', name); // TES4 scripts only
     }
 
     void Locals::write (std::ostream& localFile) const
@@ -86,7 +96,8 @@ namespace Compiler
         localFile
             << get ('s').size() << ' '
             << get ('l').size() << ' '
-            << get ('f').size() << std::endl;
+            << get ('f').size() << ' '
+            << get ('r').size() << std::endl; // TES4 scripts only
 
         std::copy (get ('s').begin(), get ('s').end(),
             std::ostream_iterator<std::string> (localFile, " "));
@@ -94,6 +105,8 @@ namespace Compiler
             std::ostream_iterator<std::string> (localFile, " "));
         std::copy (get ('f').begin(), get ('f').end(),
             std::ostream_iterator<std::string> (localFile, " "));
+        std::copy (get ('r').begin(), get ('r').end(),
+            std::ostream_iterator<std::string> (localFile, " ")); // TES4 scripts only
     }
 
     void Locals::declare (char type, const std::string& name)
@@ -106,6 +119,7 @@ namespace Compiler
         get ('s').clear();
         get ('l').clear();
         get ('f').clear();
+        get ('r').clear(); // TES4 scripts only
     }
 }
 

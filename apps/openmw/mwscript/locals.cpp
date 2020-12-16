@@ -1,5 +1,8 @@
 #include "locals.hpp"
 
+#include <extern/esm4/formid.hpp>
+#include <extern/esm4/scpt.hpp>
+
 #include <components/esm/loadscpt.hpp>
 #include <components/esm/variant.hpp>
 #include <components/esm/locals.hpp>
@@ -25,6 +28,21 @@ namespace MWScript
         mLongs.resize (locals.get ('l').size(), 0);
         mFloats.clear();
         mFloats.resize (locals.get ('f').size(), 0);
+    }
+
+    void Locals::configure (const ESM4::Script& script)
+    {
+        const Compiler::Locals& locals =
+            MWBase::Environment::get().getScriptManager()->getLocals (ESM4::formIdToString(script.mFormId));
+
+        mShorts.clear();
+        mShorts.resize (locals.get ('s').size(), 0);
+        mLongs.clear();
+        mLongs.resize (locals.get ('l').size(), 0);
+        mFloats.clear();
+        mFloats.resize (locals.get ('f').size(), 0);
+        mRefs.clear();
+        mRefs.resize (locals.get ('r').size(), 0);
     }
 
     bool Locals::isEmpty() const

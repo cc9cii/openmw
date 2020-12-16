@@ -15,6 +15,7 @@ namespace ESM4
     struct Reference;
     struct ActorCreature;
     struct ActorCharacter;
+    struct Script;
 }
 
 namespace ESM
@@ -97,6 +98,7 @@ namespace MWWorld
             int getCount() const;
 
             void setLocals (const ESM::Script& script);
+            void setForeignLocals (const ESM4::Script& script);
 
             void setCount (int count);
             ///< Set object count (an object pile is a simple object with a count >1).

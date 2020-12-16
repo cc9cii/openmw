@@ -3801,9 +3801,20 @@ namespace MWWorld
             if (!script.empty())
             {
                 getLocalScripts().setIgnore (object);
+
+                // FIXME: workaround, needs a better fix
+                interpreterContext.setActor(actor);
+
+                 // FIXME: horrible temporary hack - just for a demo
+                const ESM4::Script *scriptObj = mStore.getForeign<ESM4::Script>().search(ESM4::stringToFormId(script));
+                if (object.getRefData().getLocals().isEmpty())
+                    object.getRefData().getLocals().configure(*scriptObj);
+
                 MWBase::Environment::get().getScriptManager()->run (script, interpreterContext);
             }
-            if (!interpreterContext.hasActivationBeenHandled())
+            // below logic doesn't make sense? why activate if the script didn't?
+            // added 'else' as a possible fix
+            else if (!interpreterContext.hasActivationBeenHandled())
                 interpreterContext.executeActivation(object, actor);
         }
         else

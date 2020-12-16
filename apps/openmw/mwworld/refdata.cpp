@@ -221,6 +221,17 @@ namespace MWWorld
         }
     }
 
+    void RefData::setForeignLocals (const ESM4::Script& script)
+    {
+        if (!mHasLocals)
+        {
+            mLocals.configure (script);
+            mHasLocals = true;
+            if (!mLocals.isEmpty())
+                mChanged = true;
+        }
+    }
+
     void RefData::setCount (int count)
     {
         if(count == 0)

@@ -93,6 +93,13 @@ add_component_dir (compiler
     quickfileparser discardparser junkparser
     )
 
+add_component_dir (tes4compiler
+    controlparser exprparser fileparser generator
+    lineparser output parser scanner scriptparser skipparser
+    stringparser opcodes extensions0 declarationparser
+    quickfileparser discardparser junkparser
+    )
+
 add_component_dir (interpreter
     context controlopcodes genericopcodes installopcodes interpreter localopcodes mathopcodes
     miscopcodes opcodes runtime scriptopcodes spatialopcodes types defines

@@ -3,6 +3,12 @@
 
 namespace Compiler
 {
+    // NOTE: Extensions assumes Function and Instruction to have opcodes in the following
+    //       ranges (inclusive):
+    //
+    // segment 3: between   131072 = 0x0020000 and    196607 = 0x002ffff
+    // segment 5: between 33554432 = 0x2000000 and  67108863 = 0x3ffffff
+
     namespace Ai
     {
         const int opcodeAiTravel = 0x20000;

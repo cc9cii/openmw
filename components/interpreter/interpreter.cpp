@@ -11,6 +11,8 @@ namespace Interpreter
 {
     void Interpreter::execute (Type_Code code)
     {
+        // segSpec is the top 2 bits of the 32 bit 'code' (i.e. bits 30 and 31)
+        // segSpec = 3 for segment 3, 4 and 5 (see components/interpreter/docs/vmformat.txt)
         unsigned int segSpec = code>>30;
 
         switch (segSpec)
@@ -62,6 +64,7 @@ namespace Interpreter
             }
         }
 
+        // segSpec is now to 6 bits of the 32 bit 'code'
         segSpec = code>>26;
 
         switch (segSpec)
@@ -228,6 +231,7 @@ namespace Interpreter
 
     void Interpreter::run (const Type_Code *code, int codeSize, Context& context)
     {
+        // needs to have at least the header block
         assert (codeSize>=4);
 
         begin();
@@ -238,6 +242,7 @@ namespace Interpreter
 
             int opcodes = static_cast<int> (code[0]);
 
+            // skip header block which is size 4
             const Type_Code *codeBlock = code + 4;
 
             while (mRuntime.getPC()>=0 && mRuntime.getPC()<opcodes)

@@ -4814,7 +4814,569 @@ It turns out that the dark skin textures were due to the lack of support for TES
 
 Looks like the issue with Spider Daedra has come back.  Will have to try to see if it is necessary to modiy Ogre or can get away with creating a few extra bones.
 
-¯\_(ツ)_/¯
+## Something from Reddit
+
+    ¯\_(ツ)_/¯
+
+# [27/07/2020] Back from the diversion
+
+Spent 6 weeks or so trying to port OpenMW to Ogre 2.x.  At this point some things are working but a lot of things are not.  Here is a summary of Ogre related issues:
+
+  * SubEntity visibility control is not yet supported.  See [this thread](https://forums.ogre3d.org/viewtopic.php?f=2&t=95873).  This will affect, among other things, the visibility control of dismembered body parts.
+  * Without FFP support, many Morrowind meshes can't be used because they don't provide UV coordinates.  See [this thread](https://forums.ogre3d.org/viewtopic.php?p=548734#p548734).  Most likely the FFP emulation for these will need to be implemented (or some fancy shader work?).
+  * Tagpoint on Skeletons do not work properly, even with [this workaround](https://forums.ogre3d.org/viewtopic.php?f=2&t=95896).  Haven't really investigated fully, but sometimes the Node rotations are not replicated by the listener.  The best solution is probably to move to the new Mesh/Node classes.
+  * Pose/Vertex animations and Skeletal animations can't be mixed, at least without a patch.  See [this thread discussion](https://forums.ogre3d.org/viewtopic.php?f=2&t=95910).  Even with the patch any Pose/Vertex animation will force the skinning to be done in software.
+  * Normal textures in DXT5 format are not supported.  There is [a workaround patch](https://forums.ogre3d.org/viewtopic.php?f=25&t=95904) but only for Ogre 2.2+.
+  * MyGUI port of Ogre 2.2 results in extreme performance loss.  See [this thread](https://forums.ogre3d.org/viewtopic.php?f=25&t=95925) for more details.  There are other performance loss in general with Ogre 2.x.  Not sure what their causes are.
+  * The default Pbs shaders do not produce correct lighting or colours (NOTE: it could be the way the materials are being setup).  See the [comparison screenshots of Vilverin](https://forums.ogre3d.org/viewtopic.php?p=548816#p548816).
+  * The new HLMS system is a bit like Shiny but less flexible.  It creates a "mega" shader which gets generated differently during run-time based on provided config.  This makes it difficult to create small shaders to do custom jobs (at least I don't know how to do it without creating a separate implementation).
+  * Ogre 1.12.x and Ogre 2.x are subtly different (e.g. Vector3, Node identifiers, etc).  It won't be easy to maintain codebases in both.
+
+What can be worked on while deciding on which rendering framework to use?
+
+  * Anything that requires material handling (which is almost everything?) can't be done without later rework.
+  * Any shader related changes will result in rework later.  This means the skinning issues with the "bone offset" problem and Skyrim can't be worked on.
+  * Maybe the terrain handling for Fallout/Skyrim (i.e. quad-tree-like LOD terrain) but any texture handling and shaders will need rework.
+  * Code refactoring to allow the support of multiple games.  At the moment there are too many conditional checks everywhere.
+  * Maybe multi-threading.  Probably should move away from boost threads.
+  * FFMpeg rewrite. Probably the lowest priority.
+
+# [27/07/2020 - 28/07/2020] Multi threading
+
+Saw a bunch of videos and read a few slideware/documents on multi-threaded architectures.  Some interesting ones include:
+
+  * [GCAP 2016: Parallel Game Engine Design - Brooke Hodgman - YouTube](https://www.youtube.com/watch?v=JpmK0zu4Mts)
+  * [GDC Vault - Parallelizing the Naughty Dog Engine Using Fibers](https://www.gdcvault.com/play/1022186/Parallelizing-the-Naughty-Dog-Engine)
+  * [SergeyMakeev/TaskScheduler: Cross-platform, fiber-based, multi-threaded task scheduler designed for video games.](https://github.com/SergeyMakeev/TaskScheduler)
+  * [RichieSams/FiberTaskingLib: A library for enabling task-based multi-threading. It allows execution of task graphs with arbitrary dependencies.](https://github.com/RichieSams/FiberTaskingLib)
+  * [GameTechDev/GTS-GamesTaskScheduler: A task scheduling framework designed for the needs of game developers.](https://github.com/GameTechDev/GTS-GamesTaskScheduler)
+  * [CppCon 2014: Jeff Preshing "How Ubisoft Develops Games for Multicore - Before and After C++11" - YouTube](https://www.youtube.com/watch?v=X1T3IQ4N-3g)
+
+One of the key takeout point is that in order to implement a multi-threaded game engine, the data flow architecture needs to be done first.  This will allow running multiple jobs/tasks without resorting to heavy use of locks / atomic premitives.
+
+Some of the presentations above go into a rather complicated architectures.  But I would like to start simple without necessarily committing on some complex feature that I may not need for my target platforms.
+
+So the first step is to instrument the problem.  One idea from Brooke Hodgman is to use Chrome's tracing profiler.  Some articles:
+
+  * [Gamasutra - In-depth: Using Chrome://tracing to view your inline profiling data](https://www.gamasutra.com/view/news/176420/Indepth_Using_Chrometracing_to_view_your_inline_profiling_data.php)
+  * [Chrome Tracing as Profiler Frontend · Aras' website](https://aras-p.info/blog/2017/01/23/Chrome-Tracing-as-Profiler-Frontend/)
+  * [Trace Event Format - Google Docs](https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview#!)
+  * [High frequency timers](https://docs.microsoft.com/en-us/archive/msdn-magazine/2004/march/implementing-a-high-resolution-time-provider-for-windows)
+  * [minitrace](https://github.com/hrydgard/minitrace)
+
+# [29/07/2020] minitrace
+
+Added minitrace to the `extern` directory.  Maybe should think about keeping it as a separate package.
+
+Had to add `target_compile_options(${MINITRACE_LIBRARY} PUBLIC /TP)` so that it compiles as a `C++`.
+
+Applied a couple of PRs that are still open (one that uses `C++11` and another that adds markdown syntax to the README file).  Should also consider applying the "concurrent flushing" PR.
+
+**TODO:** Should try the commented out block of code using `InterlockedExchangeAdd()`.
+
+# [30/07/2020] minitrace cont.
+
+## Activation
+
+Too much data is captured to make it useful.  Need to add a key binding to capture a single frame (and maybe another key binding to toggle capture?).
+
+`MWInput::InputManager` is probably where I can add a keybinding for a single frame capture.
+
+`MWBase::Environment::get().getInputManager()->hasCaptureRequest()` can be added to the main rendering loop to check for a capture and flush.
+
+## Optimise Ogre instead?
+
+Looking at the captured trace, the vast majority of the time is spent inside `renderOneFrame`.  Optimising OpenMW is not really going to improve the overall performance.  Note that with Ogre 1.10.11 only D3D9 is supported (single threaded) and it will be difficult to improve its performance.
+
+## Try with Ogre 2.2
+
+Well, the result is the same.  Except now the proprtion of time spent within Ogre is even greater than before.
+
+Need to see what is going on within Ogre 2.2.  Given the difficulty of shutting down without exceptions, will probably go with `Remotery` as per [this post](https://forums.ogre3d.org/viewtopic.php?p=548801#p548801).
+
+# [31/07/2020] Ogre performance
+
+## Baseline, `Sample_PbsMaterial`, @1920x1080
+
+Intel UHD Graphics 630
+
+Direct3D11 : 110 FPS
+OpenGL 3+  :  70 FPS
+
+Nvidia Quadro P1000
+
+Direct3D11 : 240 FPS
+OpenGL 3+  : 235 FPS
+
+## OpenMW-Ogre-1.10, @1600x900, Vilverin
+
+Intel UHD Graphics 630
+
+Direct3D9 : 75 FPS
+
+Nvidia Quadro P1000
+
+Direct3D9 : 130 FPS
+
+## OpenMW-Ogre-2.2, @1600x900, Vilverin
+(with `setOptimizationStrategy(Ogre::ConstBufferPool::LowerGpuOverhead)`)
+
+Intel UHD Graphics 630
+
+Direct3D11 : 25 FPS
+
+Nvidia Quadro P1000
+
+Direct3D11 : 80 - 100 FPS
+
+# [15/08/2020] V.A.T.S.
+
+So far the attempted port to Ogre 2.2 has been disappointing.  There are a number of non-trivial issues that are going to be rather time consuming to resolve:
+
+  * Poor performance, especially with iGpu.  No idea why at this point.
+  * Specular materials do not display correctly.
+  * others that I can't remember for now.
+
+So I'm going to take a break from working on the Ogre 2.2 port for a while and do something else.
+
+## Identifying V.A.T.S. body parts for displaying
+
+Looks like each of the skinned meshes provide the `Body Part`s under `BSDismemberSkinInstance` `Partitions`.
+
+Initially I thought the body parts were provided via `ACHR` or `ACRE` records' ragdoll data - but not all have these.  It seems that they could be for dead characters or creatures.
+
+Neither `NPC_` or `RACE` records seem to have records that relate to body parts.  Maybe they are simply hard coded based on the skeleton model path.
+
+## Cycling through actor targets
+
+Can't remember if vanilla allows friendly actors to be targetted. (probably not)
+
+Don't know if vanilla limits the actors based on distance from the player. (probably)
+
+Most likely only the actors that passes LOS test for at least a body part. (actually can target even if hidden, but the chance to hit any body part will be zero)
+
+## Displaying V.A.T.S. info
+
+How these will be displayed is to be worked out - don't know if vanilla uses shaders or changes to the materials or uses overlays, etc.
+
+## Bullet time
+
+Not quite "bullet time" but animations, etc will need to be slowed down.
+
+# [16/11/2020 - 17/11/2020] Back from Fallout 4
+
+Not sure what to do after a break of 3 months.  I should probably make Oblivion work since it is probably the easiest at this point.
+
+## Oblivion ToDo
+
+  * Quests (and a multi-threaded scheduler?)
+  * Character Controller
+  * Incorporate navmesh (since it will be required for other games, anyway)
+  * Physics improvements (take hints from OpenMW?)
+  * Ragdoll
+  * Terrain blending (needs shader work though)
+  * Fix bone offset with shaders (using Shiny for now?)
+  * Fix animation issue with moving child nodes
+  * Ground cover (needs D3D11 for instancing?)
+  * SpeedTree replacement (best to have D2D11 for instancing)
+  * Intro screen and video
+  * Read/write save files
+  * UI (that supports popular UI MODs)
+  * Support Mesh LOD
+  * Support FadeNode (probably need to do this in shaders)
+  * Particle effects (will probably result in rework later)
+
+## Development Sequence
+
+There are some interdependencies, e.g. Character Controller would be needed to demonstrate Navmesh based pathfinding with NPCs.  Physics improvements are also difficult to show unless the Character Controller and pathfinding are working properly.
+
+A working Direct3D11 based rendering will be required before GPU based instancing for Grass models. i.e. no point working on that with Ogre 1.10
+
+Similarly, any shader changes are best done once the rendering engine is decided.  Otherwise some, or significant amount of rework will be required.
+
+## On mixing assets from different games
+
+For example, an NPC from FO3 does not have `Willpower` attribute from TES4.  So it would be impossible to make an NPC that can be used in different game types without bloating the NPC object with lots of data.
+
+Another example is TES4's Pauldron - an NPC from FO3 could not equip it, at least without creating some special attribute to a Pauldron so that it can be fitted to an equipment slot of an FO3 NPC.
+
+# [19/11/2020] Script Support
+
+Probably the best item to work on is scripts.  First check to see when a script is loaded.
+
+## Call Stack
+
+     openmw.exe!MWScript::InterpreterContext::startScript(const std::string & name, const std::string & targetId) Line 435	C++	Symbols loaded.
+     openmw.exe!Interpreter::OpStartScript::execute(Interpreter::Runtime & runtime) Line 29	C++	Symbols loaded.
+     openmw.exe!Interpreter::Interpreter::run(const unsigned int * code, int codeSize, Interpreter::Context & context) Line 248	C++	Symbols loaded.
+     openmw.exe!MWScript::ScriptManager::run(const std::string & name, Interpreter::Context & interpreterContext) Line 123	C++	Symbols loaded.
+     openmw.exe!MWScript::GlobalScripts::run() Line 81	C++	Symbols loaded.
+     openmw.exe!OMW::Engine::updateAll() Line 136	C++	Symbols loaded.
+     openmw.exe!OMW::Engine::go() Line 545	C++	Symbols loaded.
+     openmw.exe!main(int argc, char * * argv) Line 396	C++	Symbols loaded.
+
+# [03/12/2020] Compiling OpenCS and Launcher
+
+NOTE: `components` have a dependency on `${NIBTOGRE_LIBRARIES}` due to OEngine using class `NiBtOgre::BtRigidBodyCI`.
+
+NOTE: for some reason the working directory for the laucher doesn't change in MSVC?  Had to copy a couple of DLLs as a workaround.
+
+Launcher's `CMakeLists.txt`: `${SDL2_LIBRARY_ONLY}` was changed to `${SDL2_LIBRARY}`
+
+OpenCS's `CMakeLists.txt`: `${FGLIB_LIBRARIES}` was renamed to `${FGLIB_LIBRARY}`
+
+# [05/12/2020] Back to Script
+
+Many object classes can have scripts attached to them.  A simple `grep` for `mScriptId` results in:
+
+    acti.hpp:        FormId mScriptId;
+    alch.hpp:        FormId mScriptId;
+    appa.hpp:        FormId mScriptId;
+    armo.hpp:        FormId mScriptId;
+    book.hpp:        FormId mScriptId;
+    clot.hpp:        FormId mScriptId;
+    cont.hpp:        FormId mScriptId; // TES4 only
+    crea.hpp:        FormId mScriptId;
+
+    door.hpp:        FormId mScriptId;
+    flor.hpp:        FormId mScriptId;
+    furn.hpp:        FormId mScriptId;
+    ingr.hpp:        FormId mScriptId;
+    keym.hpp:        FormId mScriptId;
+    ligh.hpp:        FormId mScriptId;
+    lvlc.hpp:        FormId mScriptId;
+    misc.hpp:        FormId mScriptId;
+    npc_.hpp:        FormId mScriptId;
+    sgst.hpp:        FormId mScriptId;
+    slgm.hpp:        FormId mScriptId;
+    tact.hpp:        FormId mScriptId;
+    term.hpp:        FormId mScriptId;
+    weap.hpp:        FormId mScriptId;
+
+# [06/12/2020] Co-existing with TES3 Scripts
+
+The structure of TES4 scripts seem to be different.  There is a new keyword `scn` for the script name and the `begin` keyword is now followed by a condition (e.g. OnActivate) rather than the script name.
+
+## ToDo
+
+For now the `FormId` of the script is converted to a string but it should be possible to add new methods to accept `FormId` directly.
+
+## New Functions
+
+TES4 introduces many new functions.  The ones with the same name as TES3 have different Opcodes - not sure if that matters since the current script engine always compiles from the source.
+
+# [07/12/2020] Script Compiler
+
+Rather than modifying the existing script compiler to handle TES4 scripts, a different compiler should be used.  The scripts are just too different.
+
+However, it appears that modifying the `MWScript::ScriptManager` would be simpler than creating a separate script manager.
+
+# [09/12/2020] Script Compiler (cont.)
+
+Decided to keep some classes from `components/compiler`.  e.g. `ErrorHandler`, `StreamErrorHandler`, `TokenLoc`, `Context`, `Literals` and `Locals` (there may be others)
+
+# [10/12/2020] Script Compiler (cont.)
+
+The scripting system is initialised in `OMW::Engine::prepareEngine()`:
+
+
+    Compiler::registerExtensions (mExtensions);
+
+    // Create script system
+    mScriptContext = new MWScript::CompilerContext (MWScript::CompilerContext::Type_Full);
+    mScriptContext->setExtensions (&mExtensions);
+
+    mEnvironment.setScriptManager (new MWScript::ScriptManager (MWBase::Environment::get().getWorld()->getStore(),
+        mVerboseScripts, *mScriptContext, mWarningsMode,
+        mScriptBlacklistUse ? mScriptBlacklist : std::vector<std::string>()));
+
+
+    ...
+
+
+    // scripts
+    if (mCompileAll)
+    {
+        std::pair<int, int> result = MWBase::Environment::get().getScriptManager()->compileAll();
+        if (result.first)
+            std::cout
+                << "compiled " << result.second << " of " << result.first << " scripts ("
+                << 100*static_cast<double> (result.second)/result.first
+                << "%)"
+                << std::endl;
+    }
+    if (mCompileAllDialogue)
+    {
+        std::pair<int, int> result = MWDialogue::ScriptTest::compileAll(&mExtensions, mWarningsMode);
+        if (result.first)
+            std::cout
+                << "compiled " << result.second << " of " << result.first << " dialogue script/actor combinations a("
+                << 100*static_cast<double> (result.second)/result.first
+                << "%)"
+                << std::endl;
+    }
+
+
+Notice how the functions and instructions are registered.  In order to support TES4, we may be able to register TES4 functions and instructions then use a different script context.
+
+Maybe we need a public function in the engine to change the script system?  Or alternatively switch to a different context if we see `scn` or `scriptname` in the script?
+
+# [11/12/2020] Script Compiler (cont.)
+
+Need to decide whether to create a separate `Extensions` class for TES4 or modify the existing `Extensions` to accept a parameter.  With the former approach there may be some code duplication but probably end up with cleaner code in the end.
+
+To implement a separate `Extensions` we will need to figure out when to create and register the TES4 functions/instructions - ideally at the first use of a TES4 script (i.e. detect by `scn` or `scriptname`).  It is used by the compiler `Context` so maybe a method in `ScriptManager` is the way to go.
+
+We can also try to have a separate compiler `Context` for TES4.
+
+Note that we don't want to allow the parser to accept both TES3 and TES4 at the same time (otherwise syntax checks can't be done).
+
+# [13/12/2020 - 16/12/2020] Script Compiler (cont.)
+
+Looks like TES3 scripts didn't support boolean operators.  I will have to figure out how to support them (parse, generate code, etc).
+
+According to `components/interpreter/opcodes.hpp`, class Opcode1 is for 1 argument, Opcode2 is for 2 arguments.
+
+    scn CGAmbushAGateScript
+
+    begin onActivate
+        ; make sure NPCs don't open the gate until after Renote is dead.
+        if IsActionRef player == 1 || getstage charactergen > 26
+            Activate
+        endif
+    end
+
+    script name: CGAmbushAGateScript
+    file parser keyword: begin
+    file parser: event onActivate
+    control parser keyword: if
+    function IsActionRef
+    generate push string player index 0
+    scan special: cmpEQ
+    generate push int 1 index 0
+    scan special: or
+    generate compare e
+    function getstage
+    generate push string charactergen index 1
+    generate push int 26 index 1
+    control parser keyword: if end
+    generate compare g
+    generate boolean or <----- opportunity to optimise?
+    append code
+    run foreign script: 00014A21
+
+    0x0000000e // number of words in code block
+    0x00000002 // number of words in integer literal block
+    0x00000000 // number of words in float literal block
+    0x00000005 // number of words in string literal block
+    0x00000000 <- start
+                op  0: push arg0
+                OpPushInt
+                Runtime::mStack[0] has "0"
+    0xca000302
+                OpIsActionRef<Implicit>
+                use the value of Runtime::mStack[0] as index to retrieve string literal "player"
+                then reduce Runtime::mStack by 1 (i.e. pop)
+                then push the result s.t. Runtime::mStack[0] is 1 (i.e. true)
+    0x00000000
+                op  0: push arg0
+                OpPushInt
+                Runtime::mStack[1] has "0"
+    0xc8000004
+                op   4: replace stack[0] with integer literal index stack[0]
+                OpFetchIntLiteral
+                Runtime::mStack[1] has the integer literal "1"
+    0xc800001a
+                op  26: compare (intger) stack[1] with stack[0]; pop twice; push 1 if equal, 0 else
+                OpCompare
+                (actually pop once and replace the Runtime::mStack[0] with the result)
+    0x00000001
+                op  0: push arg0
+                OpPushInt
+                Runtime::mStack[1] has "1" which was arg0
+    0xca000304
+                OpGetStage<Implicit>
+                use the value of Runtime::mStack[1] as index to retrieve string literal "charactergen"
+                then reduce Runtime::mStack by 1 (i.e. pop)
+                then push the result s.t. Runtime::mStack[1] is 0 (just a dummy value)
+    0x00000001
+                op  0: push arg0
+                OpPushInt
+                Runtime::mStack[2] has "1"
+    0xc8000004
+                op   4: replace stack[0] with integer literal index stack[0]
+                OpFetchIntLiteral
+                Runtime::mStack[2] has the integer literal "0x1a" (i.e. 26)
+    0xc800001e
+                op  30: compare (intger) stack[1] with stack[0]; pop twice; push 1 if greater than, 0 else
+                OpCompare
+                Runtime::mStack[1] is now 0 (remember Runtime::mStack[0] has the previous OpCompare result)
+    0xc8000049
+                op 73: logial operation (intger) stack[1] with stack[0]; pop twice; push 1 if either, 0 if neither
+                OpLogical
+                Runtime::mStack[0] is now 1
+    0xc8000019
+                op  25: skip next instruction if stack[0]!=0; pop
+                OpSkipNonZero
+                Runtime::mStack is now empty
+                Runtime::mPC is changed from 0xc to 0xd
+    0x01000002 // 00 000001 0000 0000 0000 0000 0000 0010
+                op  1: move pc ahead by arg0
+                (in this case there's no further code to execute)
+    0xc2002f00
+                OpActivate
+    0x00000001 <- start of integer literal block
+    0x0000001a
+    0x79616c70 <- start of string literal block
+    0x63007265
+    0x61726168
+    0x72657463
+    0x006e6567
+
+## Partially working
+
+Things to fix include:
+
+  * local variables (16/12/20: workaround hack in place)
+  * Script event handling (e.g. `OnActivateRef`)
+  * `OnActivateRef` function not implemented
+  * `WorldImp::searchPtr()` needs to support TES4 objects
+  * `OpGetStage` doesn't handle quests
+  * `OpActivateRef` has 2 optional arguments but it is based on `Opcode1` (with 1 argument)
+  * `OpActivateRef` arguments are ignored
+  * `InterpreterContext::getActor()` and `setActor()` are clumsy
+
+## CGDungeon01ExitDoorScript
+
+    scn CGDungeon01ExitDoorScript
+
+    short hintCount
+
+    begin OnActivate
+        if IsActionRef player == 1
+            Activate
+            if GetLocked == 1
+                if hintcount == 0
+                    MessageBox "This door is locked. Maybe you can find the key somewhere nearby."
+                else
+                    MessageBox "This door is locked. Try searching the dead goblin shaman for the key."
+                endif
+                set hintcount to 1
+            endif
+        endif
+    end
+
+    script name: CGDungeon01ExitDoorScript
+    local var: short
+    file parser keyword: begin
+    file parser: event OnActivate
+    control parser keyword: if
+    function IsActionRef
+    generate push string player index 0
+    scan special: cmpEQ
+    generate push int 1 index 0
+    control parser keyword: if end
+    control parser keyword: if
+    function GetLocked
+    scan special: cmpEQ
+    generate push int 1 index 1
+    control parser keyword: if end
+    control parser keyword: if
+    scan special: cmpEQ
+    generate push int 0 index 2
+    control parser keyword: if end
+    generate compare e
+    generate push int 1 index 3
+    generate compare e
+    generate compare e
+    run foreign script: 0004E86E
+
+    0x0000001e // number of words in code block
+    0x00000004 // number of words in integer literal block
+    0x00000000 // number of words in float literal block
+    0x00000024 // number of words in string literal block
+    0x00000000 <- start
+    0xca000302
+    0x00000000
+    0xc8000004
+    0xc800001a compare eq
+    0xc8000019 skip non zero
+    0x01000018 move PC ahead by 0x18
+    0xc2002f00 activate
+    0xca000306 getlocked
+    0x00000001
+    0xc8000004
+    0xc800001a eq
+    0xc8000019 skip non zero
+    0x01000011 move PC ahead by 0x11
+    0x00000000
+    0xc8000015
+                OpFetchLocalShort
+                op  21: replace stack[0] with local short stack[0]
+    0x00000002
+    0xc8000004
+    0xc800001a
+    0xc8000019
+    0x01000004
+    0x00000001
+    0xc0000000 messagebox
+    0x01000003 jump forward by arg0 which is 3 --+
+    0x00000002                                   |
+    0xc0000000                                   |
+    0x00000000 <---------------------------------+
+    0x00000003
+    0xc8000004 fetch int literal (i.e. 1)
+    0xc8000000 store local short (i.e. hintcount)
+    0x00000001 <- start of integer literal block
+    0x00000001
+    0x00000000
+    0x00000001
+    0x79616c70 <- start of string literal block
+    0x54007265
+    0x20736968
+    0x726f6f64
+    0x20736920
+    0x6b636f6c
+    0x202e6465
+    0x6279614d
+    0x6f792065
+    0x61632075
+    0x6966206e
+    0x7420646e
+    0x6b206568
+    0x73207965
+    0x77656d6f
+    0x65726568
+    0x61656e20
+    0x2e796272
+    0x69685400
+    0x6f642073
+    0x6920726f
+    0x6f6c2073
+    0x64656b63
+    0x7254202e
+    0x65732079
+    0x68637261
+    0x20676e69
+    0x20656874
+    0x64616564
+    0x626f6720
+    0x206e696c
+    0x6d616873
+    0x66206e61
+    0x7420726f
+    0x6b206568
+    0x002e7965
+
+Now working - things to fix include:
+
+  * local variables in objects' run-time data
+  * message box size (hacked a workaround for now)
+  * local scripts from TES3 should be removed once in TES4
+
+
+
+
 
 [//]: # (/* spell spelllang=en_au syntax=cpp */)
 [//]: # (/* vim: set ft=markdown tw=0 lbr bri fen fdm=marker fdl=0: */)

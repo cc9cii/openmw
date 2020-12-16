@@ -14,13 +14,14 @@ namespace Compiler
             std::vector<std::string> mShorts;
             std::vector<std::string> mLongs;
             std::vector<std::string> mFloats;
+            std::vector<std::string> mRefs; // TES4 scripts only
 
             std::vector<std::string>& get (char type);
 
         public:
 
             char getType (const std::string& name) const;
-            ///< 's': short, 'l': long, 'f': float, ' ': does not exist.
+            ///< 's': short, 'l': long, 'f': float, 'r': ref, ' ': does not exist.
 
             int getIndex (const std::string& name) const;
             ///< return index for local variable \a name (-1: does not exist).

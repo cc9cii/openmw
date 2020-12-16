@@ -11,6 +11,12 @@ namespace ESM
     struct Locals;
 }
 
+namespace ESM4
+{
+    struct Script;
+    struct Locals;
+}
+
 namespace MWScript
 {
     class Locals
@@ -19,11 +25,13 @@ namespace MWScript
             std::vector<Interpreter::Type_Short> mShorts;
             std::vector<Interpreter::Type_Integer> mLongs;
             std::vector<Interpreter::Type_Float> mFloats;
+            std::vector<Interpreter::Type_Ref> mRefs;
 
             /// Are there any locals?
             bool isEmpty() const;
 
             void configure (const ESM::Script& script);
+            void configure (const ESM4::Script& script);
 
             /// @note var needs to be in lowercase
             bool setVarByInt(const std::string& script, const std::string& var, int val);

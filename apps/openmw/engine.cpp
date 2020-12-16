@@ -17,6 +17,7 @@
 #include <components/misc/rng.hpp>
 
 #include <components/compiler/extensions0.hpp>
+#include <components/tes4compiler/extensions0.hpp> // registerExtensions()
 
 #include <components/bsa/resources.hpp>
 #include <components/files/configurationmanager.hpp>
@@ -199,7 +200,8 @@ OMW::Engine::Engine(Files::ConfigurationManager& configurationManager)
   , mActivationDistanceOverride(-1)
   , mGrab(true)
   , mExportFonts(false)
-  , mScriptContext (0)
+  , mScriptContext (nullptr)
+  , mTes4ScriptContext (nullptr)
   , mFSStrict (false)
   , mScriptBlacklistUse (true)
   , mNewGame (false)
@@ -233,6 +235,7 @@ OMW::Engine::~Engine()
     if (mOgre)
         mOgre->restoreWindowGammaRamp();
     mEnvironment.cleanup();
+    delete mTes4ScriptContext;
     delete mScriptContext;
     delete mOgre;
     SDL_Quit();
@@ -458,8 +461,14 @@ void OMW::Engine::prepareEngine (Settings::Manager & settings)
     mScriptContext = new MWScript::CompilerContext (MWScript::CompilerContext::Type_Full);
     mScriptContext->setExtensions (&mExtensions);
 
+    Tes4Compiler::registerExtensions (mTes4Extensions); // FIXME: do this later?
+
+    // Create TES4 script system
+    mTes4ScriptContext = new MWScript::CompilerContext (MWScript::CompilerContext::Type_Full);
+    mTes4ScriptContext->setExtensions (&mTes4Extensions); // FIXME: do this later?
+
     mEnvironment.setScriptManager (new MWScript::ScriptManager (MWBase::Environment::get().getWorld()->getStore(),
-        mVerboseScripts, *mScriptContext, mWarningsMode,
+        mVerboseScripts, *mScriptContext, *mTes4ScriptContext, mWarningsMode,
         mScriptBlacklistUse ? mScriptBlacklist : std::vector<std::string>()));
 
     // Create game mechanics system

@@ -38,6 +38,7 @@ namespace Compiler
     /// \brief Collection of compiler extensions
     class Extensions
     {
+        protected:
 
             struct Function
             {
@@ -55,6 +56,8 @@ namespace Compiler
                 int mCodeExplicit;
                 int mSegment;
             };
+
+        private:
 
             int mNextKeywordIndex;
             std::map<std::string, int> mKeywords;

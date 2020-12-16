@@ -8,6 +8,8 @@ namespace Interpreter
     typedef unsigned int Type_Code; // 32 bit
 
     typedef unsigned int Type_Data; // 32 bit
+
+    typedef unsigned int Type_Ref; // 32 bit
     
     typedef short Type_Short; // 16 bit
     

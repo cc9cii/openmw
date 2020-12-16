@@ -128,6 +128,7 @@ namespace MWScript
             case 's': stream << "short"; break;
             case 'l': stream << "long"; break;
             case 'f': stream << "float"; break;
+            case 'r': stream << "ref"; break;
         }
 
         stream << " member variable " << name << " in script " << scriptId;
@@ -138,7 +139,7 @@ namespace MWScript
 
     InterpreterContext::InterpreterContext (
         MWScript::Locals *locals, MWWorld::Ptr reference, const std::string& targetId)
-    : mLocals (locals), mReference (reference),
+    : mLocals (locals), mReference (reference), mActor(MWWorld::Ptr()),
       mActivationHandled (false), mTargetId (targetId)
     {
         // If we run on a reference (local script, dialogue script or console with object
@@ -605,5 +606,15 @@ namespace MWScript
     {
         if (!mReference.isEmpty())
             mReference = updated;
+    }
+
+    MWWorld::Ptr InterpreterContext::getActor()
+    {
+        return mActor;
+    }
+
+    void InterpreterContext::setActor(const MWWorld::Ptr& actor)
+    {
+        mActor = actor;
     }
 }

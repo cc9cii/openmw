@@ -106,6 +106,22 @@ namespace Interpreter
                 runtime[0].mInteger = result;
             }           
     };    
+    
+    template<typename T, typename C>
+    class OpLogical : public Opcode0
+    {
+        public:
+        
+            virtual void execute (Runtime& runtime)
+            {
+                int result = C() (getData<T> (runtime[1]), getData<T> (runtime[0]));
+                
+                runtime.pop();
+                
+                runtime[0].mInteger = result;
+                //runtime[0].mInteger = 0; // FIXME: temp testing always fail
+            }
+    };
 }
 
 #endif

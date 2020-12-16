@@ -18,6 +18,8 @@
 #include "consoleextensions.hpp"
 #include "userextensions.hpp"
 
+#include "tes4extensions.hpp"
+
 namespace MWScript
 {
     void installOpcodes (Interpreter::Interpreter& interpreter, bool consoleOnly)
@@ -41,5 +43,8 @@ namespace MWScript
             Console::installOpcodes (interpreter);
             User::installOpcodes (interpreter);
         }
+
+        Tes4::installOpcodes(interpreter);
+
     }
 }

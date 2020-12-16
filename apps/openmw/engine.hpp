@@ -91,6 +91,8 @@ namespace OMW
 
             Compiler::Extensions mExtensions;
             Compiler::Context *mScriptContext;
+            Compiler::Extensions mTes4Extensions;
+            Compiler::Context *mTes4ScriptContext;
 
             Files::Collections mFileCollections;
             bool mFSStrict;

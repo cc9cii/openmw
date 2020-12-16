@@ -6,6 +6,7 @@
 
 #include <components/compiler/streamerrorhandler.hpp>
 #include <components/compiler/fileparser.hpp>
+#include <components/tes4compiler/fileparser.hpp>
 
 #include <components/interpreter/interpreter.hpp>
 #include <components/interpreter/types.hpp>
@@ -20,6 +21,11 @@ namespace MWWorld
 }
 
 namespace Compiler
+{
+    class Context;
+}
+
+namespace Tes4Compiler
 {
     class Context;
 }
@@ -39,6 +45,8 @@ namespace MWScript
             bool mVerbose;
             Compiler::Context& mCompilerContext;
             Compiler::FileParser mParser;
+            Compiler::Context& mTes4CompilerContext;
+            Tes4Compiler::FileParser mTes4Parser;
             Interpreter::Interpreter mInterpreter;
             bool mOpcodesInstalled;
 
@@ -53,13 +61,15 @@ namespace MWScript
         public:
 
             ScriptManager (const MWWorld::ESMStore& store, bool verbose,
-                Compiler::Context& compilerContext, int warningsMode,
+                Compiler::Context& compilerContext, Compiler::Context& tes4CompilerContext, int warningsMode,
                 const std::vector<std::string>& scriptBlacklist);
 
             virtual void run (const std::string& name, Interpreter::Context& interpreterContext);
+            void runForeign (const std::string& name, Interpreter::Context& interpreterContext);
             ///< Run the script with the given name (compile first, if not compiled yet)
 
             virtual bool compile (const std::string& name);
+            bool compileForeign (const std::string& name);
             ///< Compile script with the given namen
             /// \return Success?
 
@@ -68,6 +78,7 @@ namespace MWScript
             /// \return count, success
 
             virtual const Compiler::Locals& getLocals (const std::string& name);
+            const Compiler::Locals& getForeignLocals (const std::string& name);
             ///< Return locals for script \a name.
 
             virtual GlobalScripts& getGlobalScripts();

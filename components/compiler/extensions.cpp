@@ -59,6 +59,7 @@ namespace Compiler
         if (argumentType.find ('/')==std::string::npos)
         {
             function.mSegment = 5;
+            // 33554432 = 0x2000000, 67108863 = 0x3ffffff
             assert (code>=33554432 && code<=67108863);
             assert (codeExplicit==-1 || (codeExplicit>=33554432 && codeExplicit<=67108863));
         }
