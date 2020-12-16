@@ -27,33 +27,41 @@
 #include "bptd.hpp"
 
 #include <stdexcept>
-//#include <iostream> // FIXME: testing only
+#include <iostream> // FIXME: testing only
 
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::BodyPart::BodyPart() : mFormId(0), mFlags(0)
+void ESM4::BodyPartData::BodyPart::clear()
+{
+    mPartName.clear();
+    mNodeName.clear();
+    mVATSTarget.clear();
+    mIKStartNode.clear();
+    std::memset(&mData, 0, sizeof(BPND));
+    mLimbReplacementModel.clear();
+    mGoreEffectsTarget.clear();
+}
+
+ESM4::BodyPartData::BodyPartData() : mFormId(0), mFlags(0)
 {
     mEditorId.clear();
     mFullName.clear();
     mModel.clear();
-    mBPTName.clear();
-    mNodeName.clear();
-    mNodeTitle.clear();
-    mNodeInfo.clear();
-
-    std::memset(&mData, 0, sizeof(BPND));
 }
 
-ESM4::BodyPart::~BodyPart()
+ESM4::BodyPartData::~BodyPartData()
 {
 }
 
-void ESM4::BodyPart::load(ESM4::Reader& reader)
+void ESM4::BodyPartData::load(ESM4::Reader& reader)
 {
     mFormId = reader.hdr().record.id;
     reader.adjustFormId(mFormId);
     mFlags  = reader.hdr().record.flags;
+
+    BodyPart bodyPart;
+    bodyPart.clear();
 
     while (reader.getSubRecordHeader())
     {
@@ -70,26 +78,34 @@ void ESM4::BodyPart::load(ESM4::Reader& reader)
 
                 break;
             }
-            case ESM4::SUB_BPND: reader.get(mData); break;
             case ESM4::SUB_MODL: reader.getZString(mModel); break;
             case ESM4::SUB_BPTN:
             {
                 if (reader.hasLocalizedStrings())
-                    reader.getLocalizedString(mBPTName);
-                else if (!reader.getZString(mBPTName))
+                    reader.getLocalizedString(bodyPart.mPartName);
+                else if (!reader.getZString(bodyPart.mPartName))
                     throw std::runtime_error ("BPTD BPTN data read error");
 
                 break;
             }
-            case ESM4::SUB_BPNN: reader.getZString(mNodeName); break;
-            case ESM4::SUB_BPNT: reader.getZString(mNodeTitle); break;
-            case ESM4::SUB_BPNI: reader.getZString(mNodeInfo); break;
-            case ESM4::SUB_MODS:
-            case ESM4::SUB_MODT:
-            case ESM4::SUB_NAM1: // limb replacement model
-            case ESM4::SUB_NAM4: // gore effects target bone
+            case ESM4::SUB_BPNN: reader.getZString(bodyPart.mNodeName); break;
+            case ESM4::SUB_BPNT: reader.getZString(bodyPart.mVATSTarget); break;
+            case ESM4::SUB_BPNI: reader.getZString(bodyPart.mIKStartNode); break;
+            case ESM4::SUB_BPND: reader.get(bodyPart.mData); break;
+            case ESM4::SUB_NAM1: reader.getZString(bodyPart.mLimbReplacementModel); break;
+            case ESM4::SUB_NAM4: // FIXME: assumed occurs last
+            {
+                reader.getZString(bodyPart.mGoreEffectsTarget); // target bone
+
+                mBodyParts.push_back(bodyPart); // FIXME: possible without copying?
+
+                bodyPart.clear();
+                break;
+            }
             case ESM4::SUB_NAM5:
             case ESM4::SUB_RAGA: // ragdoll
+            case ESM4::SUB_MODS:
+            case ESM4::SUB_MODT:
             {
                 //std::cout << "BPTD " << ESM4::printName(subHdr.typeId) << " skipping..." << std::endl;
                 reader.skipSubRecordData();
@@ -99,12 +115,15 @@ void ESM4::BodyPart::load(ESM4::Reader& reader)
                 throw std::runtime_error("ESM4::BPTD::load - Unknown subrecord " + ESM4::printName(subHdr.typeId));
         }
     }
+
+    //if (mEditorId == "DefaultBodyPartData")
+        //std::cout << "BPTD: " << mEditorId << std::endl; // FIXME: testing only
 }
 
-//void ESM4::BodyPart::save(ESM4::Writer& writer) const
+//void ESM4::BodyPartData::save(ESM4::Writer& writer) const
 //{
 //}
 
-//void ESM4::BodyPart::blank()
+//void ESM4::BodyPartData::blank()
 //{
 //}

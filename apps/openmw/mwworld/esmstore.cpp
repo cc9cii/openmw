@@ -248,7 +248,8 @@ void ESMStore::loadTes4Group (ESM::ESMReader &esm)
                 hdr.group.label.value == ESM4::REC_PWAT || hdr.group.label.value == ESM4::REC_SCOL ||
                 hdr.group.label.value == ESM4::REC_MUSC || hdr.group.label.value == ESM4::REC_ALOC ||
                 hdr.group.label.value == ESM4::REC_MSET || hdr.group.label.value == ESM4::REC_DOBJ ||
-                hdr.group.label.value == ESM4::REC_SNDR || hdr.group.label.value == ESM4::REC_OTFT
+                hdr.group.label.value == ESM4::REC_SNDR || hdr.group.label.value == ESM4::REC_OTFT ||
+                hdr.group.label.value == ESM4::REC_BPTD
                 )
             {
                 reader.saveGroupStatus();

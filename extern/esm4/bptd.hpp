@@ -27,8 +27,7 @@
 #ifndef ESM4_BPTD_H
 #define ESM4_BPTD_H
 
-#include <cstdint>
-#include <string>
+#include <vector>
 
 #include "formid.hpp"
 
@@ -37,7 +36,7 @@ namespace ESM4
     class Reader;
     class Writer;
 
-    struct BodyPart
+    struct BodyPartData
     {
 #pragma pack(push, 1)
         struct BPND
@@ -94,23 +93,30 @@ namespace ESM4
         };
 #pragma pack(pop)
 
+        struct BodyPart
+        {
+            std::string mPartName;
+            std::string mNodeName;
+            std::string mVATSTarget;
+            std::string mIKStartNode;
+            BPND mData;
+            std::string mLimbReplacementModel;
+            std::string mGoreEffectsTarget;
+
+            void clear();
+        };
+
         FormId mFormId;       // from the header
         std::uint32_t mFlags; // from the header, see enum type RecordFlag for details
 
         std::string mEditorId;
         std::string mFullName;
         std::string mModel;
-        std::string mBPTName;
-        std::string mNodeName;
-        std::string mNodeTitle;
-        std::string mNodeInfo;
 
-        BPND mData;
+        std::vector<BodyPart> mBodyParts;
 
-        FormId mAdditionalPart;
-
-        BodyPart();
-        virtual ~BodyPart();
+        BodyPartData();
+        virtual ~BodyPartData();
 
         virtual void load(ESM4::Reader& reader);
         //virtual void save(ESM4::Writer& writer) const;

@@ -87,7 +87,28 @@ void ESM4::ArmorAddon::load(ESM4::Reader& reader)
 
                 break;
             }
-            case ESM4::SUB_BODT:
+            case ESM4::SUB_BODT: // body template
+            {
+                reader.get(mBodyTemplate.bodyPart);
+                reader.get(mBodyTemplate.flags);
+                reader.get(mBodyTemplate.unknown1); // probably padding
+                reader.get(mBodyTemplate.unknown2); // probably padding
+                reader.get(mBodyTemplate.unknown3); // probably padding
+                reader.get(mBodyTemplate.type);
+
+                break;
+            }
+            case ESM4::SUB_BOD2: // TES5
+            {
+                reader.get(mBodyTemplate.bodyPart);
+                mBodyTemplate.flags = 0;
+                mBodyTemplate.unknown1 = 0; // probably padding
+                mBodyTemplate.unknown2 = 0; // probably padding
+                mBodyTemplate.unknown3 = 0; // probably padding
+                reader.get(mBodyTemplate.type);
+
+                break;
+            }
             case ESM4::SUB_DNAM:
             case ESM4::SUB_MO2T: // FIXME: should group with MOD2
             case ESM4::SUB_MO2S: // FIXME: should group with MOD2
@@ -116,9 +137,7 @@ void ESM4::ArmorAddon::load(ESM4::Reader& reader)
                 break;
             }
             default:
-                std::cout << "ARMA " << ESM4::printName(subHdr.typeId) << " skipping..." << std::endl;
-                reader.skipSubRecordData();
-                //throw std::runtime_error("ESM4::ARMA::load - Unknown subrecord " + ESM4::printName(subHdr.typeId));
+                throw std::runtime_error("ESM4::ARMA::load - Unknown subrecord " + ESM4::printName(subHdr.typeId));
         }
     }
 }

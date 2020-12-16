@@ -27,6 +27,7 @@
 #include "acre.hpp"
 
 #include <stdexcept>
+//#include <iostream>
 
 #include "reader.hpp"
 //#include "writer.hpp"
@@ -69,10 +70,16 @@ void ESM4::ActorCreature::load(ESM4::Reader& reader)
             case ESM4::SUB_XGLB: reader.get(mGlobal);          break; // FIXME: formId?
             case ESM4::SUB_XRNK: reader.get(mFactionRank);     break;
             case ESM4::SUB_XRGD: // ragdoll
+            case ESM4::SUB_XRGB: // ragdoll biped
+            {
+                // seems to occur only for dead bodies, e.g. DeadMuffy, DeadDogVicious
+                //std::cout << "ACRE " << ESM4::printName(subHdr.typeId) << " skipping..." << std::endl;
+                reader.skipSubRecordData();
+                break;
+            }
             case ESM4::SUB_XLKR: // FO3
             case ESM4::SUB_XLCM: // FO3
             case ESM4::SUB_XEZN: // FO3
-            case ESM4::SUB_XRGB: // FO3
             case ESM4::SUB_XMRC: // FO3
             case ESM4::SUB_XAPD: // FO3
             case ESM4::SUB_XAPR: // FO3

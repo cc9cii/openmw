@@ -251,6 +251,35 @@ void ESM4::Npc::load(ESM4::Reader& reader)
             case ESM4::SUB_DOFT: reader.getFormId(mDefaultOutfit); break;
             case ESM4::SUB_SOFT: reader.getFormId(mSleepOutfit); break;
             case ESM4::SUB_DPLT: reader.getFormId(mDefaultPkg); break; // AI package list
+            case ESM4::SUB_DEST:
+            case ESM4::SUB_DSTD:
+            case ESM4::SUB_DSTF:
+            {
+#if 1
+                boost::scoped_array<unsigned char> mDataBuf(new unsigned char[subHdr.dataSize]);
+                reader.get(&mDataBuf[0], subHdr.dataSize);
+
+                std::ostringstream ss;
+                ss << mEditorId << " " << ESM4::printName(subHdr.typeId) << ":size " << subHdr.dataSize << "\n";
+                for (std::size_t i = 0; i < subHdr.dataSize; ++i)
+                {
+                    if (mDataBuf[i] > 64 && mDataBuf[i] < 91) // looks like printable ascii char
+                        ss << (char)(mDataBuf[i]) << " ";
+                    else
+                        ss << std::setfill('0') << std::setw(2) << std::hex << (int)(mDataBuf[i]);
+                    if ((i & 0x000f) == 0xf) // wrap around
+                        ss << "\n";
+                    else if (i < subHdr.dataSize-1)
+                        ss << " ";
+                }
+                std::cout << ss.str() << std::endl;
+#else
+                //std::cout << "NPC_ " << ESM4::printName(subHdr.typeId) << " skipping..."
+                          //<< subHdr.dataSize << std::endl;
+                reader.skipSubRecordData();
+#endif
+                break;
+            }
             case ESM4::SUB_NAM6: // height mult
             case ESM4::SUB_NAM7: // weight mult
             case ESM4::SUB_ATKR:
@@ -261,9 +290,6 @@ void ESM4::Npc::load(ESM4::Reader& reader)
             case ESM4::SUB_ANAM:
             case ESM4::SUB_ATKD:
             case ESM4::SUB_ATKE:
-            case ESM4::SUB_DEST:
-            case ESM4::SUB_DSTD:
-            case ESM4::SUB_DSTF:
             case ESM4::SUB_FTST:
             case ESM4::SUB_KSIZ:
             case ESM4::SUB_KWDA:

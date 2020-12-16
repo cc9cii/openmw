@@ -83,10 +83,10 @@ namespace MWWorld
         ForeignStore<ESM4::Hair>       mForeignHairs;
         ForeignStore<ESM4::Eyes>       mForeignEyesSet;
         ForeignStore<ESM4::Race>       mForeignRaces;
-        ForeignStore<ESM4::BodyPart>   mForeignBodyParts;
+        ForeignStore<ESM4::BodyPartData> mForeignBodyParts;
         ForeignStore<ESM4::HeadPart>   mHeadParts;
         ForeignStore<ESM4::ActorCharacter> mForeignACharacters;
-        ForeignStore<ESM4::ActorCreature>  mForeignACreatures;
+        ForeignStore<ESM4::ActorCreature> mForeignACreatures;
         ForeignStore<ESM4::LandTexture> mForeignLandTextures;
         ForeignStore<ESM4::Script>     mForeignScripts;
         ForeignStore<ESM4::Quest>      mForeignQuests;

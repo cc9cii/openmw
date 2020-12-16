@@ -27,6 +27,7 @@
 #include "achr.hpp"
 
 #include <stdexcept>
+//#include <iostream>
 
 #include "reader.hpp"
 //#include "writer.hpp"
@@ -69,6 +70,12 @@ void ESM4::ActorCharacter::load(ESM4::Reader& reader)
                 break;
             }
             case ESM4::SUB_XRGD: // ragdoll
+            case ESM4::SUB_XRGB: // ragdoll biped
+            {
+                //std::cout << "ACHR " << ESM4::printName(subHdr.typeId) << " skipping..." << std::endl;
+                reader.skipSubRecordData();
+                break;
+            }
             case ESM4::SUB_XHRS: // horse formId
             case ESM4::SUB_XMRC: // merchant container formId
             // TES5
@@ -86,7 +93,6 @@ void ESM4::ActorCharacter::load(ESM4::Reader& reader)
             case ESM4::SUB_INAM:
             case ESM4::SUB_PDTO:
             //
-            case ESM4::SUB_XRGB:
             case ESM4::SUB_XIS2:
             case ESM4::SUB_XPCI: // formId
             case ESM4::SUB_XLOD:
