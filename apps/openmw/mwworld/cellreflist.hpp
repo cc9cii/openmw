@@ -59,7 +59,7 @@ namespace MWWorld
         typedef std::map<std::pair<std::int32_t, std::int32_t>, std::vector<ESM4::FormId> > GridMap;
         GridMap mGridMap;
 
-        // FIXME: a failed attempt to get rid of exceptions under linux
+        // FIXME: a failed attempt to fix linux crash
         ~CellRefList()
         {
             mGridMap.clear();

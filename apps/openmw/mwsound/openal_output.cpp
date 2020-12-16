@@ -545,9 +545,9 @@ OpenAL_Sound::~OpenAL_Sound()
     mOutput.mFreeSources.push_back(mSource);
     mOutput.bufferFinished(mBuffer);
 
-    // FIXME: crashes with gcc
-    //mOutput.mActiveSounds.erase(std::find(mOutput.mActiveSounds.begin(),
-                                          //mOutput.mActiveSounds.end(), this));
+    // FIXME: linux crash
+    mOutput.mActiveSounds.erase(std::find(mOutput.mActiveSounds.begin(),
+                                          mOutput.mActiveSounds.end(), this));
 }
 
 void OpenAL_Sound::stop()
