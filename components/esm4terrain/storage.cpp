@@ -827,9 +827,9 @@ namespace ESM4Terrain
         ESM4::FormId baseTextureId = land->mTextures[quad].base.formId;
         // FIXME: how to choose between games?
         if (baseTextureId == 0)
-            //baseTextureId = 0x000008C0; // TES4: TerrainHDDirt01.dds
+            baseTextureId = 0x000008C0; // TES4: TerrainHDDirt01.dds
             //baseTextureId = 0x00000A0D; // FONV: Dirt01.dds
-            baseTextureId = 0x00000C14; // TES5
+            //baseTextureId = 0x00000C14; // TES5
 
         const ESM4::LandTexture *baseTexture = getLandTexture(baseTextureId);
         std::string baseTextureFile;

@@ -53,8 +53,8 @@ namespace
 
             std::size_t pos = model.find_last_of(".");
             // FIXME: how to choose between games?
-            //std::string farModel = model.substr(0, pos) + "_far.nif";
-            std::string farModel = model.substr(0, pos) + "_lod.nif"; // FIXME FONV, TES5
+            std::string farModel = model.substr(0, pos) + "_far.nif"; // TES4
+            //std::string farModel = model.substr(0, pos) + "_lod.nif"; // FIXME FONV, TES5
 #if 0
             if (Ogre::ResourceGroupManager::getSingleton().resourceExistsInAnyGroup(farModel))
                 rendering.addObject(ptr, farModel);
