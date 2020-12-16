@@ -74,7 +74,7 @@ namespace NiBtOgre
         inline std::uint32_t userVer() const { return mUserVer; }
         inline std::uint32_t userVer2() const { return mUserVer2; }
 
-        // may throw (does not check bounds)
+        // FIXME: bounds check is a bit naive?
         const std::string& indexToString(std::int32_t index) const {
             try {
                 return mStrings.at(index);
