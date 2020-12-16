@@ -97,6 +97,9 @@ namespace ESM4
         RadioStationData mRadio;
 
         TeleportDest mDoor;
+        bool mIsLocked;
+        std::int8_t mLockLevel;
+        FormId mKey;
 
         Reference();
         virtual ~Reference();

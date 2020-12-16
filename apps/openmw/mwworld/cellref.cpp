@@ -300,6 +300,9 @@ namespace MWWorld
         else
             mCellRef.mDestCell = "";
 
+        mIsLocked = ref.mIsLocked;
+        mCellRef.mLockLevel = ref.mLockLevel;
+
         mChanged = false;
     }
 

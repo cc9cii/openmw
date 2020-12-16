@@ -26,7 +26,7 @@ namespace MWWorld
     public:
 
         CellRef (const ESM::CellRef& ref)
-            : mCellRef(ref), mFormId(0)
+            : mCellRef(ref), mFormId(0), mIsLocked(false)
         {
             mChanged = false;
         }
@@ -41,6 +41,8 @@ namespace MWWorld
         ESM4::FormId getFormId() const;
         std::uint32_t getFlags() const { return mFlags; }
         ESM4::FormId getBaseObj() const { return mBaseObj; } // FIXME: for testing visibly dist
+
+        bool isLocked() const { return mIsLocked; }
 
         // teleport destination door
         ESM4::FormId getDestDoorId() const;
@@ -137,6 +139,8 @@ namespace MWWorld
         ESM4::FormId mDestDoorId; // FIXME: don't want this here
         std::uint32_t mFlags;
         ESM4::FormId mBaseObj;
+
+        bool mIsLocked;
     };
 
 }

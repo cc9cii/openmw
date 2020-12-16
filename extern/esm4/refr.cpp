@@ -35,7 +35,7 @@
 ESM4::Reference::Reference() : mFormId(0), mFlags(0),
                                mBaseObj(0), mScale(1.f), mOwner(0), mGlobal(0), mFactionRank(0),
                                mInitiallyDisabled(false), mIsMapMarker(false), mMapMarker(0), mCount(1),
-                               mAudioLocation(0)
+                               mAudioLocation(0), mIsLocked(false), mLockLevel(0), mKey(0)
 {
     mEditorId.clear();
     mFullName.clear();
@@ -230,12 +230,31 @@ void ESM4::Reference::load(ESM4::Reader& reader)
                 break;
             }
             case ESM4::SUB_SCRO: // FO3
-                                 {
-                                     reader.getFormId(sid);
-                                     //if (mFormId == 0x0016b74B)
-                //std::cout << "REFR SCRO : " << formIdToString(sid) << std::endl;// FIXME
-                                     break;
-                                 }
+            {
+                reader.getFormId(sid);
+                //if (mFormId == 0x0016b74B)
+                    //std::cout << "REFR SCRO : " << formIdToString(sid) << std::endl;// FIXME
+                break;
+            }
+            case ESM4::SUB_XLOC:
+            {
+                mIsLocked = true;
+                std::int8_t dummy; // FIXME: very poor code
+
+                reader.get(mLockLevel);
+                reader.get(dummy);
+                reader.get(dummy);
+                reader.get(dummy);
+                reader.getFormId(mKey);
+                reader.get(dummy);
+                reader.get(dummy);
+                reader.get(dummy);
+                reader.get(dummy);
+                if (subHdr.dataSize == 16)
+                    reader.skipSubRecordData(4);
+
+                break;
+            }
             // lighting
             case ESM4::SUB_LNAM: // lighting template formId
             case ESM4::SUB_XLIG: // struct, FOV, fade, etc
@@ -245,7 +264,6 @@ void ESM4::Reference::load(ESM4::Reader& reader)
             case ESM4::SUB_XRGD: // tangent data?
             case ESM4::SUB_XALP: // alpha cutoff
             //
-            case ESM4::SUB_XLOC: // formId
             case ESM4::SUB_XPCI: // formId
             case ESM4::SUB_XLCM:
             case ESM4::SUB_XCNT:
