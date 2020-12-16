@@ -12,6 +12,8 @@
 
 #include <SDL.h>
 
+#include <extern/minitrace/minitrace.h>
+
 #include <components/misc/rng.hpp>
 
 #include <components/compiler/extensions0.hpp>
@@ -82,9 +84,17 @@ bool OMW::Engine::frameStarted (const Ogre::FrameEvent& evt)
 
 bool OMW::Engine::frameRenderingQueued (const Ogre::FrameEvent& evt)
 {
+    mFrameTime = evt.timeSinceLastFrame;
+    return true;          // new behaviour to update outside rendering
+    //return updateAll(); // original behaviour
+}
+
+bool OMW::Engine::updateAll()
+{
+    MTR_SCOPE_FUNC();
     try
     {
-        float frametime = evt.timeSinceLastFrame;
+        float frametime = mFrameTime;
         mEnvironment.setFrameDuration (frametime);
 
         // update input
@@ -194,6 +204,7 @@ OMW::Engine::Engine(Files::ConfigurationManager& configurationManager)
   , mScriptBlacklistUse (true)
   , mNewGame (false)
   , mCfgMgr(configurationManager)
+  , mFrameTime(0.f)
 {
     Misc::Rng::init();
     std::srand ( static_cast<unsigned int>(std::time(NULL)) );
@@ -208,10 +219,17 @@ OMW::Engine::Engine(Files::ConfigurationManager& configurationManager)
             throw std::runtime_error("Could not initialize SDL! " + std::string(SDL_GetError()));
         }
     }
+
+    // See https://github.com/hrydgard/minitrace and chrome://tracing/ in Chrome
+    mtr_init("C:\\Users\\cc9c\\trace.json");
+    mtr_stop(); // comment out this line to enable tracing
 }
 
 OMW::Engine::~Engine()
 {
+    mtr_flush();
+    mtr_shutdown();
+
     if (mOgre)
         mOgre->restoreWindowGammaRamp();
     mEnvironment.cleanup();
@@ -530,7 +548,10 @@ void OMW::Engine::go()
         dt = std::min(dt, 0.2f);
 
         timer.reset();
+        MTR_BEGIN("Ogre", "renderOneFrame");
         Ogre::Root::getSingleton().renderOneFrame(dt);
+        MTR_END("Ogre", "renderOneFrame");
+        updateAll();
     }
     // Save user settings
     settings.saveUser(settingspath);

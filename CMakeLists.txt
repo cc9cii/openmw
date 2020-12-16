@@ -592,6 +592,7 @@ add_subdirectory (extern/fglib)
 add_subdirectory (extern/murmurhash)
 add_subdirectory (extern/BSAOpt)
 add_subdirectory (extern/strverscmp)
+add_subdirectory (extern/minitrace)
 
 # Components
 add_subdirectory (components)

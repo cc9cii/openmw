@@ -135,6 +135,7 @@ target_link_libraries(openmw
     ${ZLIB_LIBRARY}
     ${NIBTOGRE_LIBRARIES}
     ${FGLIB_LIBRARIES}
+    ${MINITRACE_LIBRARY}
     ${OPENAL_LIBRARY}
     ${SOUND_INPUT_LIBRARY}
     ${BULLET_LIBRARIES}
