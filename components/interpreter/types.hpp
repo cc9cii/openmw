@@ -21,6 +21,7 @@ namespace Interpreter
     {
         Type_Integer mInteger;
         Type_Float mFloat;
+        Type_Ref mRef;
     };
     
     template<typename T>
@@ -39,7 +40,13 @@ namespace Interpreter
     inline Type_Float& getData (Data& data)
     {
         return data.mFloat;
-    }    
+    }
+
+    template<>
+    inline Type_Ref& getData(Data& data)
+    {
+        return data.mRef;
+    }
 }
 
 #endif

@@ -5242,8 +5242,8 @@ Things to fix include:
   * `OnActivateRef` function not implemented
   * `WorldImp::searchPtr()` needs to support TES4 objects
   * `OpGetStage` doesn't handle quests
-  * `OpActivateRef` has 2 optional arguments but it is based on `Opcode1` (with 1 argument)
-  * `OpActivateRef` arguments are ignored
+  * `OpActivate` has 2 optional arguments but it is based on `Opcode1` (with 1 argument)
+  * `OpActivate` arguments are ignored
   * `InterpreterContext::getActor()` and `setActor()` are clumsy
 
 ## CGDungeon01ExitDoorScript
@@ -5374,6 +5374,394 @@ Now working - things to fix include:
   * message box size (hacked a workaround for now)
   * local scripts from TES3 should be removed once in TES4
 
+# [17/12/2020] Script Compiler (cont.)
+
+## Namespace clash between TES3 and TES4
+
+The intention is for the Interpreter to support both TES3 and TES4 - how to deal with functions of the same name (but have different behaviour)?
+
+It might be ok (i.e. no clash) since the TES4 compiler will generate a different opcode to that of TES3 and the interpreter works off the opcodes?
+
+## Dark04Sewers02
+
+    scn SewerWheel01SCRIPT
+
+    ; activates parent after a 2 sec delay
+
+    short busy
+    ref mySelf
+    ref myParent
+    short open
+    short activated
+    float timer
+
+    begin onActivate
+
+        if busy == 0
+            if open == 0
+
+                playgroup forward 1
+                set open to 1
+                set activated to 1
+                set timer to 2
+                set busy to 1
+
+            else
+
+                playgroup backward 1
+                set open to 0
+                set activated to 1
+                set timer to 2
+                set busy to 1
+
+            endif
+        endif
+
+    end
+
+    begin gameMode
+
+        if activated == 1 && timer <= 0
+
+            set mySelf to getSelf
+            set myParent to getParentRef
+            myParent.activate mySelf 1
+            set activated to 0
+
+        endif
+
+        if timer > 0
+            set timer to timer - getSecondsPassed
+        endif
+
+        if isAnimPlaying == 0 && busy == 1
+            set busy to 0
+        endif
+
+    end
+
+    decl: s busy
+    decl: r myself
+    decl: r myparent
+    decl: s open
+    decl: s activated
+    decl: f timer
+    script name: SewerWheel01SCRIPT
+    decl: s busy
+    decl: r myself
+    decl: r myparent
+    decl: s open
+    decl: s activated
+    decl: f timer
+    file parser keyword: begin
+    file parser: event onActivate
+    control parser keyword: if
+    scan special: cmpEQ
+    generate push int 0 index 0
+    control parser keyword: if end
+    control parser keyword: if
+    scan special: cmpEQ
+    generate push int 0 index 1
+    control parser keyword: if end
+    generate push string forward index 0
+    generate push int 1 index 2 <---- argument for playgroup
+    generate push int 1 index 3 <---- open
+    generate push int 1 index 4 <---- activated
+    generate push int 2 index 5 <---- timer
+    generate push int 1 index 6 <---- busy
+    generate compare e
+    generate push string backward index 1
+    generate push int 1 index 7
+    generate push int 0 index 8
+    generate push int 1 index 9
+    generate push int 2 index 10
+    generate push int 1 index 11
+    generate compare e
+    run foreign script: 00083192
+
+    0x00000039
+    0x0000000c
+    0x00000000
+    0x00000005
+    0x00000000 <- start
+    0xc8000015 fetch local short (busy)
+    0x00000000 index for fetch int literal
+    0xc8000004 fetch int literal (i.e. 0)
+    0xc800001a eq
+    0xc8000019 skip non zero
+    0x01000033 move PC ahead by 0x33 (i.e. the end)
+    0x00000001
+    0xc8000015 fetch local short (open)
+    0x00000001
+    0xc8000004 fetch int literal (i.e. 0)
+    0xc800001a eq
+    0xc8000019 skip non zero
+    0x01000017 move PC ahead by 0x17
+    0x00000002
+    0xc8000004 fetch int literal <-- why?
+    0x00000000
+    0xca000307 playgroup
+    0x00000001 push int arg0: Runtime::mStack[0] has "1" <- index for store local short (i.e. "open")
+    0x00000003 push int arg0: Runtime::mStack[1] has "3" (3 must be index for fetch int literal?)
+    0xc8000004 fetch int literal: Runtime::mStack[1] has "1" <- data for store local short
+    0xc8000000 store local short: "open" is now "1"
+    0x00000002 index for store local short (i.e. "activated")
+    0x00000004 index for the data for fetch int literal?
+    0xc8000004 fetch int literal
+    0xc8000000 store local short: "activated" is now "1"
+    0x00000000
+    0x00000005
+    0xc8000004 fetch int to literal
+    0xc8000003 int to float
+    0xc8000002 store local float: probably setting "timer" to "2"
+    0x00000000
+    0x00000006
+    0xc8000004
+    0xc8000000 store local short: probably setting "busy" to "1"
+    0x01000016 move PC ahead by 0x16
+    0x00000007
+    0xc8000004
+    0x00000001
+    0xca000307 playgroup
+    0x00000001
+    0x00000008
+    0xc8000004
+    0xc8000000 store local short
+    0x00000002
+    0x00000009
+    0xc8000004
+    0xc8000000 store local short
+    0x00000000
+    0x0000000a
+    0xc8000004
+    0xc8000003 int to float
+    0xc8000002 store local float
+    0x00000000
+    0x0000000b
+    0xc8000004
+    0xc8000000 store local short
+    0x00000000 <- start of integer literal block
+    0x00000000
+    0x00000001
+    0x00000001
+    0x00000001
+    0x00000002
+    0x00000001
+    0x00000001
+    0x00000000
+    0x00000001
+    0x00000002
+    0x00000001
+    0x77726f66 <- start of string literal block
+    0x00647261
+    0x6b636162
+    0x64726177
+    0x00000000
+
+The second block of code starting with `begin gameMode` is not present.  Need to figure out how to jump to the correct code block based on the event.
+
+## Events
+
+Maybe keep a map in interpreter context with the events for the script with the corresponding PC?
+
+We may also need to add a new instruction at the "end" keyword so that PC becomes "-1" and doesn't keep going.
+
+# [18/12/2020] Script Compiler (cont.)
+
+## LineParser new syntax
+
+The new syntax, i.e.
+
+    myParent.activate mySelf 1
+
+seems to be basically the old one:
+
+    "object_id"->function
+
+except that a reference is used.
+
+The tricky part is to distinguish it from the syntax, i.e.
+
+    "object_id".variable
+
+It may be that with the TES4 scripts the "fix", i.e. "->", has been replaced with ".".
+
+It may not be necessary to distinguish the syntax because in TES4 the old syntax doesn't seem to be used.  Note that
+
+    object_ref.variable
+
+is still valid.  So the parser needs to be able to distinguish between a function and a variable.
+
+## LineParser states
+
+For our scenario LineParser would have been called from the `ScriptParser::parseName` or `ControlParser::parseName` if called from inside an `if` block.
+
+    "BeginState"
+    Scanner::scanToken --> scanName --> parseKeyword (e.g. "set", "short")
+                                    --> extension parseKeyword (e.g. "activate")
+                                    --> parseName
+
+    Scanner::parseName --> "PotentialExplicitState" (if name is ref local variable)
+                       --> parseExpression (if mAllowExpression - TODO: when is it used?)
+
+    "PotentialExplicitState"
+    Scanner::scanToken --> scanSpecial --> parseSpecial (if "." then -> "ExplicitState")
+
+    "ExplicitState"
+    Scanner::scanToken --> scanName -> LineParser::parseKeyword (extensions, i.e. "activate")
+
+    LineParser::parseKeyword -> ExprParser::parseArguments -> StringParser::scanName (i.e. "mySelf") -->
+                             --> StringParser::parseName
+
+    decl: s busy
+    decl: r myself
+    decl: r myparent
+    decl: s open
+    decl: s activated
+    decl: f timer
+    decl: s busy
+    decl: r myself
+    decl: r myparent
+    decl: s open
+    decl: s activated
+    decl: f timer
+
+    file parser: event onActivate
+    control parser keyword: if
+    scan special: cmpEQ
+    generate push int 0 index 0
+    control parser keyword: if end
+    control parser keyword: if
+    scan special: cmpEQ
+    generate push int 0 index 1
+    control parser keyword: if end
+    generate push string forward index 0
+    generate push int 1 index 2
+    generate push int 1 index 3
+    generate push int 1 index 4
+    generate push int 2 index 5
+    generate push int 1 index 6
+    generate compare e
+    generate push string backward index 1
+    generate push int 1 index 7
+    generate push int 0 index 8
+    generate push int 1 index 9
+    generate push int 2 index 10
+    generate push int 1 index 11
+    generate compare e
+
+    file parser: event gameMode
+    control parser keyword: if
+    scan special: cmpEQ
+    generate push int 1 index 0
+    generate compare e
+    generate push int 0 index 1
+    control parser keyword: if end
+    function getSelf
+    function getParentRef
+    generate push string myself index 0
+    generate push int 1 index 2
+    generate push int 0 index 4
+    generate compare L
+    generate boolean and
+    control parser keyword: if
+    generate push int 0 index 5
+    control parser keyword: if end
+    generate compare g
+    control parser keyword: if
+    function isAnimPlaying
+    scan special: cmpEQ
+    generate push int 0 index 6
+    generate compare e
+    scan special: cmpEQ
+    generate push int 1 index 7
+    control parser keyword: if end
+    generate push int 0 index 8
+    generate compare e
+    generate boolean and
+    run foreign script: 00083192
+
+    0x0000003a
+    0x00000009
+    0x00000000
+    0x00000004
+    0x00000002 <- start
+    0xc8000015 fetch local short
+    0x00000000
+    0xc8000004 fetch int literal
+    0xc800001a cmp eq (i.e. activated == 1)
+    0x00000000
+    0xc8000017 fetch local float
+    0x00000001
+    0xc8000004 fetch int literal
+    0xc8000003 int to float
+    0xc8000023 cmp le float (i.e. timer <= 0)
+    0xc8000048 logical and
+    0xc8000019 skip non zero
+    0x0100000f ------------------------+
+    0x00000000                         |
+    0xca000308 getmyself               |
+    0x00000001                         |
+    0xca00030a getparentref            |
+    0x00000002                         |
+    0xc8000004 fetch int literal       |
+    0x00000000                         |
+    0x00000003                         |
+    0xc8000004 fetch int literal       |
+    0xc2003002 activate                |
+    0x00000002                         |
+    0x00000004                         |
+    0xc8000004 fetch int literal       |
+    0xc8000000 store local short (i.e. set activated to 0)
+    0x00000000 <-----------------------+
+    0xc8000017 fetch local float
+    0x00000005
+    0xc8000004 fetch int literal
+    0xc8000003 int to float
+    0xc8000024 cmp greater float
+    0xc8000019 skip non zero
+    0x01000007 ------------------------+
+    0x00000000                         |
+    0x00000000                         |
+    0xc8000017 fetch local float       |
+    0xc8000032 getsecondspassed        |
+    0xc800000c subtract                |
+    0xc8000002 store local float       |
+    0xca00030b isanimplaying <---------+
+    0x00000006
+    0xc8000004 fetch int literal
+    0xc800001a cmp eq
+    0x00000000
+    0xc8000015 fetch local short
+    0x00000007
+    0xc8000004 fetch int literal
+    0xc800001a cmp eq
+    0xc8000048 logical and
+    0xc8000019 skip non zero
+    0x01000005 ---> jump to end
+    0x00000000
+    0x00000008
+    0xc8000004 fetch int literal
+    0xc8000000 store local short
+    0x00000001 <-
+    0x00000000
+    0x00000001
+    0x00000001
+    0x00000000
+    0x00000000
+    0x00000000
+    0x00000001
+    0x00000000
+    0x6573796d <-
+    0x6d00666c
+    0x72617079
+    0x00746e65
+
+## ToDo
+
+In `Scanner::scanName` maybe use a map to search the keywords?  But then foor such a small number of keywords it may not be beneficial.
+
+In `ExprParser`, `CompilerContext::isId()` not used in TES4.
 
 
 

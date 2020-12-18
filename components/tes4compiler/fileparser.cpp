@@ -1,8 +1,9 @@
 #include "fileparser.hpp"
 
-#include <iostream>
+#include <iostream> // FIXME
 
 #include "../compiler/tokenloc.hpp"
+#include "../compiler/errorhandler.hpp"
 #include "scanner.hpp"
 #include "output.hpp"
 
@@ -10,21 +11,25 @@ namespace Tes4Compiler
 {
     FileParser::FileParser (Compiler::ErrorHandler& errorHandler, Compiler::Context& context)
     : Parser (errorHandler, context),
-      mScriptParser (errorHandler, context, mLocals, true),
-      //mDeclarationParser (errorHandler, context, mLocals),
-      // FIXME: ugly hack to supply dummy literals and code to the LineParser
-      mLineParser (errorHandler, context, mLocals, Output(mLocals).getLiterals(), Output(mLocals).getCode()),
-      mState (StartState)
+      mScriptParser (errorHandler, context, mLocals, true/*end keyword marks end of script*/),
+      mState (StartState), mName(""), mBlockType("")
     {}
 
-    std::string FileParser::getName() const
+    const std::string& FileParser::getName() const
     {
         return mName;
     }
 
+    const std::string& FileParser::getBlockType() const
+    {
+        // FIXME: for testing use the last one
+        return mCodeBlocks.rbegin()->first;
+    }
+
     void FileParser::getCode (std::vector<Interpreter::Type_Code>& code) const
     {
-        mScriptParser.getCode (code);
+        // FIXME: for testing use the last one
+        std::copy(mCodeBlocks.rbegin()->second.begin(), mCodeBlocks.rbegin()->second.end(), std::back_inserter(code));
     }
 
     const Compiler::Locals& FileParser::getLocals() const
@@ -38,30 +43,16 @@ namespace Tes4Compiler
         if (mState == NameState)
         {
             mName = name;
-            std::cout << "script name: " << mName << std::endl; // FIXME: temp testing
-            mState = BeginState;
+            mState = BeginState; // followed by either variable declarations or "begin" keyword
 
             return true;
         }
 
-        if (mState == EndNameState) // TODO: does this occur for TES4 as well?
+        // FIXME: untested
+        if (mState == BlockTypeState)
         {
-            // optional repeated name after end statement
-            if (mName!=name)
-                reportWarning ("Names for script " + mName + " do not match", loc);
-
-            mState = EndCompleteState;
-
-            return false; // we are stopping here, because there might be more garbage on the end line,
-                          // that we must ignore.
-                          //
-                          /// \todo allow this workaround to be disabled for newer scripts
-        }
-
-        if (mState == BeginCompleteState)
-        {
-            reportWarning ("Stray string (" + name + ") after begin statement", loc);
-            return true;
+            std::cout << "file parser: event param " << loc.mLiteral << std::endl; // FIXME: temp testing
+            // continue to Parser::parseName() below
         }
 
         return Parser::parseName (name, loc, scanner);
@@ -72,63 +63,37 @@ namespace Tes4Compiler
         // in TES4 script name comes after the keyword 'scn' or 'scriptname'
         if (mState == StartState && (keyword == Scanner::K_scn || keyword == Scanner::K_scriptname))
         {
-            mState = NameState; // FIXME: do we need really a new state here?
+            mState = NameState; // TODO: see if possible to eliminate NameState
+
             return true;
         }
 
+        // local variable declaration
         if (mState == BeginState && (keyword == Scanner::K_short || keyword == Scanner::K_long
                 || keyword == Scanner::K_float || keyword == Scanner::K_ref))
         {
-            //mDeclarationParser.reset();
-            mLineParser.reset();
+            LineParser& lineParser = mScriptParser.getLineParser();
+            lineParser.reset();
             scanner.putbackKeyword (keyword, loc);
-            //scanner.scan (mDeclarationParser);
-            scanner.scan (mLineParser);
+            scanner.scan (lineParser);
 
             return true;
         }
 
+        // begin blocktype
         if (mState == BeginState && keyword == Scanner::K_begin)
         {
-            // FIXME: how to deal with different block types?
-
-            std::cout << "file parser keyword: begin " << std::endl; // FIXME: temp testing
-            mState = BlockTypeState;
+            mState = BlockTypeState; // TODO: see if possible to eliminate BlockTypeState
 
             return true;
         }
 
         if (mState == BlockTypeState)
         {
-            // FIXME: these functions/instructions can have arguments
-            std::cout << "file parser: event " << loc.mLiteral << std::endl; // FIXME: temp testing
+            mBlockType = loc.mLiteral;
 
-            mState = BeginCompleteState;
+            // these functions/instructions can have arguments (hence no state change)
             return true;
-        }
-
-// TODO: check if Oblivion also allows keywords to be used as script names
-#if 0
-        if (mState == NameState)
-        {
-            // keywords can be used as script names too. Thank you Morrowind for another
-            // syntactic perversity :(
-            mName = loc.mLiteral;
-            mState = BeginCompleteState;
-            return true;
-        }
-#endif
-        if (mState == EndNameState)
-        {
-            // optional repeated name after end statement
-            if (mName != loc.mLiteral)
-                reportWarning ("Names for script " + mName + " do not match", loc);
-
-            mState = EndCompleteState;
-            return false; // we are stopping here, because there might be more garbage on the end line,
-                          // that we must ignore.
-                          //
-                          /// \todo allow this workaround to be disabled for newer scripts
         }
 
         return Parser::parseKeyword (keyword, loc, scanner);
@@ -136,29 +101,33 @@ namespace Tes4Compiler
 
     bool FileParser::parseSpecial (int code, const Compiler::TokenLoc& loc, Scanner& scanner)
     {
-        if (code==Scanner::S_newline)
+        if (code == Scanner::S_newline)
         {
-            if (mState==BeginState)
+            if (mState == BeginState)
             {
                 // ignore empty lines
                 return true;
             }
 
-            if (mState == BeginCompleteState)
+            if (mState == BlockTypeState || mState == BeginCompleteState)
             {
                 // parse the script body
-                mScriptParser.reset();
+                mScriptParser.reset(); // NOTE: this clears previous code block!
 
                 scanner.scan (mScriptParser);
 
-                mState = EndNameState;
-                return true;
-            }
+                // since ScriptParser::mEnd is true the code scanning should be completed
+                if (getErrorHandler().isGood())
+                {
+                    std::vector<Interpreter::Type_Code> code;
+                    std::pair<std::map<std::string, std::vector<Interpreter::Type_Code> >::iterator, bool> res
+                        = mCodeBlocks.insert(std::make_pair(mBlockType, code));
+                    mScriptParser.getCode(res.first->second);
+                }
 
-            if (mState==EndCompleteState || mState==EndNameState)
-            {
-                // we are done here -> ignore the rest of the script
-                return false;
+                mState = BeginState; // continue in case there are other blocks
+
+                return true;
             }
         }
 
@@ -167,13 +136,16 @@ namespace Tes4Compiler
 
     void FileParser::parseEOF (Scanner& scanner)
     {
-        if (mState!=EndNameState && mState!=EndCompleteState)
+        if (mState != BeginState)
             Parser::parseEOF (scanner);
     }
 
     void FileParser::reset()
     {
+        mCodeBlocks.clear();
+        mLocals.clear();
         mState = StartState;
+        mBlockType.clear();
         mName.clear();
         mScriptParser.reset();
         Parser::reset();

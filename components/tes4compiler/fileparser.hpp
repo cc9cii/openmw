@@ -1,12 +1,16 @@
 #ifndef TES4COMPILER_FILEPARSER_H_INCLUDED
 #define TES4COMPILER_FILEPARSER_H_INCLUDED
 
-#include "parser.hpp"
-#include "scriptparser.hpp"
-//#include "declarationparser.hpp"
-#include "lineparser.hpp"
+#include <string>
+#include <vector>
+#include <map>
+
 #include "../compiler/locals.hpp"
 #include "../compiler/literals.hpp"
+#include "../interpreter/types.hpp"
+#include "parser.hpp"
+#include "lineparser.hpp"
+#include "scriptparser.hpp"
 
 namespace Tes4Compiler
 {
@@ -16,23 +20,24 @@ namespace Tes4Compiler
     {
             enum State
             {
-                StartState, NameState, BeginState, BlockTypeState, BeginCompleteState, EndNameState,
-                EndCompleteState
+                StartState, NameState, BeginState, BlockTypeState, BeginCompleteState
             };
 
             ScriptParser mScriptParser;
-            //DeclarationParser mDeclarationParser;
-            LineParser mLineParser;
             State mState;
             std::string mName;
+            std::string mBlockType; // temporarily used during the script scanning
             Compiler::Locals mLocals;
+            std::map <std::string, std::vector<Interpreter::Type_Code> > mCodeBlocks;
 
         public:
 
             FileParser (Compiler::ErrorHandler& errorHandler, Compiler::Context& context);
 
-            std::string getName() const;
+            const std::string& getName() const;
             ///< Return script name.
+
+            const std::string& getBlockType() const;
 
             void getCode (std::vector<Interpreter::Type_Code>& code) const;
             ///< store generated code in \a code.

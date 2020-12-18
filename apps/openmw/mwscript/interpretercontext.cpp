@@ -139,7 +139,7 @@ namespace MWScript
 
     InterpreterContext::InterpreterContext (
         MWScript::Locals *locals, MWWorld::Ptr reference, const std::string& targetId)
-    : mLocals (locals), mReference (reference), mActor(MWWorld::Ptr()),
+    : mLocals (locals), mReference (reference), mActivated(MWWorld::Ptr()), mActor(MWWorld::Ptr()),
       mActivationHandled (false), mTargetId (targetId)
     {
         // If we run on a reference (local script, dialogue script or console with object
@@ -494,9 +494,10 @@ namespace MWScript
         return mActivationHandled;
     }
 
-    void InterpreterContext::activate (const MWWorld::Ptr& ptr)
+    void InterpreterContext::activate (const MWWorld::Ptr& ptr, const MWWorld::Ptr& actor)
     {
         mActivated = ptr;
+        mActor = actor;
         mActivationHandled = false;
     }
 
@@ -508,6 +509,7 @@ namespace MWScript
         {
             mActivationHandled = true;
             mActivated = MWWorld::Ptr();
+            mActor = MWWorld::Ptr();
         }
     }
 
@@ -611,10 +613,5 @@ namespace MWScript
     MWWorld::Ptr InterpreterContext::getActor()
     {
         return mActor;
-    }
-
-    void InterpreterContext::setActor(const MWWorld::Ptr& actor)
-    {
-        mActor = actor;
     }
 }

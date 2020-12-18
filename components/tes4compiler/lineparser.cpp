@@ -186,12 +186,29 @@ namespace Tes4Compiler
             return true;
         }
 
+#if 0
         if (mState==BeginState && getContext().isId (name))
         {
             mState = PotentialExplicitState;
             mExplicit = Misc::StringUtils::lowerCase (name);
             return true;
         }
+#else
+        if (mState == BeginState)
+        {
+            std::string name2 = Misc::StringUtils::lowerCase (name);
+
+            char type = mLocals.getType (name2);
+
+            if (type == 'r')
+            {
+                mState = PotentialExplicitState;
+                mExplicit = name2;
+
+                return true;
+            }
+        }
+#endif
 
         if (mState==BeginState && mAllowExpression)
         {
@@ -282,6 +299,8 @@ namespace Tes4Compiler
                     mState = PotentialEndState;
                     return true;
 
+// FIXME: not used in TES4
+#if 0
                 case Scanner::K_startscript:
 
                     mExprParser.parseArguments ("c", scanner, mCode);
@@ -295,6 +314,7 @@ namespace Tes4Compiler
                     Generator::stopScript (mCode);
                     mState = EndState;
                     return true;
+#endif
             }
 
             // check for custom extensions
@@ -311,6 +331,8 @@ namespace Tes4Compiler
                         mExplicit.clear();
                     }
 
+// FIXME: does this occur in TES4?
+#if 1
                     try
                     {
                         // workaround for broken positioncell instructions.
@@ -318,12 +340,14 @@ namespace Tes4Compiler
                         std::auto_ptr<Compiler::ErrorDowngrade> errorDowngrade (0);
                         if (Misc::StringUtils::lowerCase (loc.mLiteral)=="positioncell")
                             errorDowngrade.reset (new Compiler::ErrorDowngrade (getErrorHandler()));
+#endif
 
                         std::vector<Interpreter::Type_Code> code;
                         int optionals = mExprParser.parseArguments (argumentType, scanner, code, keyword);
                         mCode.insert (mCode.end(), code.begin(), code.end());
                         extensions->generateInstructionCode (keyword, mCode, mLiterals,
                             mExplicit, optionals);
+#if 1
                     }
                     catch (const Compiler::SourceException&)
                     {
@@ -338,6 +362,7 @@ namespace Tes4Compiler
 
                         throw;
                     }
+#endif
 
                     mState = EndState;
                     return true;
@@ -393,6 +418,7 @@ namespace Tes4Compiler
                 case Scanner::K_short:
                 case Scanner::K_long:
                 case Scanner::K_float:
+                case Scanner::K_ref:
                 {
                     if (!getContext().canDeclareLocals())
                     {
@@ -411,7 +437,12 @@ namespace Tes4Compiler
                 }
 
                 case Scanner::K_set: mState = SetState; return true;
-                case Scanner::K_messagebox: mState = MessageState; return true;
+
+                case Scanner::K_messagebox:
+                case Scanner::K_message:
+                {
+                    mState = MessageState; return true;
+                }
 
                 case Scanner::K_return:
 

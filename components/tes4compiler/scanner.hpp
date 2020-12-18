@@ -52,7 +52,7 @@ namespace Tes4Compiler
                 K_if, K_endif, K_else, K_elseif,
                 K_while, K_endwhile,
                 K_return,
-                K_messagebox,
+                K_messagebox, K_message,
                 K_set, K_to,
                 K_getsquareroot,
                 K_menumode,
@@ -73,7 +73,7 @@ namespace Tes4Compiler
                 S_and, S_or,
                 S_comma,
                 S_ref,
-                S_member
+                S_member // FIXME: not present in TES4 scripts?
             };
 
         private:

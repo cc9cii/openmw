@@ -51,6 +51,8 @@ namespace Interpreter
             void push (Type_Float value);
             ///< push float data on stack.
 
+            void push (Type_Ref value);
+
             void pop();
             ///< pop stack
 

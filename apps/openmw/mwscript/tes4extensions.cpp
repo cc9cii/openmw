@@ -126,7 +126,7 @@ namespace MWScript
         };
 
         template<class R>
-        class OpActivateRef : public Interpreter::Opcode1
+        class OpActivate : public Interpreter::Opcode1
         {
             public:
 
@@ -155,6 +155,85 @@ namespace MWScript
                 }
         };
 
+        template<class R>
+        class OpPlayGroup : public Interpreter::Opcode0
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime)
+                {
+
+                    MWWorld::Ptr ptr = R()(runtime);
+
+                    // FIXME: how to get the 2 arguments?
+                    std::string playgroupId = runtime.getStringLiteral(runtime[0].mInteger);
+                    runtime.pop();
+
+                    Interpreter::Type_Integer count = runtime[0].mInteger;
+                    runtime.pop();
+
+                    // FIXME: need a new method with MWClass
+
+                    std::cout << "PlayGroup: " << playgroupId << " " << count << std::endl; // FIXME: temp testing
+
+
+                }
+        };
+
+        template<class R>
+        class OpGetSelf : public Interpreter::Opcode0
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime)
+                {
+
+                    MWWorld::Ptr ptr = R()(runtime);
+
+                    ESM4::FormId formId = ptr.getCellRef().getFormId();
+
+                    std::cout << "GetSelf: " << ESM4::formIdToString(formId) << std::endl; // FIXME: temp testing
+
+                    runtime.push (formId);
+                }
+        };
+
+        template<class R>
+        class OpGetParentRef : public Interpreter::Opcode0
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime)
+                {
+
+                    MWWorld::Ptr ptr = R()(runtime);
+
+
+                    std::cout << "GetParerentRef: " << std::endl; // FIXME: temp testing
+
+
+                    runtime.push (6); // FIXME: just a dummy for testing
+                }
+        };
+
+        template<class R>
+        class OpIsAnimPlaying : public Interpreter::Opcode0
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime)
+                {
+
+                    MWWorld::Ptr ptr = R()(runtime);
+
+
+                    std::cout << "IsAnimPlaying: " << std::endl; // FIXME: temp testing
+
+
+                    runtime.push (0); // FIXME: just a dummy for testing
+                }
+        };
+
         void installOpcodes (Interpreter::Interpreter& interpreter)
         {
             // IsActionRef has 1 non-optional parameter so the opcode can be segment 5
@@ -170,7 +249,16 @@ namespace MWScript
 
             // See Extensions::registerInstruction()
             // optional arguments imply segment 3 or segment 4
-            interpreter.installSegment3 (Tes4Compiler::Tes4::opcodeActivateRef, new OpActivateRef<ImplicitRef>);
+            interpreter.installSegment3 (Tes4Compiler::Tes4::opcodeActivate, new OpActivate<ImplicitRef>);
+            interpreter.installSegment3 (Tes4Compiler::Tes4::opcodeActivateExplicit, new OpActivate<ExplicitRef>);
+
+            interpreter.installSegment5 (Tes4Compiler::Tes4::opcodePlayGroup, new OpPlayGroup<ImplicitRef>);
+
+            interpreter.installSegment5 (Tes4Compiler::Tes4::opcodeGetSelf, new OpGetSelf<ImplicitRef>);
+
+            interpreter.installSegment5 (Tes4Compiler::Tes4::opcodeGetParentRef, new OpGetParentRef<ImplicitRef>);
+
+            interpreter.installSegment5 (Tes4Compiler::Tes4::opcodeIsAnimPlaying, new OpIsAnimPlaying<ImplicitRef>);
         }
     }
 }

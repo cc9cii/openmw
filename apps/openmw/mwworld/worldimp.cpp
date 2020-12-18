@@ -3789,7 +3789,7 @@ namespace MWWorld
     void World::activate(const Ptr &object, const Ptr &actor)
     {
         MWScript::InterpreterContext interpreterContext (&object.getRefData().getLocals(), object);
-        interpreterContext.activate (object);
+        interpreterContext.activate (object, actor);
 
         std::string script = object.getClass().getScript (object);
 
@@ -3802,13 +3802,15 @@ namespace MWWorld
             {
                 getLocalScripts().setIgnore (object);
 
-                // FIXME: workaround, needs a better fix
-                interpreterContext.setActor(actor);
-
-                 // FIXME: horrible temporary hack - just for a demo
-                const ESM4::Script *scriptObj = mStore.getForeign<ESM4::Script>().search(ESM4::stringToFormId(script));
+                // FIXME: horrible temporary hack - just for a demo
                 if (object.getRefData().getLocals().isEmpty())
+                {
+                    const ESM4::Script *scriptObj
+                        = mStore.getForeign<ESM4::Script>().search(ESM4::stringToFormId(script));
+
+                    // add the script local variables to the object's ref data
                     object.getRefData().getLocals().configure(*scriptObj);
+                }
 
                 MWBase::Environment::get().getScriptManager()->run (script, interpreterContext);
             }

@@ -26,9 +26,9 @@ namespace MWScript
     {
             Locals *mLocals;
             mutable MWWorld::Ptr mReference;
-            MWWorld::Ptr mActor;
 
             MWWorld::Ptr mActivated;
+            MWWorld::Ptr mActor;
             bool mActivationHandled;
 
             std::string mTargetId;
@@ -138,9 +138,9 @@ namespace MWScript
 
             bool hasActivationBeenHandled() const;
 
-            void activate (const MWWorld::Ptr& ptr);
-            ///< Store reference acted upon. The actual execution of the action does not
-            /// take place here.
+            void activate (const MWWorld::Ptr& ptr, const MWWorld::Ptr& actor);
+            ///< Store reference acted upon and the reference of the actor. The actual execution
+            /// of the action does not take place here.
 
             void executeActivation(MWWorld::Ptr ptr, MWWorld::Ptr actor);
             ///< Execute the activation action for this ptr. If ptr is mActivated, mark activation as handled.
@@ -169,7 +169,6 @@ namespace MWScript
             ///< Reference, that the script is running from (can be empty)
 
             MWWorld::Ptr getActor();
-            void setActor(const MWWorld::Ptr& ptr);
 
             void updatePtr(const MWWorld::Ptr& updated);
             ///< Update the Ptr stored in mReference, if there is one stored there. Should be called after the reference has been moved to a new cell.

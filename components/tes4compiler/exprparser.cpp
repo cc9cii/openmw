@@ -240,7 +240,7 @@ namespace Tes4Compiler
     ExprParser::ExprParser (Compiler::ErrorHandler& errorHandler, const Compiler::Context& context, Compiler::Locals& locals,
         Compiler::Literals& literals, bool argument)
     : Parser (errorHandler, context), mLocals (locals), mLiterals (literals),
-      mNextOperand (true), mFirst (true), mArgument (argument), mRefOp (false), mMemberOp (false)
+      mNextOperand (true), mFirst (true), mArgument (argument), mExplicit(""), mRefOp (false), mMemberOp (false)
     {}
 
     bool ExprParser::parseInt (int value, const Compiler::TokenLoc& loc, Scanner& scanner)
@@ -344,6 +344,7 @@ namespace Tes4Compiler
                 }
             }
 
+            // FIXME: isId() doesn't make sense for TES4
             if (mExplicit.empty() && getContext().isId (name2))
             {
                 mExplicit = name2;
@@ -383,6 +384,7 @@ namespace Tes4Compiler
             keyword==Scanner::K_elseif || keyword==Scanner::K_while ||
             keyword==Scanner::K_endwhile || keyword==Scanner::K_return ||
             keyword==Scanner::K_messagebox || keyword==Scanner::K_set ||
+            keyword==Scanner::K_message || keyword==Scanner::K_ref ||
             keyword==Scanner::K_to || keyword==Scanner::K_startscript ||
             keyword==Scanner::K_stopscript || keyword==Scanner::K_enable ||
             keyword==Scanner::K_disable)

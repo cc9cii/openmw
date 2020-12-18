@@ -140,7 +140,7 @@ namespace Tes4Compiler
                 return cont;
             }
         }
-        else if (c==13) // linux compatibility hack
+        else if (c==13) // linux compatibility hack (i.e. ignore Carriage Return)
         {
             return true;
         }
@@ -267,7 +267,7 @@ namespace Tes4Compiler
         "if", "endif", "else", "elseif",
         "while", "endwhile",
         "return",
-        "messagebox",
+        "messagebox", "message",
         "set", "to",
         "getsquareroot",
         "menumode",
@@ -395,7 +395,8 @@ namespace Tes4Compiler
                     return scanFloat ("", parser, cont);
             }
 
-            special = S_member;
+            //special = S_member;
+            special = S_ref; // FIXME: temp testing
         }
         else if (c=='=')
         {

@@ -50,6 +50,8 @@ namespace Tes4Compiler
 
             void reset();
             ///< Reset parser to clean state.
+
+            LineParser& getLineParser();
     };
 }
 

@@ -507,8 +507,8 @@ namespace Tes4Compiler
     {
         // functions with optional arguments need to have opcode range for segment 3
         // But what exactly is an "argument"?
-        const int opcodeOnActivateRef = 0x002002d;
-        const int opcodeOnActivateRefExplicit = 0x002002e;
+        const int opcodeOnActivate = 0x002002d;
+        const int opcodeGameMode = 0x002002e;
     }
 
     namespace Tes4
@@ -519,9 +519,19 @@ namespace Tes4Compiler
         const int opcodeGetStage = 0x2000304;
         const int opcodeGetStageExplicit = 0x2000305;
 
-        const int opcodeActivateRef = 0x002002f; // segment 3
+        const int opcodeActivate = 0x002002f;         // segment 3 (can be segment 5 without optional parm?)
+        const int opcodeActivateExplicit = 0x0020030; // segment 3
 
-        const int opcodeGetLocked = 0x2000306;
+        const int opcodeGetLocked = 0x2000306; // NOTE: same name but different namespace
+
+        const int opcodePlayGroup = 0x2000307;
+
+        const int opcodeGetSelf = 0x2000308;
+        const int opcodeThis = 0x2000309;
+
+        const int opcodeGetParentRef = 0x200030a;
+
+        const int opcodeIsAnimPlaying = 0x200030b;
     }
 #if 0
     namespace User

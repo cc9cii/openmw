@@ -143,6 +143,8 @@ namespace MWScript
             {
                 std::vector<Interpreter::Type_Code> code;
                 mTes4Parser.getCode (code);
+                // FIXME: how to deal with different code blocks?
+                std::cout << "FileParser: getCode() " << name << ", " << mTes4Parser.getBlockType() << std::endl; // FIXME: temp testing
                 mScripts.insert (std::make_pair (name, std::make_pair (code, mTes4Parser.getLocals())));
 
                 return true;

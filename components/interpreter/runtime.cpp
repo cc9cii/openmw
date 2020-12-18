@@ -91,6 +91,12 @@ namespace Interpreter
         push (data);
     }
 
+    void Runtime::push(Type_Ref value)
+    {
+        Data data;
+        data.mRef = value;
+        push(data);
+    }
     void Runtime::pop()
     {
         if (mStack.empty())

@@ -96,4 +96,9 @@ namespace Tes4Compiler
         mLineParser.reset();
         mOutput.clear();
     }
+
+    LineParser& ScriptParser::getLineParser()
+    {
+        return mLineParser;
+    }
 }
