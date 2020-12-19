@@ -63,11 +63,14 @@ namespace Tes4Compiler
         return mLocals;
     }
 
-    void Output::clear()
+    void Output::clear(bool keepLocals)
     {
         mLiterals.clear();
         mCode.clear();
-        //mLocals.clear(); // FIXME: not sure if this will result is some subtle bug
+        if (!keepLocals)
+        {
+            mLocals.clear();
+        }
     }
 }
 

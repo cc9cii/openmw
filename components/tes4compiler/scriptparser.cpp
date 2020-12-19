@@ -91,10 +91,10 @@ namespace Tes4Compiler
             Parser::parseEOF (scanner);
     }
 
-    void ScriptParser::reset()
+    void ScriptParser::reset(bool keepLocals)
     {
         mLineParser.reset();
-        mOutput.clear();
+        mOutput.clear(keepLocals);
     }
 
     LineParser& ScriptParser::getLineParser()

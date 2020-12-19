@@ -35,7 +35,8 @@ namespace MWBase
 
             virtual ~ScriptManager() {}
 
-            virtual void run (const std::string& name, Interpreter::Context& interpreterContext) = 0;
+            virtual void run (const std::string& name, Interpreter::Context& interpreterContext,
+                              const std::string& blockType = std::string()) = 0;
             ///< Run the script with the given name (compile first, if not compiled yet)
 
             virtual bool compile (const std::string& name) = 0;

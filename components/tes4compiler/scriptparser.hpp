@@ -48,7 +48,7 @@ namespace Tes4Compiler
             virtual void parseEOF (Scanner& scanner);
             ///< Handle EOF token.
 
-            void reset();
+            void reset(bool keepLocals = false);
             ///< Reset parser to clean state.
 
             LineParser& getLineParser();

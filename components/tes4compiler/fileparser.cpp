@@ -23,16 +23,21 @@ namespace Tes4Compiler
         return mName;
     }
 
-    const std::string& FileParser::getBlockType() const
+    void FileParser::getCode (std::map<std::string,
+                                       std::pair<std::vector<Interpreter::Type_Code>,
+                                                 Compiler::Locals> >& codes) const
     {
-        // FIXME: for testing use the last one
-        return mCodeBlocks.rbegin()->first;
-    }
+        std::map <std::string, std::vector<Interpreter::Type_Code> >::const_iterator cit = mCodeBlocks.begin();
+        for (; cit != mCodeBlocks.end(); ++cit)
+        {
+            std::vector<Interpreter::Type_Code> empty;
+            std::pair<std::map<std::string,
+                               std::pair<std::vector<Interpreter::Type_Code>,
+                                         Compiler::Locals> >::iterator, bool> res
+                = codes.insert(std::make_pair(cit->first, std::make_pair (empty, Compiler::Locals())));
 
-    void FileParser::getCode (std::vector<Interpreter::Type_Code>& code) const
-    {
-        // FIXME: for testing use the last one
-        std::copy(mCodeBlocks.rbegin()->second.begin(), mCodeBlocks.rbegin()->second.end(), std::back_inserter(code));
+            std::copy(cit->second.begin(), cit->second.end(), std::back_inserter(res.first->second.first));
+        }
     }
 
     const Compiler::Locals& FileParser::getLocals() const
@@ -47,6 +52,7 @@ namespace Tes4Compiler
         {
             mName = name;
             mState = BeginState; // followed by either variable declarations or "begin" keyword
+            mScriptParser.reset(); // FIXME: not the most obvious place to clear locals
 
             return true;
         }
@@ -93,7 +99,7 @@ namespace Tes4Compiler
 
         if (mState == BlockTypeState)
         {
-            // NOTE: must be lower case because the caller will expect lower case
+            // NOTE: must be set to lower case because the caller will expect lower case
             mBlockType = Misc::StringUtils::lowerCase (loc.mLiteral);
 
             // these functions/instructions can have arguments (hence no state change)
@@ -116,7 +122,7 @@ namespace Tes4Compiler
             if (mState == BlockTypeState || mState == BeginCompleteState)
             {
                 // parse the script body
-                mScriptParser.reset(); // NOTE: this clears previous code block!
+                mScriptParser.reset(true/*keepLocals*/);
 
                 scanner.scan (mScriptParser);
 

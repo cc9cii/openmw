@@ -36,10 +36,10 @@ namespace Tes4Compiler
             const std::string& getName() const;
             ///< Return script name.
 
-            const std::string& getBlockType() const;
-
-            void getCode (std::vector<Interpreter::Type_Code>& code) const;
-            ///< store generated code in \a code.
+            void getCode (std::map<std::string,
+                                   std::pair<std::vector<Interpreter::Type_Code>,
+                                             Compiler::Locals> >& codes) const;
+            ///< store generated code for each block types in \a codes.
 
             const Compiler::Locals& getLocals() const;
             ///< get local variable declarations.

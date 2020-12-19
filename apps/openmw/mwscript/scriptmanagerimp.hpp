@@ -54,6 +54,7 @@ namespace MWScript
             typedef std::map<std::string, CompiledScript> ScriptCollection;
 
             ScriptCollection mScripts;
+            std::map<std::string, ScriptCollection> mForeignScripts;
             GlobalScripts mGlobalScripts;
             std::map<std::string, Compiler::Locals> mOtherLocals;
             std::vector<std::string> mScriptBlacklist;
@@ -64,9 +65,12 @@ namespace MWScript
                 Compiler::Context& compilerContext, Compiler::Context& tes4CompilerContext, int warningsMode,
                 const std::vector<std::string>& scriptBlacklist);
 
-            virtual void run (const std::string& name, Interpreter::Context& interpreterContext);
-            void runForeign (const std::string& name, Interpreter::Context& interpreterContext);
+            virtual void run (const std::string& name, Interpreter::Context& interpreterContext,
+                              const std::string& blockType = std::string());
             ///< Run the script with the given name (compile first, if not compiled yet)
+
+            void runForeign (const std::string& name, Interpreter::Context& interpreterContext,
+                              const std::string& blockType = std::string());
 
             virtual bool compile (const std::string& name);
             bool compileForeign (const std::string& name);
@@ -78,8 +82,9 @@ namespace MWScript
             /// \return count, success
 
             virtual const Compiler::Locals& getLocals (const std::string& name);
-            const Compiler::Locals& getForeignLocals (const std::string& name);
             ///< Return locals for script \a name.
+
+            const Compiler::Locals& getForeignLocals (const std::string& name);
 
             virtual GlobalScripts& getGlobalScripts();
     };

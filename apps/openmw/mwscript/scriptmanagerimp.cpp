@@ -141,12 +141,20 @@ namespace MWScript
 
             if (Success)
             {
-                std::vector<Interpreter::Type_Code> code;
-                mTes4Parser.getCode (code);
+                ScriptCollection codes;
+
+                mTes4Parser.getCode (codes);
+
+
+
+
                 // FIXME: how to deal with different code blocks?
-                std::cout << "FileParser: getCode() " << name
-                          << ", " << mTes4Parser.getBlockType() << std::endl; // FIXME: temp testing
-                mScripts.insert (std::make_pair (name, std::make_pair (code, mTes4Parser.getLocals())));
+                std::cout << "FileParser: getCode() " << name << std::endl; // FIXME: temp testing
+
+
+
+                // FIXME: so much copying - maybe use unique_ptr ?
+                mForeignScripts.insert (std::make_pair (name, codes));
 
                 return true;
             }
@@ -155,10 +163,11 @@ namespace MWScript
         return false;
     }
 
-    void ScriptManager::run (const std::string& name, Interpreter::Context& interpreterContext)
+    void ScriptManager::run (const std::string& name, Interpreter::Context& interpreterContext,
+                              const std::string& blockType)
     {
         if (ESM4::isFormId(name))
-            return runForeign(name, interpreterContext);
+            return runForeign(name, interpreterContext, blockType);
 
         // compile script
         ScriptCollection::iterator iter = mScripts.find (name);
@@ -206,29 +215,37 @@ namespace MWScript
     // Those local variables are created during the loading of the cell in which the object
     // references are located.  If the run-time data were saved then the local variables'
     // contents are restored when the saved game is loaded.
-    void ScriptManager::runForeign (const std::string& name, Interpreter::Context& interpreterContext)
+    void ScriptManager::runForeign (const std::string& name, Interpreter::Context& interpreterContext,
+                              const std::string& blockType)
     {
         // compile script
-        ScriptCollection::iterator iter = mScripts.find (name);
+        std::map<std::string, ScriptCollection>::iterator iter = mForeignScripts.find (name);
 
-        if (iter == mScripts.end())
+        if (iter == mForeignScripts.end())
         {
             if (!compileForeign(name))
             {
                 // failed -> ignore script from now on.
                 std::vector<Interpreter::Type_Code> empty;
-                mScripts.insert (std::make_pair (name, std::make_pair (empty, Compiler::Locals())));
+                ScriptCollection emptyMap;
+                emptyMap.insert(std::make_pair(std::string(), std::make_pair(empty, Compiler::Locals())));
+                mForeignScripts.insert (std::make_pair (name, emptyMap));
                 return;
             }
 
-            iter = mScripts.find (name);
-            assert (iter != mScripts.end());
+            iter = mForeignScripts.find (name);
+            assert (iter != mForeignScripts.end());
         }
 
         //std::cout << "run foreign script: " << name << std::endl; // FIXME: temp testing
 
         // execute script
-        if (!iter->second.first.empty())
+        std::string blockName = "gamemode";
+        if (blockType != std::string())
+            blockName = blockType;
+
+        ScriptCollection::iterator iter2 = iter->second.find(blockName);
+        if (iter2 != iter->second.end() && !iter2->second.first.empty())
             try
             {
                 if (!mOpcodesInstalled)
@@ -241,14 +258,14 @@ namespace MWScript
                 for (unsigned int i = 0; i < iter->second.first.size(); ++i)
                     std::cout << "0x" << std::setfill('0') << std::setw(8) << std::hex << iter->second.first[i] << std::endl;
 #endif
-                mInterpreter.run (&iter->second.first[0], iter->second.first.size(), interpreterContext);
+                mInterpreter.run (&iter2->second.first[0], iter2->second.first.size(), interpreterContext);
             }
             catch (const std::exception& e)
             {
                 std::cerr << "Execution of foreign script " << name << " failed:" << std::endl;
                 std::cerr << e.what() << std::endl;
 
-                iter->second.first.clear(); // don't execute again.
+                iter2->second.first.clear(); // don't execute again.
             }
     }
 

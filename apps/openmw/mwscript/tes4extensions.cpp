@@ -74,7 +74,7 @@ namespace MWScript
 
                     if (actor == object)
                     {
-                        //std::cout << "ActionRef is " << editorId << std::endl; // FIXME: temp testing
+                        std::cout << "ActionRef is " << editorId << std::endl; // FIXME: temp testing
 
                         runtime.push (true);
                     }
@@ -141,17 +141,9 @@ namespace MWScript
 
                     std::cout << "Activate: " << /* editorId << */ std::endl; // FIXME: temp testing
 
-#if 0
-                    InterpreterContext *context;
-
-                    if (context = dynamic_cast<InterpreterContext*>(&runtime.getContext()))
-                        context->executeActivation(ptr, actor);
-#else
                     InterpreterContext& context = static_cast<InterpreterContext&> (runtime.getContext());
 
                     context.executeActivation(ptr, actor);
-#endif
-
                 }
         };
 
@@ -212,7 +204,7 @@ namespace MWScript
                     std::cout << "GetParerentRef: " << std::endl; // FIXME: temp testing
 
 
-                    runtime.push (6); // FIXME: just a dummy for testing
+                    runtime.push (0x121212); // FIXME: just a dummy for testing
                 }
         };
 
@@ -227,7 +219,7 @@ namespace MWScript
                     MWWorld::Ptr ptr = R()(runtime);
 
 
-                    std::cout << "IsAnimPlaying: " << std::endl; // FIXME: temp testing
+                    //std::cout << "IsAnimPlaying: " << std::endl; // FIXME: temp testing
 
 
                     runtime.push (0); // FIXME: just a dummy for testing
