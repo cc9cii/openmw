@@ -26,6 +26,20 @@ namespace
         }
     }
 
+    template<typename T>
+    void listForeignCellScripts (MWWorld::LocalScripts& localScripts,
+        MWWorld::CellRefList<T>& cellRefList,  MWWorld::CellStore *cell)
+    {
+        for (typename MWWorld::CellRefList<T>::List::iterator iter (
+            cellRefList.mList.begin()); iter != cellRefList.mList.end(); ++iter)
+        {
+            if (iter->mBase->mScriptId && !iter->mData.isDeleted())
+            {
+                localScripts.addForeign (iter->mBase->mScriptId, MWWorld::Ptr (&*iter, cell));
+            }
+        }
+    }
+
     // Adds scripts for items in containers (containers/npcs/creatures)
     template<typename T>
     void listCellScriptsCont (MWWorld::LocalScripts& localScripts,
@@ -114,6 +128,34 @@ void MWWorld::LocalScripts::add (const std::string& scriptName, const Ptr& ptr)
             << " because the script does not exist." << std::endl;
 }
 
+void MWWorld::LocalScripts::addForeign (ESM4::FormId scriptId, const Ptr& ptr)
+{
+    if (const ESM4::Script *script = mStore.getForeign<ESM4::Script>().search (scriptId))
+    {
+        try
+        {
+            // create local variables even if the script doesn't have GameMode blocktype
+            ptr.getRefData().setForeignLocals (*script);
+
+            // only store scripts with GameMode blocktypes
+            if (1) // FIXME
+            {
+                mScripts.push_back (std::make_pair (ESM4::formIdToString(scriptId), ptr));
+            }
+        }
+        catch (const std::exception& exception)
+        {
+            std::cerr
+                << "failed to add local script " << ESM4::formIdToString(scriptId)
+                << " because an exception has been thrown: " << exception.what() << std::endl;
+        }
+    }
+    else
+        std::cerr
+            << "failed to add local script " << ESM4::formIdToString(scriptId)
+            << " because the script does not exist." << std::endl;
+}
+
 void MWWorld::LocalScripts::addCell (CellStore *cell)
 {
     listCellScripts (*this, cell->get<ESM::Activator>(), cell);
@@ -136,6 +178,32 @@ void MWWorld::LocalScripts::addCell (CellStore *cell)
     listCellScripts (*this, cell->get<ESM::Probe>(), cell);
     listCellScripts (*this, cell->get<ESM::Repair>(), cell);
     listCellScripts (*this, cell->get<ESM::Weapon>(), cell);
+}
+
+// NOTE: listForeignCellScriptsCont() is not implemented - for now I can't think of a scenario
+//       where the contents of a container would have a script containing a "GameMode" block
+//
+// TODO: however, this means those objects won't have their local variables created in their
+//       run-time data - this may cause problems when a script with "OnActivate" block is run
+void MWWorld::LocalScripts::addForeignCell (CellStore *cell)
+{
+    listForeignCellScripts (*this, cell->getForeign<ESM4::Activator>(), cell);
+    listForeignCellScripts (*this, cell->getForeign<ESM4::Potion>(), cell);
+    listForeignCellScripts (*this, cell->getForeign<ESM4::Apparatus>(), cell);
+    listForeignCellScripts (*this, cell->getForeign<ESM4::Armor>(), cell);
+    listForeignCellScripts (*this, cell->getForeign<ESM4::Book>(), cell);
+    listForeignCellScripts (*this, cell->getForeign<ESM4::Clothing>(), cell);
+    listForeignCellScripts (*this, cell->getForeign<ESM4::Container>(), cell);
+    //listForeignCellScriptsCont (*this, cell->getForeign<ESM4::Container>(), cell);
+    listForeignCellScripts (*this, cell->getForeign<ESM4::Creature>(), cell);
+    //listForeignCellScriptsCont (*this, cell->getForeign<ESM4::Creature>(), cell);
+    listForeignCellScripts (*this, cell->getForeign<ESM4::Door>(), cell);
+    listForeignCellScripts (*this, cell->getForeign<ESM4::Ingredient>(), cell);
+    listForeignCellScripts (*this, cell->getForeign<ESM4::Light>(), cell);
+    listForeignCellScripts (*this, cell->getForeign<ESM4::MiscItem>(), cell);
+    listForeignCellScripts (*this, cell->getForeign<ESM4::Npc>(), cell);
+    //listForeignCellScriptsCont (*this, cell->getForeign<ESM4::Npc>(), cell);
+    listForeignCellScripts (*this, cell->getForeign<ESM4::Weapon>(), cell);
 }
 
 void MWWorld::LocalScripts::clear()

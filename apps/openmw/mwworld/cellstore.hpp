@@ -646,6 +646,12 @@ namespace MWWorld
     }
 
     template<>
+    inline CellRefList<ESM4::Activator>& CellStore::getForeign<ESM4::Activator>()
+    {
+        return mForeignActivators;
+    }
+
+    template<>
     inline const CellRefList<ESM4::Activator>& CellStore::getForeignReadOnly<ESM4::Activator>()
     {
         return mForeignActivators;
@@ -677,6 +683,12 @@ namespace MWWorld
     {
         mHasState = true; // FIXME: what is this used for?
         return mForeignClothes;
+    }
+
+    template<>
+    inline CellRefList<ESM4::Container>& CellStore::getForeign<ESM4::Container>()
+    {
+        return mForeignContainers;
     }
 
     template<>

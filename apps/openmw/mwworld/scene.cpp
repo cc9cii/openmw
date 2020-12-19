@@ -481,7 +481,7 @@ namespace MWWorld
         mRendering.configureAmbient(*cell); // FIXME
 
         // register local scripts
-        MWBase::Environment::get().getWorld()->getLocalScripts().addCell (cell); // FIXME
+        MWBase::Environment::get().getWorld()->getLocalScripts().addForeignCell (cell);
     }
 
     // NOTE: delete before insert

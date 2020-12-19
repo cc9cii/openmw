@@ -3296,7 +3296,7 @@ If the Oblivion-like LOD was to be used for OpenMW, there are a number of things
   * Terrain - not sure how the latest terrain in OpenMW works, but some kind of alpha blending of textures will need to be introduced (prob. using shaders).
   * Terrain, object and actor insertion - I suspect they are currently tied to cell insertion. If so, more fine-grain control is needed, especially statics and trees (for visibly distant rendering without physics).  Most likely changes in `MWWorld::Scene` and others.
   * A mechanism to render the same object with different LOD levels. e.g. the `_far` variant of a static object.  Most likely changes in `MWRender::Objects` and others.
-  * A mechanism to selectively display certain statics (e.g. Ghost Fence or an Oblivion Gate) based on a quest progress or some other conditions.  This will require either the NIF model to have non-standard attribute (non-standard for a vanilla Morrowind perspective, anyway) such as adding NiSwitchNode to existing NIF models.  Alternatively we can achieve the same result by adding an XESP sub-record to REFR like Oblivion (this way existing NIF models won't require any changes, but it does require selective rendering as per above bullet point).
+  * A mechanism to selectively display certain statics (e.g. Ghost Fence or an Oblivion Gate) based on a quest progress or some other conditions.  This will require either the NIF model to have non-standard attribute (non-standard for a vanilla Morrowind perspective, anyway) such as adding NiSwitchNode to existing NIF models.  Alternatively we can achieve the same result by adding an `XESP` sub-record to REFR like Oblivion (this way existing NIF models won't require any changes, but it does require selective rendering as per above bullet point).
   * A set of additional config to control the distance of rendering various LOD elements, including actor fading distance, etc. (this is optional but most likely will be beneficial)
 
 There are also some new things that will need to be introduced:
@@ -4998,7 +4998,7 @@ Similarly, any shader changes are best done once the rendering engine is decided
 
 For example, an NPC from FO3 does not have `Willpower` attribute from TES4.  So it would be impossible to make an NPC that can be used in different game types without bloating the NPC object with lots of data.
 
-Another example is TES4's Pauldron - an NPC from FO3 could not equip it, at least without creating some special attribute to a Pauldron so that it can be fitted to an equipment slot of an FO3 NPC.
+Another example is TES3's Pauldron - an NPC from FO3 could not equip it, at least without creating some special attribute to a Pauldron so that it can be fitted to an equipment slot of an FO3 NPC.
 
 # [19/11/2020] Script Support
 
@@ -5146,6 +5146,7 @@ According to `components/interpreter/opcodes.hpp`, class Opcode1 is for 1 argume
         endif
     end
 
+                                                                      {{{
     script name: CGAmbushAGateScript
     file parser keyword: begin
     file parser: event onActivate
@@ -5232,12 +5233,13 @@ According to `components/interpreter/opcodes.hpp`, class Opcode1 is for 1 argume
     0x61726168
     0x72657463
     0x006e6567
+                                                                      }}}
 
 ## Partially working
 
 Things to fix include:
 
-  * local variables (16/12/20: workaround hack in place)
+  * local variables (16/12/20: workaround hack in place; 19/12/20: solution found)
   * Script event handling (e.g. `OnActivateRef`)
   * `OnActivateRef` function not implemented
   * `WorldImp::searchPtr()` needs to support TES4 objects
@@ -5248,7 +5250,7 @@ Things to fix include:
 
 ## CGDungeon01ExitDoorScript
 
-    scn CGDungeon01ExitDoorScript
+    scn CGDungeon01ExitDoorScript                                     {{{
 
     short hintCount
 
@@ -5264,8 +5266,9 @@ Things to fix include:
                 set hintcount to 1
             endif
         endif
-    end
+    end                                                               }}}
 
+                                                                      {{{
     script name: CGDungeon01ExitDoorScript
     local var: short
     file parser keyword: begin
@@ -5367,6 +5370,7 @@ Things to fix include:
     0x7420726f
     0x6b206568
     0x002e7965
+                                                                      }}}
 
 Now working - things to fix include:
 
@@ -5384,7 +5388,7 @@ It might be ok (i.e. no clash) since the TES4 compiler will generate a different
 
 ## Dark04Sewers02
 
-    scn SewerWheel01SCRIPT
+    scn SewerWheel01SCRIPT                                            {{{
 
     ; activates parent after a 2 sec delay
 
@@ -5438,8 +5442,9 @@ It might be ok (i.e. no clash) since the TES4 compiler will generate a different
             set busy to 0
         endif
 
-    end
+    end                                                               }}}
 
+                                                                      {{{
     decl: s busy
     decl: r myself
     decl: r myparent
@@ -5557,6 +5562,7 @@ It might be ok (i.e. no clash) since the TES4 compiler will generate a different
     0x6b636162
     0x64726177
     0x00000000
+                                                                      }}}
 
 The second block of code starting with `begin gameMode` is not present.  Need to figure out how to jump to the correct code block based on the event.
 
@@ -5613,6 +5619,7 @@ For our scenario LineParser would have been called from the `ScriptParser::parse
     LineParser::parseKeyword -> ExprParser::parseArguments -> StringParser::scanName (i.e. "mySelf") -->
                              --> StringParser::parseName
 
+                                                                      {{{
     decl: s busy
     decl: r myself
     decl: r myparent
@@ -5756,6 +5763,7 @@ For our scenario LineParser would have been called from the `ScriptParser::parse
     0x6d00666c
     0x72617079
     0x00746e65
+                                                                      }}}
 
 ## ToDo
 
@@ -5763,6 +5771,129 @@ In `Scanner::scanName` maybe use a map to search the keywords?  But then foor su
 
 In `ExprParser`, `CompilerContext::isId()` not used in TES4.
 
+# [19/12/2020] Script Compiler (cont.)
+
+## Local scripts
+
+`OMW::Engine::updateAll()` calls `OMW::Engine::executeLocalScripts()`.  The scripts are retrieved from `World::mLocalScripts` which is of type `MWWorld::LocalScripts`.
+
+For TES4 we only want those with `GameMode` block types.  These will execute every frame.  Others such as `OnActivate` will run when an actor activates doors/containers/etc.
+
+The scripts are added via:
+
+    World::copyObjectToCell()
+    World::addContainerScripts()
+    World::undeleteObject()
+    World::moveObject()
+
+and also from:
+
+    Scene::loadCell()
+
+which calls
+
+    MWBase::Environment::get().getWorld()->getLocalScripts().addCell (cell);
+
+Sooo... the logical place to make the changes appears to be `MWWorld::LocalScripts`.  New methods such as:
+
+    addForeignCell()
+    listForeignCellScripts()
+
+By keeping the script id as a string, `mScripts` can be used as is and `clearCell()` and `remove()` won't need to change, either.
+
+## Local variables in object references
+
+Because TES3 scripts don't have separate events or blocktypes, all local scripts in a loaded cell always runs.  The local variables for the object references are created during the cell load - see `MWWorld::LocalScripts::addCell()` and `MWWorld::LocalScripts::add()`.  The latter calls `RefData::setLocals()` to create the local variables.
+
+In TES4 only the scripts with `GameMode` block types behave like TES3 local scripts.  However, it is still possible to create the local varibles during the load even if the script itself won't run until an event such as `OnActivate` occurs.  The only issue with this approach is that it is not immediately obvious from reading the code where the local variables are created.
+
+## Container scripts
+
+Not sure what these are.  The code seems to suggest that these are local scripts of items inside containers.  Not sure if these scrips are also meant to run each frame?  It would be good to see some examples.  Maybe they are meant to run once the objects are taken out of the container?
+
+## Global scripts
+
+Since the function `StartScript` no longer exists in TES4 it is unclear how the global scripts are started.
+
+Accoring to [this article](https://wiki.nexusmods.com/index.php/An_introduction_to_Oblivion_scripting), global scripts are the same as Quest scripts.  So, we now need to figure out when a quest is triggered and starts running.
+
+## PlayGroup
+
+`Dungeons\Sewers\sewerWheel01.NIF` has a `NiControllerSequence` block named "Forward".  Note that the script uses lowercase "forward".
+
+According to [this wiki entry](https://cs.elderscrolls.com/index.php?title=PlayGroup) the integer flag "1" indicates:
+
+    Immediate Start - The current animation will stop regardless of the frame it is on, and the new animation will start from its beginning.
+
+The parent `FormId` can be found in the `XESP` subrecord.  The parent `REFR` has below script attached:
+
+    scn SewerSloughGate01SCRIPT                                       {{{
+
+    ; activated by linked child
+    ; activates optionally linked parent after 1 sec delay
+
+    short activated
+    short open
+    short next
+    short busy
+    float timer
+
+    ref mySelf
+    ref myParent
+
+    begin onActivate
+
+        if activated == 0
+            set mySelf to getSelf
+            set myParent to getParentRef
+            set activated to 1
+        endif
+
+        if isActionRef player == 1
+
+            if open == 0
+                message " This gate is opened remotely."
+            endif
+
+        elseif isActionRef mySelf == 0 && busy == 0
+
+            if open == 0
+                playgroup forward 0
+                set open to 1
+            else
+                playgroup backward 0
+                set open to 0
+            endif
+
+            set next to 1
+            set timer to 1
+            set busy to 1
+
+        endif
+
+    end
+
+    begin gameMode
+
+        ; daisy-chain activation
+        if next == 1 && timer <=0
+            set next to 0
+            myParent.activate mySelf 1
+        endif
+
+        if timer > 0
+            set timer to timer - getSecondsPassed
+        endif
+
+        if isAnimPlaying == 0 && busy == 1
+            set busy to 0
+        endif
+
+    end                                                               }}}
+
+Note that this parent `REFR` itself can have a parent as well.  See the object instances `TDSSloughGate01` and `TDSSloughGate01b` in cell `ImperialSewerSystemTempleDistrict`.
+
+Presumably it fails safely if the parent `REFR` is not found in the cell.
 
 
 

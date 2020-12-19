@@ -74,7 +74,7 @@ namespace MWScript
 
                     if (actor == object)
                     {
-                        std::cout << "ActionRef is " << editorId << std::endl; // FIXME: temp testing
+                        //std::cout << "ActionRef is " << editorId << std::endl; // FIXME: temp testing
 
                         runtime.push (true);
                     }

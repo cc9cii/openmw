@@ -144,7 +144,8 @@ namespace MWScript
                 std::vector<Interpreter::Type_Code> code;
                 mTes4Parser.getCode (code);
                 // FIXME: how to deal with different code blocks?
-                std::cout << "FileParser: getCode() " << name << ", " << mTes4Parser.getBlockType() << std::endl; // FIXME: temp testing
+                std::cout << "FileParser: getCode() " << name
+                          << ", " << mTes4Parser.getBlockType() << std::endl; // FIXME: temp testing
                 mScripts.insert (std::make_pair (name, std::make_pair (code, mTes4Parser.getLocals())));
 
                 return true;
@@ -197,17 +198,14 @@ namespace MWScript
             }
     }
 
-    // FIXME: Variables in interpreter context and compiler context
+    // NOTE: Variables in interpreter context and compiler context
     //
     // The local variables in interpreter context come from the run-time data of the object to which
     // the script is attached.  See World::activate() as an example.
     //
-    // It is unclear how and when those local variables are created.  If the run-time data were saved
-    // then they are restored.  But how are they created to begin with?
-    //
-    // When a script is compiled the compiler context may have local variables declared by the script.
-    // During execution of the compiled script the interpreter context is used.  But it doesn't know
-    // about the declared local variables!
+    // Those local variables are created during the loading of the cell in which the object
+    // references are located.  If the run-time data were saved then the local variables'
+    // contents are restored when the saved game is loaded.
     void ScriptManager::runForeign (const std::string& name, Interpreter::Context& interpreterContext)
     {
         // compile script
@@ -227,7 +225,7 @@ namespace MWScript
             assert (iter != mScripts.end());
         }
 
-        std::cout << "run foreign script: " << name << std::endl; // FIXME: temp testing
+        //std::cout << "run foreign script: " << name << std::endl; // FIXME: temp testing
 
         // execute script
         if (!iter->second.first.empty())
@@ -277,6 +275,7 @@ namespace MWScript
 
     const Compiler::Locals& ScriptManager::getLocals (const std::string& name)
     {
+        // FIXME: not very efficient, probably best to add another method in MWBase::ScriptManager
         if (ESM4::isFormId(name))
             return getForeignLocals(name);
 
@@ -319,6 +318,7 @@ namespace MWScript
         throw std::logic_error ("script " + name + " does not exist");
     }
 
+    // probably used for loading save files
     const Compiler::Locals& ScriptManager::getForeignLocals (const std::string& name)
     {
         ScriptCollection::iterator iter = mScripts.find (name);

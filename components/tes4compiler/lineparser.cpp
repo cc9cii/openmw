@@ -186,14 +186,6 @@ namespace Tes4Compiler
             return true;
         }
 
-#if 0
-        if (mState==BeginState && getContext().isId (name))
-        {
-            mState = PotentialExplicitState;
-            mExplicit = Misc::StringUtils::lowerCase (name);
-            return true;
-        }
-#else
         if (mState == BeginState)
         {
             std::string name2 = Misc::StringUtils::lowerCase (name);
@@ -208,7 +200,6 @@ namespace Tes4Compiler
                 return true;
             }
         }
-#endif
 
         if (mState==BeginState && mAllowExpression)
         {
@@ -298,23 +289,6 @@ namespace Tes4Compiler
                     Generator::disable (mCode, mLiterals, mExplicit);
                     mState = PotentialEndState;
                     return true;
-
-// FIXME: not used in TES4
-#if 0
-                case Scanner::K_startscript:
-
-                    mExprParser.parseArguments ("c", scanner, mCode);
-                    Generator::startScript (mCode, mLiterals, mExplicit);
-                    mState = EndState;
-                    return true;
-
-                case Scanner::K_stopscript:
-
-                    mExprParser.parseArguments ("c", scanner, mCode);
-                    Generator::stopScript (mCode);
-                    mState = EndState;
-                    return true;
-#endif
             }
 
             // check for custom extensions

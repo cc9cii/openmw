@@ -4,6 +4,8 @@
 #include <list>
 #include <string>
 
+#include <extern/esm4/formid.hpp>
+
 #include "ptr.hpp"
 
 namespace MWWorld
@@ -39,16 +41,18 @@ namespace MWWorld
 
             void add (const std::string& scriptName, const Ptr& ptr);
             ///< Add script to collection of active local scripts.
+            void addForeign (ESM4::FormId scriptId, const Ptr& ptr);
 
             void addCell (CellStore *cell);
             ///< Add all local scripts in a cell.
+            void addForeignCell (CellStore *cell);
 
             void clear();
             ///< Clear active local scripts collection.
 
             void clearCell (CellStore *cell);
             ///< Remove all scripts belonging to \a cell.
-            
+
             void remove (RefData *ref);
 
             void remove (const Ptr& ptr);

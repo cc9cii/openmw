@@ -2,10 +2,13 @@
 
 #include <iostream> // FIXME
 
+#include <components/misc/stringops.hpp>
+
 #include "../compiler/tokenloc.hpp"
 #include "../compiler/errorhandler.hpp"
 #include "scanner.hpp"
 #include "output.hpp"
+#include "lineparser.hpp"
 
 namespace Tes4Compiler
 {
@@ -90,7 +93,8 @@ namespace Tes4Compiler
 
         if (mState == BlockTypeState)
         {
-            mBlockType = loc.mLiteral;
+            // NOTE: must be lower case because the caller will expect lower case
+            mBlockType = Misc::StringUtils::lowerCase (loc.mLiteral);
 
             // these functions/instructions can have arguments (hence no state change)
             return true;

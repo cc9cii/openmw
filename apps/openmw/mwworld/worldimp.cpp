@@ -3802,16 +3802,8 @@ namespace MWWorld
             {
                 getLocalScripts().setIgnore (object);
 
-                // FIXME: horrible temporary hack - just for a demo
-                if (object.getRefData().getLocals().isEmpty())
-                {
-                    const ESM4::Script *scriptObj
-                        = mStore.getForeign<ESM4::Script>().search(ESM4::stringToFormId(script));
-
-                    // add the script local variables to the object's ref data
-                    object.getRefData().getLocals().configure(*scriptObj);
-                }
-
+                // NOTE: MWWorld::LocalScripts::addForeign() creates the local variables when
+                // the object reference is loaded (as a part of the cell loading)
                 MWBase::Environment::get().getScriptManager()->run (script, interpreterContext);
             }
             // below logic doesn't make sense? why activate if the script didn't?

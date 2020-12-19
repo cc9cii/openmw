@@ -9,7 +9,6 @@
 #include "../compiler/literals.hpp"
 #include "../interpreter/types.hpp"
 #include "parser.hpp"
-#include "lineparser.hpp"
 #include "scriptparser.hpp"
 
 namespace Tes4Compiler
