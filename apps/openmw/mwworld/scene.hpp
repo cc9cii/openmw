@@ -142,6 +142,8 @@ namespace MWWorld
             Ptr searchPtrViaHandle (const std::string& handle);
 
             Ptr searchPtrViaActorId (int actorId);
+
+            Ptr searchPtrViaFormId(ESM4::FormId formId);
     };
 }
 

@@ -92,6 +92,7 @@ namespace MWScript
                 {
                     MWWorld::Ptr ptr = R()(runtime);
 
+                    // assumed that there is a mandatory string argument
                     std::string editorId = runtime.getStringLiteral (runtime[0].mInteger);
                     runtime.pop();
 
@@ -135,12 +136,46 @@ namespace MWScript
 
                     MWWorld::Ptr ptr = R()(runtime);
 
-                    // get the actor stored by MWWorld::activate()
-                    // NOTE: assumes actor is always valid
-                    MWWorld::Ptr actor = R()(runtime, true/*required*/, false/*activeOnly*/, true/*actor*/);
+                    // handle the arguments
+                    MWWorld::Ptr actor;
+                    Interpreter::Type_Integer flag;
+                    if (arg0 >= 1) // explicit
+                    {
+                        std::string name = runtime.getStringLiteral(runtime[0].mInteger);
+                        std::cout << "arg " << name << std::endl;
 
-                    std::cout << "Activate: " << /* editorId << */ std::endl; // FIXME: temp testing
+                        // FIXME: not 100% sure if below method is correct
+                        unsigned int ref = runtime.getContext().getLocalRef(runtime[0].mInteger);
+                        actor = MWBase::Environment::get().getWorld()->searchPtrViaFormId(ref, true/*activeOnly*/);
 
+                        runtime.pop();
+                    }
+                    else // implicit
+                    {
+                        // get the actor stored by MWWorld::activate()
+                        actor = R()(runtime, true/*required*/, false/*activeOnly*/, true/*actor*/);
+                    }
+
+                    // FIXME: currently below flag is not used (prob. need a new flag in executeActivation)
+                    // see https://cs.elderscrolls.com/index.php?title=Activate
+                    // If the RunOnActivateFlag is set to 1, then the OnActivate block of the object (if any) will be
+                    // run instead of the default activation. (In other words, act just as if ActivatorID activated it
+                    // directly -- NPC used it, Player moused over and clicked on it, etc.) 
+                    if (arg0 >= 2)
+                    {
+                        // FIXME: not 100% sure if below method is correct
+                        flag = runtime[0].mInteger;
+                        std::cout << "arg " << flag << std::endl;
+                        runtime.pop();
+                    }
+
+#if 1  // FIXME: temp testing
+                    if (ptr && actor)
+                        std::cout << ptr.getCellRef().getRefId() << ".Activate: "
+                                  << actor.getCellRef().getRefId() << std::endl;
+                    else
+                        std::cout << "Activate" << std::endl;
+#endif
                     InterpreterContext& context = static_cast<InterpreterContext&> (runtime.getContext());
 
                     context.executeActivation(ptr, actor);
@@ -186,6 +221,9 @@ namespace MWScript
 
                     std::cout << "GetSelf: " << ESM4::formIdToString(formId) << std::endl; // FIXME: temp testing
 
+                    InterpreterContext& context = static_cast<InterpreterContext&> (runtime.getContext());
+                    std::cout << "mTargetFormId: " << ESM4::formIdToString(context.getTargetFormId()) << std::endl;
+
                     runtime.push (formId);
                 }
         };
@@ -200,11 +238,11 @@ namespace MWScript
 
                     MWWorld::Ptr ptr = R()(runtime);
 
+                    ESM4::FormId formId = ptr.getCellRef().getParentFormId();
 
-                    std::cout << "GetParerentRef: " << std::endl; // FIXME: temp testing
+                    std::cout << "GetParerentRef: " << ESM4::formIdToString(formId) << std::endl; // FIXME: temp testing
 
-
-                    runtime.push (0x121212); // FIXME: just a dummy for testing
+                    runtime.push (formId);
                 }
         };
 
@@ -242,7 +280,7 @@ namespace MWScript
             // See Extensions::registerInstruction()
             // optional arguments imply segment 3 or segment 4
             interpreter.installSegment3 (Tes4Compiler::Tes4::opcodeActivate, new OpActivate<ImplicitRef>);
-            interpreter.installSegment3 (Tes4Compiler::Tes4::opcodeActivateExplicit, new OpActivate<ExplicitRef>);
+            interpreter.installSegment3 (Tes4Compiler::Tes4::opcodeActivateExplicit, new OpActivate<ExplicitTes4Ref>);
 
             interpreter.installSegment5 (Tes4Compiler::Tes4::opcodePlayGroup, new OpPlayGroup<ImplicitRef>);
 

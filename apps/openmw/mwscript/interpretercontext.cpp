@@ -140,13 +140,16 @@ namespace MWScript
     InterpreterContext::InterpreterContext (
         MWScript::Locals *locals, MWWorld::Ptr reference, const std::string& targetId)
     : mLocals (locals), mReference (reference), mActivated(MWWorld::Ptr()), mActor(MWWorld::Ptr()),
-      mActivationHandled (false), mTargetId (targetId)
+      mActivationHandled (false), mTargetId (targetId), mTargetFormId(0)
     {
         // If we run on a reference (local script, dialogue script or console with object
         // selected), store the ID of that reference store it so it can be inherited by
         // targeted scripts started from this one.
         if (targetId.empty() && !reference.isEmpty())
             mTargetId = reference.getClass().getId (reference);
+
+        if (targetId.empty() && !reference.isEmpty())
+            mTargetFormId = reference.getCellRef().getFormId();
     }
 
     int InterpreterContext::getLocalShort (int index) const
@@ -173,6 +176,14 @@ namespace MWScript
         return mLocals->mFloats.at (index);
     }
 
+    unsigned int InterpreterContext::getLocalRef(int index) const
+    {
+        if (!mLocals)
+            throw std::runtime_error("local variables not available in this context");
+
+        return mLocals->mRefs.at(index);
+    }
+
     void InterpreterContext::setLocalShort (int index, int value)
     {
         if (!mLocals)
@@ -195,6 +206,14 @@ namespace MWScript
             throw std::runtime_error ("local variables not available in this context");
 
         mLocals->mFloats.at (index) = value;
+    }
+
+    void InterpreterContext::setLocalRef (int index, unsigned int value)
+    {
+        if (!mLocals)
+            throw std::runtime_error("local variables not available in this context");
+
+        mLocals->mRefs.at(index) = value;
     }
 
     void InterpreterContext::messageBox (const std::string& message,
@@ -503,6 +522,9 @@ namespace MWScript
 
     void InterpreterContext::executeActivation(MWWorld::Ptr ptr, MWWorld::Ptr actor)
     {
+        // FIXME: need to add a flag to indicate to run the OnActivate block rather than
+        //        activating the object
+
         boost::shared_ptr<MWWorld::Action> action = (ptr.getClass().activate(ptr, actor));
         action->execute (actor);
         if (mActivated == ptr)
@@ -602,6 +624,12 @@ namespace MWScript
     std::string InterpreterContext::getTargetId() const
     {
         return mTargetId;
+    }
+
+
+    ESM4::FormId InterpreterContext::getTargetFormId() const
+    {
+        return mTargetFormId;
     }
 
     void InterpreterContext::updatePtr(const MWWorld::Ptr& updated)

@@ -134,5 +134,9 @@ op 68: replace stack[0] with member short stack[1] of global script with ID stac
 op 69: replace stack[0] with member short stack[1] of global script with ID stack[0]
 op 70: replace stack[0] with member short stack[1] of global script with ID stack[0]
 op 71: explicit reference (target) = stack[0]; pop; start script stack[0] and pop
-opcodes 72-33554431 unused
+op 72: and
+op 73: or
+op 74: fetch local ref
+op 75: store local ref
+opcodes 76-33554431 unused
 opcodes 33554432-67108863 reserved for extensions

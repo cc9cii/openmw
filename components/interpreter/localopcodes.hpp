@@ -55,6 +55,22 @@ namespace Interpreter
             }
     };
 
+    class OpStoreLocalRef : public Opcode0
+    {
+        public:
+
+            virtual void execute (Runtime& runtime)
+            {
+                Type_Ref data = runtime[0].mRef;
+                int index = runtime[1].mInteger;
+
+                runtime.getContext().setLocalRef (index, data);
+
+                runtime.pop();
+                runtime.pop();
+            }
+    };
+
     class OpFetchIntLiteral : public Opcode0
     {
         public:
@@ -110,6 +126,18 @@ namespace Interpreter
                 int index = runtime[0].mInteger;
                 float value = runtime.getContext().getLocalFloat (index);
                 runtime[0].mFloat = value;
+            }
+    };
+
+    class OpFetchLocalRef : public Opcode0
+    {
+        public:
+
+            virtual void execute (Runtime& runtime)
+            {
+                int index = runtime[0].mInteger;
+                Type_Ref value = runtime.getContext().getLocalRef (index);
+                runtime[0].mRef = value;
             }
     };
 

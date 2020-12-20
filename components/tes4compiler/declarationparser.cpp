@@ -1,6 +1,6 @@
 #include "declarationparser.hpp"
 
-#include <iostream> // FIXME
+//#include <iostream> // FIXME
 
 #include <components/misc/stringops.hpp>
 
@@ -35,7 +35,7 @@ bool Tes4Compiler::DeclarationParser::parseName (const std::string& name, const 
 
         mLocals.declare (mType, name2);
 
-        std::cout << "decl: " << mType << " " << name2 << std::endl; // FIXME: temp testing
+        //std::cout << "decl: " << mType << " " << name2 << std::endl; // FIXME: temp testing
 
         mState = State_End;
         return true;

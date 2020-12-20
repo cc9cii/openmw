@@ -50,6 +50,11 @@ namespace
         code.push_back (Tes4Compiler::Generator::segment5 (2));
     }
 
+    void opStoreLocalRef (Tes4Compiler::Generator::CodeContainer& code)
+    {
+        code.push_back (Tes4Compiler::Generator::segment5 (75));
+    }
+
     void opNegateInt (Tes4Compiler::Generator::CodeContainer& code)
     {
         code.push_back (Tes4Compiler::Generator::segment5 (7));
@@ -138,6 +143,11 @@ namespace
     void opFetchLocalFloat (Tes4Compiler::Generator::CodeContainer& code)
     {
         code.push_back (Tes4Compiler::Generator::segment5 (23));
+    }
+
+    void opFetchLocalRef (Tes4Compiler::Generator::CodeContainer& code)
+    {
+        code.push_back (Tes4Compiler::Generator::segment5 (74));
     }
 
     void opJumpForward (Tes4Compiler::Generator::CodeContainer& code, int offset)
@@ -426,6 +436,11 @@ namespace Tes4Compiler
                     opStoreLocalLong (code);
                     break;
 
+                case 'r':
+
+                    opStoreLocalRef(code);
+                    break;
+
                 default:
 
                     assert (0);
@@ -610,6 +625,11 @@ namespace Tes4Compiler
                 case 'l':
 
                     opFetchLocalLong (code);
+                    break;
+
+                case 'r':
+
+                    opFetchLocalRef (code);
                     break;
 
                 default:

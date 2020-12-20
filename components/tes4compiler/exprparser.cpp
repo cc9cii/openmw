@@ -294,6 +294,31 @@ namespace Tes4Compiler
     {
         if (!mExplicit.empty())
         {
+// FIXME: some experimentation
+#if 0
+            // FIXME: check if name is an extension here?
+            std::string name2 = Misc::StringUtils::lowerCase(name);
+            if (const Compiler::Extensions* extensions = getContext().getExtensions())
+            {
+                //if (getContext().isJournalId(name2))
+                {
+                    // JournalID used as an argument. Use the index of that JournalID
+                    //Generator::pushString(mCode, mLiterals, name2);
+                    int keyword = extensions->searchKeyword(name2);
+                    std::string argumentType;
+                    bool hasExplicit = false;
+                    if (extensions->isInstruction (keyword, argumentType, hasExplicit))
+                    {
+                        int optionals = parseArguments (argumentType, scanner);
+                        extensions->generateInstructionCode(keyword, mCode, mLiterals, mExplicit, optionals);
+                        mNextOperand = false;
+                        mOperands.push_back('l');
+
+                        return true;
+                    }
+                }
+            }
+#endif
             if (mMemberOp && handleMemberAccess (name))
                 return true;
 
@@ -310,7 +335,13 @@ namespace Tes4Compiler
 
             char type = mLocals.getType (name2);
 
-            if (type!=' ')
+            // FIXME: if type == `r` then kinda similar to getContext().isId(name2)
+            if (type == 'r' && mExplicit.empty())
+            {
+                mExplicit = name2;
+                return true;
+            }
+            else if (type!=' ')
             {
                 Generator::fetchLocal (mCode, type, mLocals.getIndex (name2));
                 mNextOperand = false;
@@ -343,13 +374,14 @@ namespace Tes4Compiler
                     return true;
                 }
             }
-
+#if 0
             // FIXME: isId() doesn't make sense for TES4
             if (mExplicit.empty() && getContext().isId (name2))
             {
                 mExplicit = name2;
                 return true;
             }
+#endif
         }
         else
         {

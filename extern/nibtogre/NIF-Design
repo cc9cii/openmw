@@ -5444,6 +5444,7 @@ It might be ok (i.e. no clash) since the TES4 compiler will generate a different
 
     end                                                               }}}
 
+NOTE: later versions of code generator will most likely produce different opcodes, e.g. ref related
                                                                       {{{
     decl: s busy
     decl: r myself
@@ -5619,6 +5620,7 @@ For our scenario LineParser would have been called from the `ScriptParser::parse
     LineParser::parseKeyword -> ExprParser::parseArguments -> StringParser::scanName (i.e. "mySelf") -->
                              --> StringParser::parseName
 
+NOTE: later versions of code generator will most likely produce different opcodes, e.g. ref related
                                                                       {{{
     decl: s busy
     decl: r myself
@@ -5707,7 +5709,7 @@ For our scenario LineParser would have been called from the `ScriptParser::parse
     0xc8000019 skip non zero
     0x0100000f ------------------------+
     0x00000000                         |
-    0xca000308 getmyself               |
+    0xca000308 getself                 |
     0x00000001                         |
     0xca00030a getparentref            |
     0x00000002                         |
@@ -5894,6 +5896,13 @@ The parent `FormId` can be found in the `XESP` subrecord.  The parent `REFR` has
 Note that this parent `REFR` itself can have a parent as well.  See the object instances `TDSSloughGate01` and `TDSSloughGate01b` in cell `ImperialSewerSystemTempleDistrict`.
 
 Presumably it fails safely if the parent `REFR` is not found in the cell.
+
+# [20/12/2020] Script Compiler (cont.)
+
+## Reference handling
+
+`MWScript::ExplicitRef::operator()` calls `World::getPtr()` with "myparent" string literal.  But what we want is to be able to search for the content of "myparent" which should be `FormId` `0x0006BC07`.
+
 
 
 

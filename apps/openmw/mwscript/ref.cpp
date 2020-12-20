@@ -16,7 +16,17 @@ MWWorld::Ptr MWScript::ExplicitRef::operator() (Interpreter::Runtime& runtime, b
     if (required)
         return MWBase::Environment::get().getWorld()->getPtr(id, activeOnly);
     else
-        return MWBase::Environment::get().getWorld()->searchPtr(id, activeOnly); // FIXME: need to update method for TES4
+        return MWBase::Environment::get().getWorld()->searchPtr(id, activeOnly);
+}
+
+MWWorld::Ptr MWScript::ExplicitTes4Ref::operator() (Interpreter::Runtime& runtime, bool required,
+    bool activeOnly, bool actor) const
+{
+    //std::string refId = runtime.getStringLiteral(runtime[0].mInteger);
+    unsigned int ref = runtime.getContext().getLocalRef(runtime[0].mInteger);
+    runtime.pop();
+
+    return MWBase::Environment::get().getWorld()->searchPtrViaFormId(ref, activeOnly);
 }
 
 MWWorld::Ptr MWScript::ImplicitRef::operator() (Interpreter::Runtime& runtime, bool required,

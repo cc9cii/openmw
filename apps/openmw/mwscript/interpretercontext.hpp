@@ -3,6 +3,8 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include <extern/esm4/formid.hpp>
+
 #include <components/interpreter/context.hpp>
 
 #include "../mwworld/ptr.hpp"
@@ -32,6 +34,7 @@ namespace MWScript
             bool mActivationHandled;
 
             std::string mTargetId;
+            ESM4::FormId mTargetFormId;
 
             /// If \a id is empty, a reference the script is run from is returned or in case
             /// of a non-local script the reference derived from the target ID.
@@ -65,11 +68,15 @@ namespace MWScript
 
             virtual float getLocalFloat (int index) const;
 
+            virtual unsigned int getLocalRef (int index) const;
+
             virtual void setLocalShort (int index, int value);
 
             virtual void setLocalLong (int index, int value);
 
             virtual void setLocalFloat (int index, float value);
+
+            virtual void setLocalRef(int index, unsigned int value);
 
             using Interpreter::Context::messageBox;
 
@@ -174,6 +181,8 @@ namespace MWScript
             ///< Update the Ptr stored in mReference, if there is one stored there. Should be called after the reference has been moved to a new cell.
 
             virtual std::string getTargetId() const;
+
+            ESM4::FormId getTargetFormId() const;
     };
 }
 

@@ -39,6 +39,7 @@ namespace MWWorld
         const ESM::RefNum& getRefNum() const;
 
         ESM4::FormId getFormId() const;
+        ESM4::FormId getParentFormId() const;
         std::uint32_t getFlags() const { return mFlags; }
         ESM4::FormId getBaseObj() const { return mBaseObj; } // FIXME: for testing visibly dist
 
@@ -136,6 +137,7 @@ namespace MWWorld
         bool mChanged;
         ESM::CellRef mCellRef;
         ESM4::FormId mFormId;
+        ESM4::FormId mParentFormId;
         ESM4::FormId mDestDoorId; // FIXME: don't want this here
         std::uint32_t mFlags;
         ESM4::FormId mBaseObj;

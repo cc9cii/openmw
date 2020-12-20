@@ -757,6 +757,15 @@ namespace MWWorld
         return mWorldScene->searchPtrViaActorId (actorId);
     }
 
+    Ptr World::searchPtrViaFormId (ESM4::FormId formId, bool activeOnly)
+    {
+        // FIXME: currently player is still from TES3
+        //if (mPlayer->getPlayer().getRefData().getHandle()==handle)
+            //return mPlayer->getPlayer();
+
+        return mWorldScene->searchPtrViaFormId(formId);
+    }
+
     struct FindContainerFunctor
     {
         Ptr mContainedPtr;

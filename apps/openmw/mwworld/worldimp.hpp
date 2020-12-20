@@ -275,6 +275,8 @@ namespace MWWorld
             virtual Ptr searchPtrViaActorId (int actorId);
             ///< Search is limited to the active cells.
 
+            virtual Ptr searchPtrViaFormId (ESM4::FormId formId, bool activeOnly);
+
             virtual MWWorld::Ptr findContainer (const MWWorld::Ptr& ptr);
             ///< Return a pointer to a liveCellRef which contains \a ptr.
             /// \note Search is limited to the active cells.

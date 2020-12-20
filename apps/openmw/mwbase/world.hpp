@@ -5,6 +5,8 @@
 #include <map>
 #include <set>
 
+#include <extern/esm4/formid.hpp>
+
 #include <components/esm/cellid.hpp>
 
 #include "../mwworld/ptr.hpp"
@@ -218,6 +220,8 @@ namespace MWBase
 
             virtual MWWorld::Ptr searchPtrViaActorId (int actorId) = 0;
             ///< Search is limited to the active cells.
+
+            virtual MWWorld::Ptr searchPtrViaFormId (ESM4::FormId formId, bool activeOnly) = 0;
 
             virtual MWWorld::Ptr findContainer (const MWWorld::Ptr& ptr) = 0;
             ///< Return a pointer to a liveCellRef which contains \a ptr.

@@ -134,7 +134,7 @@ namespace MWScript
             if (!Success)
             {
                 std::cerr
-                    << "compiling failed: " << name << std::endl;
+                    << "compiling a foreign script failed: " << name << std::endl;
                 if (mVerbose)
                     std::cerr << script->mScript.scriptSource << std::endl << std::endl;
             }
@@ -142,16 +142,9 @@ namespace MWScript
             if (Success)
             {
                 ScriptCollection codes;
-
                 mTes4Parser.getCode (codes);
 
-
-
-
-                // FIXME: how to deal with different code blocks?
-                std::cout << "FileParser: getCode() " << name << std::endl; // FIXME: temp testing
-
-
+                std::cout << "compiled " << name << " " << mTes4Parser.getName() << std::endl; // FIXME: temp testing
 
                 // FIXME: so much copying - maybe use unique_ptr ?
                 mForeignScripts.insert (std::make_pair (name, codes));
@@ -255,8 +248,9 @@ namespace MWScript
                 }
 
 #if 0 // FIXME: temp testing
-                for (unsigned int i = 0; i < iter->second.first.size(); ++i)
-                    std::cout << "0x" << std::setfill('0') << std::setw(8) << std::hex << iter->second.first[i] << std::endl;
+                if (name == "00083192" && blockName == "gamemode")
+                for (unsigned int i = 0; i < iter2->second.first.size(); ++i)
+                    std::cout << "0x" << std::setfill('0') << std::setw(8) << std::hex << iter2->second.first[i] << std::endl;
 #endif
                 mInterpreter.run (&iter2->second.first[0], iter2->second.first.size(), interpreterContext);
             }

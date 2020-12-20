@@ -252,6 +252,7 @@ namespace MWWorld
         // keep a static value somewhere?
         //mFormId = ref.mFormId | 0xff000000; // if spawned?
         mFormId = ref.mFormId;
+        mParentFormId = ref.mEsp.parent; // FIXME: if we kee ref then we can get this on the fly
 
         mFlags = ref.mFlags;
         mBaseObj = ref.mBaseObj;
@@ -351,6 +352,11 @@ namespace MWWorld
     ESM4::FormId CellRef::getFormId () const
     {
         return mFormId;
+    }
+
+    ESM4::FormId CellRef::getParentFormId () const
+    {
+        return mParentFormId;
     }
 
     // FIXME: is there another solution for doors?

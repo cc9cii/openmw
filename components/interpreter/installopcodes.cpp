@@ -92,6 +92,8 @@ namespace Interpreter
             new OpLogical<Type_Integer, std::logical_and<Type_Integer> >);
         interpreter.installSegment5 (73,
             new OpLogical<Type_Integer, std::logical_or<Type_Integer> >);
+        interpreter.installSegment5 (74, new OpFetchLocalRef);
+        interpreter.installSegment5 (75, new OpStoreLocalRef);
 
         // control structures
         interpreter.installSegment5 (20, new OpReturn);
