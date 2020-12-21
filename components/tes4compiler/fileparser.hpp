@@ -10,7 +10,6 @@
 #include "../interpreter/types.hpp"
 #include "parser.hpp"
 #include "scriptparser.hpp"
-//#include "eventparser.hpp"
 
 namespace Tes4Compiler
 {
@@ -24,12 +23,16 @@ namespace Tes4Compiler
             };
 
             ScriptParser mScriptParser;
-            //EventParser mEventParser;
             State mState;
             std::string mName;
             std::string mBlockType; // temporarily used during the script scanning
             Compiler::Locals mLocals;
             std::map <std::string, std::vector<Interpreter::Type_Code> > mCodeBlocks;
+
+            void getBlockCode (Compiler::Literals& literals,
+                const std::vector<Interpreter::Type_Code>& output, std::vector<Interpreter::Type_Code>& code);
+            int parseArguments(const std::string& argumentType, Scanner& scanner,
+                std::vector<Interpreter::Type_Code>& code, Compiler::Literals& literals);
 
         public:
 
