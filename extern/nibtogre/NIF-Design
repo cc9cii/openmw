@@ -5950,6 +5950,32 @@ Looks like object references can be specified by their `EditorId`s.  See below s
 
     end
 
+# [21/12/2020] Script Compiler (cont.)
+
+## Adding new funcitons and instructions
+
+For TES4, Segment 3 opcodes begin from 0x2002d and segment 5 opcodes begin from 0x2000302.
+
+Functions/instructions that have optional arguments must be in segment 3.
+
+  Action                          |  File
+  --------------------------------|---------------------------------------------
+  define opcodes                  | components/tes4compiler/opcodes.hpp
+  register extensions to compiler | components/tes4compiler/extensions0.cpp
+  install opcodes to interpreter  | apps/openmw/mwscript/tes4extensions.cpp, etc
+  update documentation on opcodes | apps/openmw/mwscript/docs/vmformat.txt
+
+## Adding new interpreter operations
+
+E.g. OpFetchLocalRef
+
+  Action                          |  File
+  --------------------------------|---------------------------------------------
+  add new operations              | components/interpreter/localopcodes.hpp
+  install opcodes to interpreter  | components/interpreter/installopcodes.cpp
+  update documentation on opcodes | components/interpreter/docs/vmformat.txt
+
+Note that the interpreter works for both TES3 and TES4, at least for now.
 
 
 

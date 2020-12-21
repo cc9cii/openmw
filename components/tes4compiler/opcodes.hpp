@@ -506,32 +506,63 @@ namespace Tes4Compiler
     namespace Event
     {
         // functions with optional arguments need to have opcode range for segment 3
-        // But what exactly is an "argument"?
-        const int opcodeOnActivate = 0x002002d;
-        const int opcodeGameMode = 0x002002e;
+        const int opcodeGameMode         = 0x2000302;
+        const int opcodeMenuMode         = 0x002002d; // int (opt)
+        const int opcodeOnActivate       = 0x002002e; // actor (opt)
+        const int opcodeOnActorEquip     = 0x2000303;
+        const int opcodeOnActorUnequip   = 0x2000304;
+        const int opcodeOnAdd            = 0x002002f; // container (opt)
+        const int opcodeOnAlarm          = 0x0020030; // crime type, actor (opt)
+        const int opcodeOnAlarmVictim    = 0x0020031; // crime type, actor (opt)
+        const int opcodeOnDeath          = 0x0020032; // actor (opt)
+        const int opcodeOnDrop           = 0x0020033; // container (opt)
+        const int opcodeOnEquip          = 0x0020034; // container (opt)
+        const int opcodeOnHit            = 0x0020035; // actor (opt)
+        const int opcodeOnHitWith        = 0x0020036; // object (opt)
+        const int opcodeOnKnockout       = 0x2000305;
+        const int opcodeOnLoad           = 0x2000306;
+        const int opcodeOnMagicEffectHit = 0x0020037; // magic effect (opt)
+        const int opcodeOnMurder         = 0x0020038; // actor (opt)
+        const int opcodeOnPackageChange  = 0x2000307;
+        const int opcodeOnPackageDone    = 0x2000308;
+        const int opcodeOnPackageEnd     = 0x2000309;
+        const int opcodeOnPackageStart   = 0x200030a;
+        const int opcodeOnReset          = 0x200030b;
+        const int opcodeOnSell           = 0x0020039; // actor (opt)
+        const int opcodeOnStartCombat    = 0x002003a; // actor (opt)
+        const int opcodeOnTrigger        = 0x002003b; // obj ref (opt)
+        const int opcodeOnTriggerActor   = 0x002003c; // obj ref (opt)
+        const int opcodeOnTriggerMob     = 0x002003d; // obj ref (opt)
+        const int opcodeOnUnequip        = 0x002003e; // container (opt)
     }
 
     namespace Tes4
     {
-        const int opcodeIsActionRef = 0x2000302;
-        const int opcodeIsActionRefExplicit = 0x2000303;
+        const int opcodeIsActionRef      = 0x200030c;
+        const int opcodeIsActionRefExplicit = 0x200030d;
 
-        const int opcodeGetStage = 0x2000304;
-        const int opcodeGetStageExplicit = 0x2000305;
+        const int opcodeGetStage         = 0x200030e;
+        const int opcodeGetStageExplicit = 0x200030f;
 
-        const int opcodeActivate = 0x002002f;         // segment 3 (can be segment 5 without optional parm?)
-        const int opcodeActivateExplicit = 0x0020030; // segment 3
+        const int opcodeActivate         = 0x002003f; // segment 3 (can be segment 5 without optional parm?)
+        const int opcodeActivateExplicit = 0x0020040; // segment 3
 
-        const int opcodeGetLocked = 0x2000306; // NOTE: same name but different namespace
+        const int opcodeGetLocked        = 0x2000310; // NOTE: same name but different namespace
 
-        const int opcodePlayGroup = 0x2000307;
+        const int opcodePlayGroup        = 0x2000311;
 
-        const int opcodeGetSelf = 0x2000308;
-        const int opcodeThis = 0x2000309;
+        const int opcodeGetSelf          = 0x2000312;
+        const int opcodeThis             = 0x2000313;
 
-        const int opcodeGetParentRef = 0x200030a;
+        const int opcodeGetParentRef     = 0x2000314;
 
-        const int opcodeIsAnimPlaying = 0x200030b;
+        const int opcodeIsAnimPlaying    = 0x2000315;
+
+        const int opcodeDisableLinkedPathPoints = 0x2000316;
+
+        const int opcodeSetStage         = 0x2000317;
+
+        const int opcodeDisable          = 0x2000318;
     }
 #if 0
     namespace User
