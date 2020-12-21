@@ -31,6 +31,8 @@
 #include "../mwworld/inventorystore.hpp"
 #include "../mwworld/esmstore.hpp"
 
+#include "../mwrender/animation.hpp"
+
 #include "interpretercontext.hpp"
 #include "ref.hpp"
 
@@ -138,7 +140,7 @@ namespace MWScript
 
                     // handle the arguments
                     MWWorld::Ptr actor;
-                    Interpreter::Type_Integer flag;
+                    Interpreter::Type_Integer flag = 0;
                     if (arg0 >= 1) // explicit
                     {
                         std::string name = runtime.getStringLiteral(runtime[0].mInteger);
@@ -160,7 +162,7 @@ namespace MWScript
                     // see https://cs.elderscrolls.com/index.php?title=Activate
                     // If the RunOnActivateFlag is set to 1, then the OnActivate block of the object (if any) will be
                     // run instead of the default activation. (In other words, act just as if ActivatorID activated it
-                    // directly -- NPC used it, Player moused over and clicked on it, etc.) 
+                    // directly -- NPC used it, Player moused over and clicked on it, etc.)
                     if (arg0 >= 2)
                     {
                         // FIXME: not 100% sure if below method is correct
@@ -178,7 +180,13 @@ namespace MWScript
 #endif
                     InterpreterContext& context = static_cast<InterpreterContext&> (runtime.getContext());
 
-                    context.executeActivation(ptr, actor);
+// FIXME: not quite working, commented out for now
+#if 0
+                    if (flag)
+                        context.executeActivationScript(ptr, actor);
+                    else
+#endif
+                        context.executeActivation(ptr, actor);
                 }
         };
 
@@ -202,6 +210,12 @@ namespace MWScript
                     // FIXME: need a new method with MWClass
 
                     std::cout << "PlayGroup: " << playgroupId << " " << count << std::endl; // FIXME: temp testing
+
+                    MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
+                    if (anim->hasAnimation("Forward") || anim->hasAnimation("Backward"))
+                    {
+                        std::cout << "has animation" << std::endl;
+                    }
 
 
                 }

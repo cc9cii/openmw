@@ -3802,8 +3802,9 @@ namespace MWWorld
 
         std::string script = object.getClass().getScript (object);
 
-        // FIXME: if playing with TES3 player but in FO3 or TES4 world, need to translate FormId to strings
-        breakInvisibility(actor);
+        // in TES4 other objects can activate
+        if (actor == MWBase::Environment::get().getWorld()->getPlayerPtr())
+            breakInvisibility(actor);
 
         if (mScriptsEnabled)
         {

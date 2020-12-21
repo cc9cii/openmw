@@ -5903,6 +5903,54 @@ Presumably it fails safely if the parent `REFR` is not found in the cell.
 
 `MWScript::ExplicitRef::operator()` calls `World::getPtr()` with "myparent" string literal.  But what we want is to be able to search for the content of "myparent" which should be `FormId` `0x0006BC07`.
 
+## Named references
+
+Looks like object references can be specified by their `EditorId`s.  See below script as an example.
+
+    scn CGCrumbleWall01SCRIPT
+
+    short pushed
+    float timer
+    short triggered		; set to 1 when waiting to trigger rats
+
+    begin onLoad
+
+        ; prepare linked pathsgrid points
+        disableLinkedPathPoints
+
+    end
+
+    begin onActivate
+
+        if pushed == 0 && isActionRef player == 0
+            playgroup Unequip 1
+            CGCrumbleDust01REF.playgroup forward 1
+            set pushed to 1
+            set timer to 2
+            setstage MQ01 24
+            setdestroyed 1
+            enableLinkedPathPoints
+        endif
+
+    end
+
+    begin gameMode
+        if timer > 0
+            set timer to timer - getSecondsPassed
+        endif
+
+        if pushed == 1 && timer <= 0
+            CGCrumbleDust02REF.playgroup forward 1
+            set pushed to 2
+            set timer to 4
+        elseif pushed == 2 && timer <= 0
+            CGCrumbleDust03REF.playgroup forward 1
+            set pushed to 3
+        endif
+
+    end
+
+
 
 
 

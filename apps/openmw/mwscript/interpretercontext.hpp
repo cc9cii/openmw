@@ -152,6 +152,8 @@ namespace MWScript
             void executeActivation(MWWorld::Ptr ptr, MWWorld::Ptr actor);
             ///< Execute the activation action for this ptr. If ptr is mActivated, mark activation as handled.
 
+            void executeActivationScript(MWWorld::Ptr ptr, MWWorld::Ptr actor);
+
             virtual float getSecondsPassed() const;
 
             virtual bool isDisabled (const std::string& id = "") const;

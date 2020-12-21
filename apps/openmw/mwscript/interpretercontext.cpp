@@ -522,9 +522,6 @@ namespace MWScript
 
     void InterpreterContext::executeActivation(MWWorld::Ptr ptr, MWWorld::Ptr actor)
     {
-        // FIXME: need to add a flag to indicate to run the OnActivate block rather than
-        //        activating the object
-
         boost::shared_ptr<MWWorld::Action> action = (ptr.getClass().activate(ptr, actor));
         action->execute (actor);
         if (mActivated == ptr)
@@ -533,6 +530,11 @@ namespace MWScript
             mActivated = MWWorld::Ptr();
             mActor = MWWorld::Ptr();
         }
+    }
+
+    void InterpreterContext::executeActivationScript(MWWorld::Ptr ptr, MWWorld::Ptr actor)
+    {
+        MWBase::Environment::get().getWorld()->activate(ptr, actor);
     }
 
     float InterpreterContext::getSecondsPassed() const
