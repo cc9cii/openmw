@@ -5977,6 +5977,55 @@ E.g. OpFetchLocalRef
 
 Note that the interpreter works for both TES3 and TES4, at least for now.
 
+## BlockType event
+
+    scn CGDungeon01ExitDoorScript
+
+    scan with ScriptParser
+        Scanner::scanName "if"
+        ScriptParser::parseKeyword
+            ControlParser::parseKeyword
+            :   scan with ExprParser  <----------------------------- start here
+            :       Scanner::scanName "IsActionRef"  <-------------- blockType
+            :           ExprParser::parseKeyword
+            :               parseArguments  <----------------------- arguments (special if none)
+            :               extensions->generateFunctionCode  <----- maybe a template
+            :               push back return type
+            :       Scanner::scanSpecial "=="
+            :           ExprParser::parseSpecial
+            :               pushBinaryOperator  <----------------------+
+            :       Scanner::scanInt "1"                               |
+            :           ExprParser::parseInt                           |
+            :               pushIntegerLiteral  <-------------------------+
+            :       Scanner::scanSpecial "\n"                          |  |
+            :           ExprParser::parseSpecial                       |  |
+            :               Scanner::putbackSpecial                    |  |
+            v   mState is now IfEndState  -------------------------- hard code
+            scan with ControlParser
+            :   ControlParser::parseSpecial (the "\n" put back)
+            :       mState is now IfBodyState  <-------------------- normal scan with ScriptParser
+            :   Scanner::scanName "Activate"
+            :       ControlParser::parseKeyword
+            :           ControlParser::parseIfBody
+            :               LineParser::parseKeyword
+            :                   ExprParser::parseArguments
+            :                       scan with StringParser
+            :                   Extensions::generateInstructionCode
+            :               scan with LineParser
+            :   ...
+            :
+            :   Scanner::scanName "endif"  <------------------------ normal end with ScriptParser
+            :       ControlParser::parseKeyword
+            :           ControlParser::parseIfBody
+            :               mIfCode.push_back
+            :               ...
+            :               generate jump code
+            :               ...
+            v               mState is now IfEndIfState
+            ControlParser::appendCode
+        Scanner::scanName "end"
+
+One solution might be to copy parts of ControlParser to create another, e.g. EventParser.
 
 
 

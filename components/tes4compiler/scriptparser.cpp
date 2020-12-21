@@ -101,4 +101,14 @@ namespace Tes4Compiler
     {
         return mLineParser;
     }
+
+    Compiler::Literals& ScriptParser::getLiterals()
+    {
+        return mOutput.getLiterals();
+    }
+
+    const std::vector<Interpreter::Type_Code>& ScriptParser::getCode() const
+    {
+        return mOutput.getCode();
+    }
 }

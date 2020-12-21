@@ -52,6 +52,10 @@ namespace Tes4Compiler
             ///< Reset parser to clean state.
 
             LineParser& getLineParser();
+
+            Compiler::Literals& getLiterals();
+
+            const std::vector<Interpreter::Type_Code>& getCode() const;
     };
 }
 

@@ -10,6 +10,7 @@
 #include "../interpreter/types.hpp"
 #include "parser.hpp"
 #include "scriptparser.hpp"
+//#include "eventparser.hpp"
 
 namespace Tes4Compiler
 {
@@ -23,6 +24,7 @@ namespace Tes4Compiler
             };
 
             ScriptParser mScriptParser;
+            //EventParser mEventParser;
             State mState;
             std::string mName;
             std::string mBlockType; // temporarily used during the script scanning

@@ -108,6 +108,8 @@ namespace MWScript
             if (mVerbose)
                 std::cout << "compiling script: " << name << std::endl;
 
+            std::cout << "compiling: " << script->mEditorId << std::endl; // FIXME: temp testing
+
             bool Success = true;
             try
             {
@@ -237,6 +239,8 @@ namespace MWScript
         if (blockType != std::string())
             blockName = blockType;
 
+        // FIXME: need to check any arguments passed into the block
+        // (e.g. "begin onTrigger player" in CGTrigZoneEmperorBirthsignSCRIPT)
         ScriptCollection::iterator iter2 = iter->second.find(blockName);
         if (iter2 != iter->second.end() && !iter2->second.first.empty())
             try
