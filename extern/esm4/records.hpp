@@ -68,5 +68,6 @@
 #include <extern/esm4/otft.hpp>
 #include <extern/esm4/flst.hpp>
 #include <extern/esm4/sndr.hpp>
+#include <extern/esm4/glob.hpp>
 
 #endif // ESM4_RECORDS_H

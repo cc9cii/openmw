@@ -249,7 +249,7 @@ void ESMStore::loadTes4Group (ESM::ESMReader &esm)
                 hdr.group.label.value == ESM4::REC_MUSC || hdr.group.label.value == ESM4::REC_ALOC ||
                 hdr.group.label.value == ESM4::REC_MSET || hdr.group.label.value == ESM4::REC_DOBJ ||
                 hdr.group.label.value == ESM4::REC_SNDR || hdr.group.label.value == ESM4::REC_OTFT ||
-                hdr.group.label.value == ESM4::REC_BPTD
+                hdr.group.label.value == ESM4::REC_BPTD || hdr.group.label.value == ESM4::REC_GLOB
                 )
             {
                 reader.saveGroupStatus();
@@ -258,7 +258,7 @@ void ESMStore::loadTes4Group (ESM::ESMReader &esm)
             else
             {
                 // Skip groups that are of no interest (for now).
-                //  GMST GLOB CLAS FACT SKIL MGEF ENCH SPEL BSGN WTHR CLMT
+                //  GMST CLAS FACT SKIL MGEF ENCH SPEL BSGN WTHR CLMT
                 //  CSTY LSCR LVSP WATR EFSH
 
                 // FIXME: The label field of a group is not reliable, so we will need to check here as well
@@ -436,10 +436,12 @@ void ESMStore::loadTes4Record (ESM::ESMReader& esm)
     ForeignId id;
     switch (hdr.record.typeId)
     {
-        // GMST, GLOB, CLAS, FACT
+        // GMST, CLAS, FACT
         case ESM4::REC_HDPT: reader.getRecordData(); id = mHeadParts.loadForeign(reader);
                              mForeignIds[id.mId] = ESM4::REC_HDPT; break;
-        case ESM4::REC_HAIR: reader.getRecordData(); id = mForeignHairs.loadForeign(reader);
+        case ESM4::REC_GLOB: reader.getRecordData(); id = mForeignGlobals.loadForeign(reader);
+                             mForeignIds[id.mId] = ESM4::REC_HAIR; break;
+        case ESM4::REC_HAIR: reader.getRecordData(); id = mForeignGlobals.loadForeign(reader);
                              mForeignIds[id.mId] = ESM4::REC_HAIR; break;
         case ESM4::REC_EYES: reader.getRecordData(); id = mForeignEyesSet.loadForeign(reader);
                              mForeignIds[id.mId] = ESM4::REC_EYES; break;

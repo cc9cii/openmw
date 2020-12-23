@@ -42,6 +42,44 @@ namespace MWWorld
         {
             mVariables.insert (std::make_pair (Misc::StringUtils::lowerCase (iter->mId), *iter));
         }
+
+        const MWWorld::ForeignStore<ESM4::GlobalVariable>& foreignGlobals
+            = store.getForeign<ESM4::GlobalVariable>();
+        for (ForeignStore<ESM4::GlobalVariable>::iterator iter2 = foreignGlobals.begin(); iter2 != foreignGlobals.end(); ++iter2)
+        {
+            ESM::Global record;
+            record.mId = iter2->mEditorId;
+
+            ESM::VarType type = ESM::VT_Unknown;
+
+            if (iter2->mType == 's')
+            {
+                type = ESM::VT_Short;
+                record.mValue.setType(type);
+
+                if (iter2->mValue != iter2->mValue)
+                    record.mValue.setInteger(0);
+                else
+                    record.mValue.setInteger(static_cast<short> (iter2->mValue));
+            }
+            else if (iter2->mType == 'l')
+            {
+                type = ESM::VT_Long;
+                record.mValue.setType(type);
+                record.mValue.setInteger(static_cast<int> (iter2->mValue));
+            }
+            else if (iter2->mType == 'f')
+            {
+                type = ESM::VT_Float;
+                record.mValue.setType(type);
+                record.mValue.setFloat(iter2->mValue);
+            }
+
+            std::pair<std::map<std::string, ESM::Global>::iterator, bool> res =
+                mVariables.insert (std::make_pair (Misc::StringUtils::lowerCase (iter2->mEditorId), record));
+
+            // FIXME: warn duplicates
+        }
     }
 
     const ESM::Variant& Globals::operator[] (const std::string& name) const

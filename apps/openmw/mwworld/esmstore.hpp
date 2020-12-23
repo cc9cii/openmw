@@ -80,6 +80,7 @@ namespace MWWorld
         ForeignStore<MWWorld::ForeignLand>  mForeignLands;
         ForeignStore<MWWorld::ForeignDialogue> mForeignDialogues;
         //
+        ForeignStore<ESM4::GlobalVariable> mForeignGlobals;
         ForeignStore<ESM4::Hair>       mForeignHairs;
         ForeignStore<ESM4::Eyes>       mForeignEyesSet;
         ForeignStore<ESM4::Race>       mForeignRaces;
@@ -261,6 +262,7 @@ namespace MWWorld
             mStores[ESM::REC_WEAP] = &mWeapons;
 
             // have a separate store so that there is no key clash
+            mForeignStores[ESM4::REC_GLOB] = &mForeignGlobals;
             mForeignStores[ESM4::REC_HAIR] = &mForeignHairs;
             mForeignStores[ESM4::REC_EYES] = &mForeignEyesSet;
             mForeignStores[ESM4::REC_RACE] = &mForeignRaces;
@@ -712,6 +714,11 @@ namespace MWWorld
     template <>
     inline const ForeignStore<ForeignLand> &ESMStore::getForeign<ForeignLand>() const {
         return mForeignLands;
+    }
+
+    template <>
+    inline const ForeignStore<ESM4::GlobalVariable>& ESMStore::getForeign<ESM4::GlobalVariable>() const {
+        return mForeignGlobals;
     }
 
     template <>

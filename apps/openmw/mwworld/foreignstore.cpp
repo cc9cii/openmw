@@ -1065,6 +1065,7 @@ namespace MWWorld
 //template class MWWorld::ForeignStore<MWWorld::ForeignCell>;
 //template class MWWorld::ForeignStore<MWWorld::ForeignLand>;
 //
+template class MWWorld::ForeignStore<ESM4::GlobalVariable>;
 template class MWWorld::ForeignStore<ESM4::Hair>;
 template class MWWorld::ForeignStore<ESM4::Eyes>;
 template class MWWorld::ForeignStore<ESM4::Race>;
