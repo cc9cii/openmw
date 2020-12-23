@@ -113,6 +113,24 @@ namespace Interpreter
             virtual void setMemberFloat (const std::string& id, const std::string& name, float value, bool global)
                 = 0;
 
+            virtual int getScriptMemberShort (const std::string& id, const std::string& name, bool global) const = 0;
+
+            virtual int getScriptMemberLong (const std::string& id, const std::string& name, bool global) const = 0;
+
+            virtual float getScriptMemberFloat (const std::string& id, const std::string& name, bool global) const = 0;
+
+            virtual float getScriptMemberRef (const std::string& id, const std::string& name, bool global) const = 0;
+
+            virtual void setScriptMemberShort (const std::string& id, const std::string& name, int value, bool global) = 0;
+
+            virtual void setScriptMemberLong (const std::string& id, const std::string& name, int value, bool global) = 0;
+
+            virtual void setScriptMemberFloat (const std::string& id, const std::string& name, float value, bool global)
+                = 0;
+
+            virtual void setScriptMemberRef (const std::string& id, const std::string& name, float value, bool global)
+                = 0;
+
             virtual std::string getTargetId() const = 0;
     };
 }

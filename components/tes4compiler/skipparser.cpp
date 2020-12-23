@@ -36,5 +36,11 @@ namespace Tes4Compiler
 
         return true;
     }
+
+    // at least one global script ends with EOF before newline e.g. GenericLoreScript
+    void SkipParser::parseEOF(Scanner& scanner)
+    {
+        // ignore
+    }
 }
 

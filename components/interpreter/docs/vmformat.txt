@@ -138,5 +138,21 @@ op 72: and
 op 73: or
 op 74: fetch local ref
 op 75: store local ref
+op 76: store stack[0] in member short stack[2] of object with ID stack[1]
+op 77: store stack[0] in member long stack[2] of object with ID stack[1]
+op 78: store stack[0] in member float stack[2] of object with ID stack[1]
+op 79: store stack[0] in member ref stack[2] of object with ID stack[1]
+op 80: replace stack[0] with member short stack[1] of object with ID stack[0]
+op 81: replace stack[0] with member long stack[1] of object with ID stack[0]
+op 82: replace stack[0] with member float stack[1] of object with ID stack[0]
+op 83: replace stack[0] with member ref stack[1] of object with ID stack[0]
+op 84: store stack[0] in member short stack[2] of global script with ID stack[1]
+op 85: store stack[0] in member long stack[2] of global script with ID stack[1]
+op 86: store stack[0] in member float stack[2] of global script with ID stack[1]
+op 87: store stack[0] in member ref stack[2] of global script with ID stack[1]
+op 88: replace stack[0] with member short stack[1] of global script with ID stack[0]
+op 89: replace stack[0] with member long stack[1] of global script with ID stack[0]
+op 90: replace stack[0] with member float stack[1] of global script with ID stack[0]
+op 91: replace stack[0] with member ref stack[1] of global script with ID stack[0]
 opcodes 76-33554431 unused
 opcodes 33554432-67108863 reserved for extensions

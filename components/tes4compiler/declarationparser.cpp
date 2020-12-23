@@ -13,6 +13,19 @@ Tes4Compiler::DeclarationParser::DeclarationParser (Compiler::ErrorHandler& erro
     const Compiler::Context& context, Compiler::Locals& locals)
 : Parser (errorHandler, context), mLocals (locals), mState (State_Begin), mType (0)
 {}
+// SE02QuestScript has ";" missing as per below (reformatted slightly for legibility)
+//
+// short metaActiveQuest           0 = not set or both, 1 = arrows, 2 = tears   -- used to "turn on and off" the branches so only one set QTs are up at once
+bool Tes4Compiler::DeclarationParser::parseInt (int value, const Compiler::TokenLoc& loc, Scanner& scanner)
+{
+    getErrorHandler().warning("comment without \";\" character", loc);
+
+    SkipParser skip (getErrorHandler(), getContext());
+    scanner.scan (skip);
+    mState = State_End;
+
+    return false;
+}
 
 bool Tes4Compiler::DeclarationParser::parseName (const std::string& name, const Compiler::TokenLoc& loc,
     Scanner& scanner)
@@ -23,6 +36,15 @@ bool Tes4Compiler::DeclarationParser::parseName (const std::string& name, const 
 
         char type = mLocals.getType (name2);
 
+        // SE08QuestScript has below:
+        //
+        // short PasswallBattleBegin ;Set to 1 when Order attacks Passwall after stage 20
+        // ...
+        // short PasswallBattleBegin ;Set to 1 at the beginning of stage 26
+        //
+        // Also ArenaGrandChampionMatchScript: short FightOver
+        //      Dark05AssassinatedScript: Float fQuestDelayTime
+        //      etc
         if (type!=' ')
         {
             /// \todo add option to make re-declared local variables an error
@@ -79,6 +101,14 @@ bool Tes4Compiler::DeclarationParser::parseSpecial (int code, const Compiler::To
         return false;
 
     return Parser::parseSpecial (code, loc, scanner);
+}
+
+// some global scripts end with EOF before newline e.g.
+// SE39QuestScript, SENQDWildernessScript, SENQDDementiaScript, SENQDManiaScript, SQ01Script, HorseQuestScript,
+// ICALLNQDScript, AnvilNQDScript, etc, etc
+void Tes4Compiler::DeclarationParser::parseEOF(Scanner& scanner)
+{
+    // ignore
 }
 
 void Tes4Compiler::DeclarationParser::reset()

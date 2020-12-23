@@ -35,6 +35,8 @@ namespace Tes4Compiler
             virtual bool parseSpecial (int code, const Compiler::TokenLoc& loc, Scanner& scanner);
             ///< Handle a special character token.
             /// \return fetch another token?
+
+            virtual void SkipParser::parseEOF(Scanner& scanner);
     };
 }
 

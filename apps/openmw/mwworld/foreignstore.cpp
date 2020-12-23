@@ -1021,6 +1021,16 @@ namespace MWWorld
         return ForeignId(record->mFormId, isDeleted);
     }
 
+    std::vector<ESM4::Quest*>::const_iterator ForeignStore<ESM4::Quest>::begin() const
+    {
+        return mQuests.begin();
+    }
+
+    std::vector<ESM4::Quest*>::const_iterator ForeignStore<ESM4::Quest>::end() const
+    {
+        return mQuests.end();
+    }
+
     const ESM4::Quest *ForeignStore<ESM4::Quest>::find(ESM4::FormId formId) const
     {
         const ESM4::Quest *quest = search(formId);

@@ -267,7 +267,7 @@ namespace
     {
         code.push_back (Tes4Compiler::Generator::segment5 (44));
     }
-
+#if 0
     void opStoreMemberShort (Tes4Compiler::Generator::CodeContainer& code, bool global)
     {
         code.push_back (Tes4Compiler::Generator::segment5 (global ? 65 : 59));
@@ -297,7 +297,47 @@ namespace
     {
         code.push_back (Tes4Compiler::Generator::segment5 (global ? 70 : 64));
     }
+#else
+    void opStoreScriptMemberShort (Tes4Compiler::Generator::CodeContainer& code, bool global)
+    {
+        code.push_back (Tes4Compiler::Generator::segment5 (global ? 76 : 84));
+    }
 
+    void opStoreScriptMemberLong (Tes4Compiler::Generator::CodeContainer& code, bool global)
+    {
+        code.push_back (Tes4Compiler::Generator::segment5 (global ? 77 : 85));
+    }
+
+    void opStoreScriptMemberFloat (Tes4Compiler::Generator::CodeContainer& code, bool global)
+    {
+        code.push_back (Tes4Compiler::Generator::segment5 (global ? 78 : 86));
+    }
+
+    void opStoreScriptMemberRef (Tes4Compiler::Generator::CodeContainer& code, bool global)
+    {
+        code.push_back (Tes4Compiler::Generator::segment5 (global ? 79 : 87));
+    }
+
+    void opFetchScriptMemberShort (Tes4Compiler::Generator::CodeContainer& code, bool global)
+    {
+        code.push_back (Tes4Compiler::Generator::segment5 (global ? 80 : 88));
+    }
+
+    void opFetchScriptMemberLong (Tes4Compiler::Generator::CodeContainer& code, bool global)
+    {
+        code.push_back (Tes4Compiler::Generator::segment5 (global ? 81 : 89));
+    }
+
+    void opFetchScriptMemberFloat (Tes4Compiler::Generator::CodeContainer& code, bool global)
+    {
+        code.push_back (Tes4Compiler::Generator::segment5 (global ? 82 : 90));
+    }
+
+    void opFetchScriptMemberRef (Tes4Compiler::Generator::CodeContainer& code, bool global)
+    {
+        code.push_back (Tes4Compiler::Generator::segment5 (global ? 83 : 91));
+    }
+#endif
     void opRandom (Tes4Compiler::Generator::CodeContainer& code)
     {
         code.push_back (Tes4Compiler::Generator::segment5 (45));
@@ -811,17 +851,22 @@ namespace Tes4Compiler
             {
                 case 'f':
 
-                    opStoreMemberFloat (code, global);
+                    opStoreScriptMemberFloat (code, global);
                     break;
 
                 case 's':
 
-                    opStoreMemberShort (code, global);
+                    opStoreScriptMemberShort (code, global);
                     break;
 
                 case 'l':
 
-                    opStoreMemberLong (code, global);
+                    opStoreScriptMemberLong (code, global);
+                    break;
+
+                case 'r':
+
+                    opStoreScriptMemberRef (code, global);
                     break;
 
                 default:
@@ -845,17 +890,22 @@ namespace Tes4Compiler
             {
                 case 'f':
 
-                    opFetchMemberFloat (code, global);
+                    opFetchScriptMemberFloat (code, global);
                     break;
 
                 case 's':
 
-                    opFetchMemberShort (code, global);
+                    opFetchScriptMemberShort (code, global);
                     break;
 
                 case 'l':
 
-                    opFetchMemberLong (code, global);
+                    opFetchScriptMemberLong (code, global);
+                    break;
+
+                case 'r':
+
+                    opFetchScriptMemberRef (code, global);
                     break;
 
                 default:

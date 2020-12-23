@@ -306,6 +306,102 @@ namespace Interpreter
             }
     };
 
+    class OpStoreScriptMemberShort : public Opcode0
+    {
+            bool mGlobal;
+
+        public:
+
+            OpStoreScriptMemberShort (bool global) : mGlobal (global) {}
+
+            virtual void execute (Runtime& runtime)
+            {
+                Type_Integer data = runtime[0].mInteger;
+                Type_Integer index = runtime[1].mInteger;
+                std::string id = runtime.getStringLiteral (index);
+                index = runtime[2].mInteger;
+                std::string variable = runtime.getStringLiteral (index);
+
+                runtime.getContext().setScriptMemberShort (id, variable, data, mGlobal);
+
+                runtime.pop();
+                runtime.pop();
+                runtime.pop();
+            }
+    };
+
+    class OpStoreScriptMemberLong : public Opcode0
+    {
+            bool mGlobal;
+
+        public:
+
+            OpStoreScriptMemberLong (bool global) : mGlobal (global) {}
+
+            virtual void execute (Runtime& runtime)
+            {
+                Type_Integer data = runtime[0].mInteger;
+                Type_Integer index = runtime[1].mInteger;
+                std::string id = runtime.getStringLiteral (index);
+                index = runtime[2].mInteger;
+                std::string variable = runtime.getStringLiteral (index);
+
+                runtime.getContext().setScriptMemberLong (id, variable, data, mGlobal);
+
+                runtime.pop();
+                runtime.pop();
+                runtime.pop();
+            }
+    };
+
+    class OpStoreScriptMemberFloat : public Opcode0
+    {
+            bool mGlobal;
+
+        public:
+
+            OpStoreScriptMemberFloat (bool global) : mGlobal (global) {}
+
+            virtual void execute (Runtime& runtime)
+            {
+                Type_Float data = runtime[0].mFloat;
+                Type_Integer index = runtime[1].mInteger;
+                std::string id = runtime.getStringLiteral (index);
+                index = runtime[2].mInteger;
+                std::string variable = runtime.getStringLiteral (index);
+
+                runtime.getContext().setScriptMemberFloat (id, variable, data, mGlobal);
+
+                runtime.pop();
+                runtime.pop();
+                runtime.pop();
+            }
+    };
+
+    class OpStoreScriptMemberRef : public Opcode0
+    {
+            bool mGlobal;
+
+        public:
+
+            OpStoreScriptMemberRef (bool global) : mGlobal (global) {}
+
+            virtual void execute (Runtime& runtime)
+            {
+                Type_Integer data = runtime[0].mInteger;
+                Type_Integer index = runtime[1].mInteger;
+                std::string id = runtime.getStringLiteral (index);
+                index = runtime[2].mInteger;
+                std::string variable = runtime.getStringLiteral (index);
+
+                runtime.getContext().setScriptMemberRef (id, variable, data, mGlobal);
+
+                runtime.pop();
+                runtime.pop();
+                runtime.pop();
+            }
+    };
+
     class OpFetchMemberShort : public Opcode0
     {
             bool mGlobal;
@@ -366,6 +462,90 @@ namespace Interpreter
 
                 float value = runtime.getContext().getMemberFloat (id, variable, mGlobal);
                 runtime[0].mFloat = value;
+            }
+    };
+
+    class OpFetchScriptMemberShort : public Opcode0
+    {
+            bool mGlobal;
+
+        public:
+
+            OpFetchScriptMemberShort (bool global) : mGlobal (global) {}
+
+            virtual void execute (Runtime& runtime)
+            {
+                Type_Integer index = runtime[0].mInteger;
+                std::string id = runtime.getStringLiteral (index);
+                index = runtime[1].mInteger;
+                std::string variable = runtime.getStringLiteral (index);
+                runtime.pop();
+
+                int value = runtime.getContext().getScriptMemberShort (id, variable, mGlobal);
+                runtime[0].mInteger = value;
+            }
+    };
+
+    class OpFetchScriptMemberLong : public Opcode0
+    {
+            bool mGlobal;
+
+        public:
+
+            OpFetchScriptMemberLong (bool global) : mGlobal (global) {}
+
+            virtual void execute (Runtime& runtime)
+            {
+                Type_Integer index = runtime[0].mInteger;
+                std::string id = runtime.getStringLiteral (index);
+                index = runtime[1].mInteger;
+                std::string variable = runtime.getStringLiteral (index);
+                runtime.pop();
+
+                int value = runtime.getContext().getScriptMemberLong (id, variable, mGlobal);
+                runtime[0].mInteger = value;
+            }
+    };
+
+    class OpFetchScriptMemberFloat : public Opcode0
+    {
+            bool mGlobal;
+
+        public:
+
+            OpFetchScriptMemberFloat (bool global) : mGlobal (global) {}
+
+            virtual void execute (Runtime& runtime)
+            {
+                Type_Integer index = runtime[0].mInteger;
+                std::string id = runtime.getStringLiteral (index);
+                index = runtime[1].mInteger;
+                std::string variable = runtime.getStringLiteral (index);
+                runtime.pop();
+
+                float value = runtime.getContext().getScriptMemberFloat (id, variable, mGlobal);
+                runtime[0].mFloat = value;
+            }
+    };
+
+    class OpFetchScriptMemberRef : public Opcode0
+    {
+            bool mGlobal;
+
+        public:
+
+            OpFetchScriptMemberRef (bool global) : mGlobal (global) {}
+
+            virtual void execute (Runtime& runtime)
+            {
+                Type_Integer index = runtime[0].mInteger;
+                std::string id = runtime.getStringLiteral (index);
+                index = runtime[1].mInteger;
+                std::string variable = runtime.getStringLiteral (index);
+                runtime.pop();
+
+                int value = runtime.getContext().getScriptMemberRef (id, variable, mGlobal);
+                runtime[0].mInteger = value;
             }
     };
 }

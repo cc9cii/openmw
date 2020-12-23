@@ -29,7 +29,16 @@ namespace MWScript
 
         if (iter==mScripts.end())
         {
-            if (const ESM::Script *script = mStore.get<ESM::Script>().find (name))
+            if (const ESM4::Script* script = mStore.getForeign<ESM4::Script>().search(ESM4::stringToFormId(name)))
+            {
+                GlobalScriptDesc desc;
+                desc.mRunning = true;
+                desc.mLocals.configure(*script);
+                desc.mId = targetId;
+
+                mScripts.insert(std::make_pair(name, desc));
+            }
+            else if (const ESM::Script *script = mStore.get<ESM::Script>().find (name))
             {
                 GlobalScriptDesc desc;
                 desc.mRunning = true;
@@ -100,6 +109,19 @@ namespace MWScript
             iter != mStore.get<ESM::StartScript>().end(); ++iter)
         {
             scripts.push_back (iter->mId);
+        }
+
+        const MWWorld::ForeignStore<ESM4::Quest>& questStore = mStore.getForeign<ESM4::Quest>();
+        const MWWorld::ForeignStore<ESM4::Script>& scriptStore = mStore.getForeign<ESM4::Script>();
+        for (std::vector<ESM4::Quest*>::const_iterator iter = questStore.begin(); iter != questStore.end(); ++iter)
+        {
+            if (ESM4::FormId scriptId = (*iter)->mQuestScript)
+            {
+                if (const ESM4::Script* script = scriptStore.search(scriptId))
+                {
+                    scripts.push_back(ESM4::formIdToString(script->mFormId));
+                }
+            }
         }
 
         // add scripts

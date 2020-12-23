@@ -25,6 +25,8 @@ namespace Tes4Compiler
 
             DeclarationParser (Compiler::ErrorHandler& errorHandler, const Compiler::Context& context, Compiler::Locals& locals);
 
+            virtual bool parseInt (int value, const Compiler::TokenLoc& loc, Scanner& scanner);
+
             virtual bool parseName (const std::string& name, const Compiler::TokenLoc& loc,
                 Scanner& scanner);
             ///< Handle a name token.
@@ -37,6 +39,8 @@ namespace Tes4Compiler
             virtual bool parseSpecial (int code, const Compiler::TokenLoc& loc, Scanner& scanner);
             ///< Handle a special character token.
             /// \return fetch another token?
+
+            virtual void parseEOF(Scanner& scanner);
 
             void reset();
 

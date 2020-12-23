@@ -261,6 +261,9 @@ namespace MWWorld
 
         virtual ~ForeignStore();
 
+        std::vector<ESM4::Quest*>::const_iterator begin() const;
+        std::vector<ESM4::Quest*>::const_iterator end() const;
+
         size_t getSize() const;
 
         RecordId load(ESM::ESMReader& esm);

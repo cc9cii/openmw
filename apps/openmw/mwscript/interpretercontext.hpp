@@ -52,6 +52,9 @@ namespace MWScript
             Locals& getMemberLocals (std::string& id, bool global);
             ///< \a id is changed to the respective script ID, if \a id wasn't a script ID before
 
+            const Locals& getScriptMemberLocals (std::string& id, bool global) const;
+            Locals& getScriptMemberLocals (std::string& id, bool global);
+
             /// Throws an exception if local variable can't be found.
             int findLocalVariableIndex (const std::string& scriptId, const std::string& name,
                 char type) const;
@@ -173,6 +176,21 @@ namespace MWScript
             virtual void setMemberLong (const std::string& id, const std::string& name, int value, bool global);
 
             virtual void setMemberFloat (const std::string& id, const std::string& name, float value, bool global);
+
+            virtual int getScriptMemberShort (const std::string& id, const std::string& name, bool global) const;
+
+            virtual int getScriptMemberLong (const std::string& id, const std::string& name, bool global) const;
+
+            virtual float getScriptMemberFloat (const std::string& id, const std::string& name, bool global) const;
+
+            virtual float getScriptMemberRef (const std::string& id, const std::string& name, bool global) const;
+
+            virtual void setScriptMemberShort (const std::string& id, const std::string& name, int value, bool global);
+
+            virtual void setScriptMemberLong (const std::string& id, const std::string& name, int value, bool global);
+
+            virtual void setScriptMemberFloat (const std::string& id, const std::string& name, float value, bool global);
+            virtual void setScriptMemberRef (const std::string& id, const std::string& name, float value, bool global);
 
             MWWorld::Ptr getReference(bool required=true);
             ///< Reference, that the script is running from (can be empty)

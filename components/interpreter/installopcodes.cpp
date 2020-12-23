@@ -51,6 +51,23 @@ namespace Interpreter
         interpreter.installSegment5 (68, new OpFetchMemberShort (true));
         interpreter.installSegment5 (69, new OpFetchMemberLong (true));
         interpreter.installSegment5 (70, new OpFetchMemberFloat (true));
+        // TES4 equivalents below
+        interpreter.installSegment5 (76, new OpStoreScriptMemberShort (false));
+        interpreter.installSegment5 (77, new OpStoreScriptMemberLong (false));
+        interpreter.installSegment5 (78, new OpStoreScriptMemberFloat (false));
+        interpreter.installSegment5 (79, new OpStoreScriptMemberRef (false));
+        interpreter.installSegment5 (80, new OpFetchScriptMemberShort (false));
+        interpreter.installSegment5 (81, new OpFetchScriptMemberLong (false));
+        interpreter.installSegment5 (82, new OpFetchScriptMemberFloat (false));
+        interpreter.installSegment5 (83, new OpFetchScriptMemberRef (false));
+        interpreter.installSegment5 (84, new OpStoreScriptMemberShort (true));
+        interpreter.installSegment5 (85, new OpStoreScriptMemberLong (true));
+        interpreter.installSegment5 (86, new OpStoreScriptMemberFloat (true));
+        interpreter.installSegment5 (87, new OpStoreScriptMemberRef (true));
+        interpreter.installSegment5 (88, new OpFetchScriptMemberShort (true));
+        interpreter.installSegment5 (89, new OpFetchScriptMemberLong (true));
+        interpreter.installSegment5 (90, new OpFetchScriptMemberFloat (true));
+        interpreter.installSegment5 (91, new OpFetchScriptMemberRef (true));
 
         // math
         interpreter.installSegment5 (9, new OpAddInt<Type_Integer>);
