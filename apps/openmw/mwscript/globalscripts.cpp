@@ -110,7 +110,8 @@ namespace MWScript
         {
             scripts.push_back (iter->mId);
         }
-
+// FIXME: comment out for testing
+#if 0
         const MWWorld::ForeignStore<ESM4::Quest>& questStore = mStore.getForeign<ESM4::Quest>();
         const MWWorld::ForeignStore<ESM4::Script>& scriptStore = mStore.getForeign<ESM4::Script>();
         for (std::vector<ESM4::Quest*>::const_iterator iter = questStore.begin(); iter != questStore.end(); ++iter)
@@ -123,7 +124,7 @@ namespace MWScript
                 }
             }
         }
-
+#endif
         // add scripts
         for (std::vector<std::string>::const_iterator iter (scripts.begin());
             iter!=scripts.end(); ++iter)

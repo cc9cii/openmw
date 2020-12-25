@@ -280,29 +280,35 @@ namespace MWScript
 
         void installOpcodes (Interpreter::Interpreter& interpreter)
         {
-            // IsActionRef has 1 non-optional parameter so the opcode can be segment 5
-            // However, Interpreter::installSegment5 only accepts pointers to base class Opcode0.
-            // i.e. in order to have 1 argument we need to have the opcode in segment 3
-            interpreter.installSegment5 (Tes4Compiler::Tes4::opcodeIsActionRef, new OpIsActionRef<ImplicitRef>);
-            interpreter.installSegment5 (Tes4Compiler::Tes4::opcodeIsActionRefExplicit, new OpIsActionRef<ExplicitRef>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Animation::opcodeIsAnimPlaying, new OpIsAnimPlaying<ImplicitRef>);
 
-            interpreter.installSegment5 (Tes4Compiler::Tes4::opcodeGetStage, new OpGetStage<ImplicitRef>);
-            interpreter.installSegment5 (Tes4Compiler::Tes4::opcodeGetStageExplicit, new OpGetStage<ExplicitRef>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Animation::opcodePlayGroup, new OpPlayGroup<ImplicitRef>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Animation::opcodePlayGroupExplicit, new OpPlayGroup<ExplicitRef>);
 
-            interpreter.installSegment5 (Tes4Compiler::Tes4::opcodeGetLocked, new OpGetLocked<ImplicitRef>);
+            interpreter.installSegment3
+                (Tes4Compiler::Tes4Inventory::opcodeActivate, new OpActivate<ImplicitRef>);
+            interpreter.installSegment3
+                (Tes4Compiler::Tes4Inventory::opcodeActivateExplicit, new OpActivate<ExplicitTes4Ref>);
 
-            // See Extensions::registerInstruction()
-            // optional arguments imply segment 3 or segment 4
-            interpreter.installSegment3 (Tes4Compiler::Tes4::opcodeActivate, new OpActivate<ImplicitRef>);
-            interpreter.installSegment3 (Tes4Compiler::Tes4::opcodeActivateExplicit, new OpActivate<ExplicitTes4Ref>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Quest::opcodeGetStage, new OpGetStage<ImplicitRef>);
 
-            interpreter.installSegment5 (Tes4Compiler::Tes4::opcodePlayGroup, new OpPlayGroup<ImplicitRef>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Misc::opcodeGetLocked, new OpGetLocked<ImplicitRef>);
 
-            interpreter.installSegment5 (Tes4Compiler::Tes4::opcodeGetSelf, new OpGetSelf<ImplicitRef>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Misc::opcodeGetParentRef, new OpGetParentRef<ImplicitRef>);
 
-            interpreter.installSegment5 (Tes4Compiler::Tes4::opcodeGetParentRef, new OpGetParentRef<ImplicitRef>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Misc::opcodeGetSelf, new OpGetSelf<ImplicitRef>);
 
-            interpreter.installSegment5 (Tes4Compiler::Tes4::opcodeIsAnimPlaying, new OpIsAnimPlaying<ImplicitRef>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Misc::opcodeIsActionRef, new OpIsActionRef<ImplicitRef>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Misc::opcodeIsActionRefExplicit, new OpIsActionRef<ExplicitRef>);
         }
     }
 }

@@ -30,6 +30,8 @@ namespace Tes4Compiler
             std::string mExplicit;
             bool mRefOp;
             bool mMemberOp;
+            bool mIsQuest; // FIXME: hack
+            std::string mPotentialExplicit;
 
             int getPriority (char op) const;
 
