@@ -112,16 +112,18 @@ namespace Tes4Compiler
 
                 if (extensions->isFunction (keyword, returnType, argumentType, hasExplicit))
                 {
+                    bool hasArguments = false;
                     Compiler::Literals& literals = mScriptParser.getLiterals();
                     const std::vector<Interpreter::Type_Code>& output = mScriptParser.getCode();
                     std::vector<Interpreter::Type_Code> code;
 
                     int optionalCount = parseArguments(argumentType, scanner, code, literals);
 
-                    if (optionalCount > 0)
+                    if (!code.empty())
                     {
                         extensions->generateFunctionCode(keyword, code, literals, "", optionalCount);
                         //mOperands.push_back (returnType);
+                        hasArguments = true;
                     }
 
                     std::cout << "event: " << mBlockType << std::endl; // FIXME: temp testing
@@ -129,7 +131,7 @@ namespace Tes4Compiler
                     mScriptParser.reset(true/*keepLocals*/);
                     scanner.scan(mScriptParser);
 
-                    if (optionalCount > 0)
+                    if (hasArguments)
                     {
                         Generator::jumpOnZero(code, (int) output.size() + 1); // keep compiler quiet
                     }
