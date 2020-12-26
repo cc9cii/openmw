@@ -29,14 +29,17 @@ namespace MWScript
 
         if (iter==mScripts.end())
         {
-            if (const ESM4::Script* script = mStore.getForeign<ESM4::Script>().search(ESM4::stringToFormId(name)))
+            if (ESM4::isFormId(name))
             {
-                GlobalScriptDesc desc;
-                desc.mRunning = true;
-                desc.mLocals.configure(*script);
-                desc.mId = targetId;
+                if (const ESM4::Script* script = mStore.getForeign<ESM4::Script>().search(ESM4::stringToFormId(name)))
+                {
+                    GlobalScriptDesc desc;
+                    desc.mRunning = true;
+                    desc.mLocals.configure(*script);
+                    desc.mId = targetId;
 
-                mScripts.insert(std::make_pair(name, desc));
+                    mScripts.insert(std::make_pair(name, desc));
+                }
             }
             else if (const ESM::Script *script = mStore.get<ESM::Script>().find (name))
             {
