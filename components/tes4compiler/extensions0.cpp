@@ -928,9 +928,9 @@ namespace Tes4Compiler
             extensions.registerInstruction
                 ("essentialdeathreload",  "c",      opcodeEssentialDeathReload, -1);
             extensions.registerFunction
-                ("getactionref",          'l', "cl", opcodeGetActionRef, opcodeGetActionRefExplicit); // ref
+                ("getactionref",          'l', "",   opcodeGetActionRef, opcodeGetActionRefExplicit); // ref
             extensions.registerFunction
-                ("getar",                 'l', "cl", opcodeGetActionRef, opcodeGetActionRefExplicit); // ref
+                ("getar",                 'l', "",   opcodeGetActionRef, opcodeGetActionRefExplicit); // ref
             extensions.registerFunction
                 ("getbuttonpressed",      'l', "",  opcodeGetButtonPressed, -1);
             extensions.registerFunction
