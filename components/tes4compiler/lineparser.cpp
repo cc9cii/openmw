@@ -69,6 +69,17 @@ namespace Tes4Compiler
             return true;
         }
 
+        if (mState == MessageButtonState || mState == MessageButtonCommaState)
+        {
+            // message display seconds parameter - ignore for now
+
+
+            if (mState != MessageButtonState)
+                mState = MessageButtonState; // to trigger the message generation
+
+            return false; // no other tokens expected
+        }
+
         return Parser::parseInt (value, loc, scanner);
     }
 
