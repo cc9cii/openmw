@@ -14,7 +14,7 @@ namespace Tes4Compiler
     {
             enum State
             {
-                State_Begin, State_Name, State_End
+                StartState, NameState, EndState
             };
 
             Compiler::Locals& mLocals;

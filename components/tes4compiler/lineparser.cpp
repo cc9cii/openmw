@@ -56,13 +56,13 @@ namespace Tes4Compiler
     LineParser::LineParser (Compiler::ErrorHandler& errorHandler, const Compiler::Context& context,
         Compiler::Locals& locals, Compiler::Literals& literals, std::vector<Interpreter::Type_Code>& code, bool allowExpression)
     : Parser (errorHandler, context), mLocals (locals), mLiterals (literals), mCode (code),
-       mState (BeginState), mReferenceMember(false), mButtons(0), mType(0),
+       mState (StartState), mReferenceMember(false), mButtons(0), mType(0),
        mExprParser (errorHandler, context, locals, literals), mAllowExpression (allowExpression)
     {}
 
     bool LineParser::parseInt (int value, const Compiler::TokenLoc& loc, Scanner& scanner)
     {
-        if (mAllowExpression && mState==BeginState)
+        if (mAllowExpression && mState==StartState)
         {
             scanner.putbackInt (value, loc);
             parseExpression (scanner, loc);
@@ -74,7 +74,7 @@ namespace Tes4Compiler
 
     bool LineParser::parseFloat (float value, const Compiler::TokenLoc& loc, Scanner& scanner)
     {
-        if (mAllowExpression && mState==BeginState)
+        if (mAllowExpression && mState==StartState)
         {
             scanner.putbackFloat (value, loc);
             parseExpression (scanner, loc);
@@ -187,7 +187,7 @@ namespace Tes4Compiler
             return true;
         }
 
-        if (mState == BeginState)
+        if (mState == StartState)
         {
             std::string name2 = Misc::StringUtils::lowerCase (name);
 
@@ -202,7 +202,7 @@ namespace Tes4Compiler
             }
         }
 
-        if (mState==BeginState && mAllowExpression)
+        if (mState==StartState && mAllowExpression)
         {
             std::string name2 = Misc::StringUtils::lowerCase (name);
 
@@ -275,7 +275,7 @@ namespace Tes4Compiler
             return parseName (loc.mLiteral, loc, scanner);
         }
 
-        if (mState==BeginState || mState==ExplicitState)
+        if (mState==StartState || mState==ExplicitState)
         {
             switch (keyword)
             {
@@ -385,11 +385,11 @@ namespace Tes4Compiler
         {
             // drop stray explicit reference
             getErrorHandler().warning ("stray explicit reference (ignoring it)", loc);
-            mState = BeginState;
+            mState = StartState;
             mExplicit.clear();
         }
 
-        if (mState==BeginState)
+        if (mState==StartState)
         {
             switch (keyword)
             {
@@ -522,7 +522,7 @@ namespace Tes4Compiler
         }
 
         if (code==Scanner::S_newline &&
-            (mState==EndState || mState==BeginState || mState==PotentialEndState))
+            (mState==EndState || mState==StartState || mState==PotentialEndState))
             return false;
 
         if (code==Scanner::S_comma && mState==MessageState)
@@ -563,7 +563,7 @@ namespace Tes4Compiler
             return true;
         }
 
-        if (mAllowExpression && mState==BeginState &&
+        if (mAllowExpression && mState==StartState &&
             (code==Scanner::S_open || code==Scanner::S_minus || code==Scanner::S_plus))
         {
             scanner.putbackSpecial (code, loc);
@@ -577,7 +577,7 @@ namespace Tes4Compiler
 
     void LineParser::reset()
     {
-        mState = BeginState;
+        mState = StartState;
         mName.clear();
         mExplicit.clear();
     }

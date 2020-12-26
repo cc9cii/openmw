@@ -11,7 +11,7 @@
 
 Tes4Compiler::DeclarationParser::DeclarationParser (Compiler::ErrorHandler& errorHandler,
     const Compiler::Context& context, Compiler::Locals& locals)
-: Parser (errorHandler, context), mLocals (locals), mState (State_Begin), mType (0)
+: Parser (errorHandler, context), mLocals (locals), mState (StartState), mType (0)
 {}
 // SE02QuestScript has ";" missing as per below (reformatted slightly for legibility)
 //
@@ -22,7 +22,7 @@ bool Tes4Compiler::DeclarationParser::parseInt (int value, const Compiler::Token
 
     SkipParser skip (getErrorHandler(), getContext());
     scanner.scan (skip);
-    mState = State_End;
+    mState = EndState;
 
     return false;
 }
@@ -30,7 +30,7 @@ bool Tes4Compiler::DeclarationParser::parseInt (int value, const Compiler::Token
 bool Tes4Compiler::DeclarationParser::parseName (const std::string& name, const Compiler::TokenLoc& loc,
     Scanner& scanner)
 {
-    if (mState==State_Name)
+    if (mState==NameState)
     {
         std::string name2 = ::Misc::StringUtils::lowerCase (name);
 
@@ -51,7 +51,7 @@ bool Tes4Compiler::DeclarationParser::parseName (const std::string& name, const 
             getErrorHandler().warning ("can't re-declare local variable (ignoring declaration)",
                 loc);
 
-            mState = State_End;
+            mState = EndState;
             return true;
         }
 
@@ -59,7 +59,7 @@ bool Tes4Compiler::DeclarationParser::parseName (const std::string& name, const 
 
         //std::cout << "decl: " << mType << " " << name2 << std::endl; // FIXME: temp testing
 
-        mState = State_End;
+        mState = EndState;
         return true;
     }
 
@@ -68,7 +68,7 @@ bool Tes4Compiler::DeclarationParser::parseName (const std::string& name, const 
 
 bool Tes4Compiler::DeclarationParser::parseKeyword (int keyword, const Compiler::TokenLoc& loc, Scanner& scanner)
 {
-    if (mState == State_Begin)
+    if (mState == StartState)
     {
         switch (keyword)
         {
@@ -81,11 +81,11 @@ bool Tes4Compiler::DeclarationParser::parseKeyword (int keyword, const Compiler:
 
         if (mType)
         {
-            mState = State_Name;
+            mState = NameState;
             return true;
         }
     }
-    else if (mState==State_Name)
+    else if (mState==NameState)
     {
         // allow keywords to be used as local variable names. MW script compiler, you suck!
         /// \todo option to disable this atrocity.
@@ -97,7 +97,7 @@ bool Tes4Compiler::DeclarationParser::parseKeyword (int keyword, const Compiler:
 
 bool Tes4Compiler::DeclarationParser::parseSpecial (int code, const Compiler::TokenLoc& loc, Scanner& scanner)
 {
-    if (code==Scanner::S_newline && mState==State_End)
+    if (code==Scanner::S_newline && mState==EndState)
         return false;
 
     return Parser::parseSpecial (code, loc, scanner);
@@ -113,5 +113,5 @@ void Tes4Compiler::DeclarationParser::parseEOF(Scanner& scanner)
 
 void Tes4Compiler::DeclarationParser::reset()
 {
-    mState = State_Begin;
+    mState = StartState;
 }

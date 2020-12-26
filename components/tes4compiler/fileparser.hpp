@@ -19,7 +19,7 @@ namespace Tes4Compiler
     {
             enum State
             {
-                StartState, NameState, BeginState, BlockTypeState, BeginCompleteState
+                StartState, BeginState, BlockTypeState
             };
 
             ScriptParser mScriptParser;

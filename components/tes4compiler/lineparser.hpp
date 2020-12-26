@@ -22,7 +22,7 @@ namespace Tes4Compiler
     {
             enum State
             {
-                BeginState,
+                StartState,
                 SetState, SetLocalVarState, SetGlobalVarState, SetPotentialMemberVarState,
                 SetMemberVarState, SetMemberVarState2,
                 MessageState, MessageCommaState, MessageButtonState, MessageButtonCommaState,
