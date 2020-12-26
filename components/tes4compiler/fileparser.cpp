@@ -261,7 +261,7 @@ namespace Tes4Compiler
     {
         if (code == Scanner::S_newline)
         {
-            if (mState == BeginState)
+            if (mState == BeginState || mState == StartState)
             {
                 return true; // ignore empty lines
             }
