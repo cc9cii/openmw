@@ -63,6 +63,12 @@ bool Tes4Compiler::DeclarationParser::parseName (const std::string& name, const 
         return true;
     }
 
+    //  SERakheranScript has extra "Player" after the declaration
+    if (mState == EndState)
+    {
+        return true;
+    }
+
     return Parser::parseName (name, loc, scanner);
 }
 
