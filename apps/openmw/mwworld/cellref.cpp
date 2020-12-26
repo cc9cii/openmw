@@ -259,10 +259,13 @@ namespace MWWorld
 
         mDestDoorId = 0;
 
-        // pretend to be a TES3 ref
+        // pretend to be a TES3 ref by populating mCellRef
+
+        // NOTE: CellRefList::find() uses mCellRef.mRefID via getRefId() but some
+        //       scripts have lowercase EditorId so we pre-convert the string here
         mCellRef.mRefID = ESM4::formIdToString(ref.mFormId);
         if (ref.mEditorId != "")
-            mCellRef.mRefID = ref.mEditorId; // FIXME: for testing doors
+            mCellRef.mRefID = Misc::StringUtils::lowerCase(ref.mEditorId); // for scripts and doors
 
         mCellRef.mPos.pos[0] = ref.mPlacement.pos.x;
         mCellRef.mPos.pos[1] = ref.mPlacement.pos.y;
@@ -315,6 +318,8 @@ namespace MWWorld
         mBaseObj = ref.mBaseObj;
 
         mCellRef.mRefID = ESM4::formIdToString(ref.mFormId);
+        if (ref.mEditorId != "")
+            mCellRef.mRefID = Misc::StringUtils::lowerCase(ref.mEditorId); // for scripts
 
         mCellRef.mPos.pos[0] = ref.mPlacement.pos.x;
         mCellRef.mPos.pos[1] = ref.mPlacement.pos.y;
@@ -336,6 +341,8 @@ namespace MWWorld
         mBaseObj = ref.mBaseObj;
 
         mCellRef.mRefID = ESM4::formIdToString(ref.mFormId);
+        if (ref.mEditorId != "")
+            mCellRef.mRefID = Misc::StringUtils::lowerCase(ref.mEditorId); // for scripts
 
         mCellRef.mPos.pos[0] = ref.mPlacement.pos.x;
         mCellRef.mPos.pos[1] = ref.mPlacement.pos.y;

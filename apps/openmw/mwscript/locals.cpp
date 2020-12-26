@@ -47,7 +47,7 @@ namespace MWScript
 
     bool Locals::isEmpty() const
     {
-        return (mShorts.empty() && mLongs.empty() && mFloats.empty());
+        return (mShorts.empty() && mLongs.empty() && mFloats.empty() && mRefs.empty());
     }
 
     bool Locals::hasVar(const std::string &script, const std::string &var)
@@ -82,6 +82,11 @@ namespace MWScript
 
                 case 'f':
                     return static_cast<int>(mFloats.at(index));
+
+                // FIXME: not sure if needed
+                //case 'r':
+                    //return mRefs.at(index);
+
                 default:
                     return 0;
             }
@@ -106,6 +111,10 @@ namespace MWScript
 
                 case 'f':
                     mFloats.at(index) = static_cast<float>(val); break;
+
+                // FIXME: not sure if needed
+                //case 'r':
+                    //mRefs.at (index) = val; break;
             }
             return true;
         }

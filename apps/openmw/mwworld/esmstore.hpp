@@ -6,6 +6,9 @@
 #include <components/esm/records.hpp>
 
 #include <extern/esm4/records.hpp>
+#include <extern/esm4/refr.hpp>
+#include <extern/esm4/achr.hpp>
+#include <extern/esm4/acre.hpp>
 
 #include "store.hpp"
 #include "foreignstore.hpp"
@@ -143,6 +146,10 @@ namespace MWWorld
         ForeignStore<ESM4::StaticCollection> mStaticCollections;
         ForeignStore<ESM4::SoundReference> mSoundReferences;
         ForeignStore<ESM4::Outfit>     mOutfits;
+
+        ForeignStore<ESM4::Reference>  mForeignRefs;
+        ForeignStore<ESM4::ActorCharacter> mForeignAchrs;
+        ForeignStore<ESM4::ActorCreature> mForeignAcres;
 
         // Lookup of all IDs. Makes looking up references faster. Just
         // maps the id name to the record type.
@@ -999,6 +1006,21 @@ namespace MWWorld
     template <>
     inline const ForeignStore<ESM4::Outfit>& ESMStore::getForeign<ESM4::Outfit>() const {
         return mOutfits;
+    }
+
+    template <>
+    inline const ForeignStore<ESM4::Reference>& ESMStore::getForeign<ESM4::Reference>() const {
+        return mForeignRefs;
+    }
+
+    template <>
+    inline const ForeignStore<ESM4::ActorCharacter>& ESMStore::getForeign<ESM4::ActorCharacter>() const {
+        return mForeignAchrs;
+    }
+
+    template <>
+    inline const ForeignStore<ESM4::ActorCreature>& ESMStore::getForeign<ESM4::ActorCreature>() const {
+        return mForeignAcres;
     }
 }
 

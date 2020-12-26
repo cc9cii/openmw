@@ -68,6 +68,29 @@ namespace MWWorld
         return nullptr;
     }
 
+    // FIXME: temporary hack for testing
+    template<typename T>
+    const T *ForeignStore<T>::searchLower(const std::string &id) const
+    {
+        std::string lowerEditorId = Misc::StringUtils::lowerCase(id);
+
+        typename Dynamic::const_iterator dit = mDynamic.begin();
+        for (; dit != mDynamic.end(); ++dit)
+        {
+            if (Misc::StringUtils::lowerCase(dit->second.mEditorId) == lowerEditorId)
+                return &dit->second;
+        }
+
+        typename Static::const_iterator it = mStatic.begin();
+        for (; it != mStatic.end(); ++it)
+        {
+            if (Misc::StringUtils::lowerCase(it->second.mEditorId) == lowerEditorId)
+                return &it->second;
+        }
+
+        return nullptr;
+    }
+
     template<typename T>
     const T *ForeignStore<T>::search(ESM4::FormId id) const
     {
@@ -143,6 +166,22 @@ namespace MWWorld
         T record;
         record.load(reader);
 
+        bool isDeleted = (record.mFlags & ESM4::Rec_Deleted) != 0;
+
+        std::pair<typename Static::iterator, bool> inserted
+            = mStatic.insert(std::make_pair(record.mFormId, record));
+
+        if (inserted.second)
+            mShared.push_back(&inserted.first->second);
+        else
+            inserted.first->second = record;
+
+        return ForeignId(record.mFormId, isDeleted);
+    }
+
+    template<typename T>
+    ForeignId ForeignStore<T>::loadForeign(typename T& record)
+    {
         bool isDeleted = (record.mFlags & ESM4::Rec_Deleted) != 0;
 
         std::pair<typename Static::iterator, bool> inserted
@@ -1007,7 +1046,12 @@ namespace MWWorld
         mQuests.push_back(record);
 
         mFormIdMap[record->mFormId] = index;
+#if 1
+        std::string lowerEditorId = Misc::StringUtils::lowerCase(record->mEditorId);
+        mTopicMap[lowerEditorId] = index;
+#else
         mTopicMap[record->mEditorId] = index;
+#endif
 
         for (std::size_t i = 0; i < record->mTargetConditions.size(); ++i)
         {
@@ -1063,7 +1107,12 @@ namespace MWWorld
 
     const ESM4::Quest *ForeignStore<ESM4::Quest>::search(const std::string& topic) const
     {
+#if 1
+        std::string lowerTopic = Misc::StringUtils::lowerCase(topic);
+        std::map<std::string, std::size_t>::const_iterator it = mTopicMap.find(lowerTopic);
+#else
         std::map<std::string, std::size_t>::const_iterator it = mTopicMap.find(topic);
+#endif
         if (it != mTopicMap.end())
             return mQuests[it->second];
 
@@ -1075,6 +1124,8 @@ namespace MWWorld
 //template class MWWorld::ForeignStore<MWWorld::ForeignCell>;
 //template class MWWorld::ForeignStore<MWWorld::ForeignLand>;
 //
+template class MWWorld::ForeignStore<ESM4::Reference>;
+
 template class MWWorld::ForeignStore<ESM4::GlobalVariable>;
 template class MWWorld::ForeignStore<ESM4::Hair>;
 template class MWWorld::ForeignStore<ESM4::Eyes>;

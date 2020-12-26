@@ -1,7 +1,13 @@
 #ifndef COMPILER_CONTEXT_H_INCLUDED
 #define COMPILER_CONTEXT_H_INCLUDED
 
+#include <cstdint>
 #include <string>
+
+namespace ESM4
+{
+    typedef std::uint32_t FormId; // avoid dependency to extern/esm4/formid.hpp
+}
 
 namespace Compiler
 {
@@ -45,6 +51,14 @@ namespace Compiler
 
             virtual bool isJournalId (const std::string& name) const = 0;
             ///< Does \a name match a journal ID?
+
+            //virtual bool isEditorId (const std::string& name) const = 0;
+
+            //virtual bool isQuestId (const std::string& name) const = 0;
+
+            virtual ESM4::FormId getReference (const std::string& editorId) const = 0;
+            ///< Return the \a FormId of an object reference, identified by its reference
+            /// \a EditorId, in currently active cells.  Return 0 if none found.
     };
 }
 

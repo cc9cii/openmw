@@ -24,7 +24,7 @@ namespace Tes4Compiler
         if (!mExplicit.empty())
         {
             mExprParser.parseName (mExplicit, loc, scanner);
-            if (mState==MemberState)
+            if (mState == MemberState)
                 mExprParser.parseSpecial (Scanner::S_member, loc, scanner);
             else
                 mExprParser.parseSpecial (Scanner::S_ref, loc, scanner);
@@ -204,13 +204,30 @@ namespace Tes4Compiler
 
             char type = mLocals.getType (name2);
 
-            if (type == 'r')
+            // FIXME: if getReference store its FormId as a local ref variable?
+            //
+            // Hack: getReference returns a formid
+            //       if non-zero create a local ref variable with name2
+            //
+            // alternatively store the FormId as an integer literal? (in both cases)
+            // e.g. Generator::pushString(mCode, mLiterals, name2);
+            // but this can't work if the local ref variable is filled by a function e.g. GetParentRef
+            if (type == 'r' || getContext().getReference(name2) != 0)
+            {
+                mState = PotentialExplicitState;
+                mExplicit = name; // NOTE: name used here because searchViaEditorId is case sensitive
+
+                return true;
+            }
+#if 0
+            else if (getContext().isQuestId(name))
             {
                 mState = PotentialExplicitState;
                 mExplicit = name2;
 
                 return true;
             }
+#endif
         }
 
         if (mState==StartState && mAllowExpression)
@@ -306,6 +323,7 @@ namespace Tes4Compiler
             // check for custom extensions
             if (const Compiler::Extensions *extensions = getContext().getExtensions())
             {
+                char returnType;
                 std::string argumentType;
 
                 bool hasExplicit = mState==ExplicitState;
@@ -352,6 +370,14 @@ namespace Tes4Compiler
                         throw;
                     }
 #endif
+
+                    mState = EndState;
+                    return true;
+                }
+                else if (extensions->isFunction(keyword, returnType, argumentType, hasExplicit))
+                {
+                    scanner.putbackKeyword(keyword, loc);
+                    parseExpression(scanner, loc);
 
                     mState = EndState;
                     return true;
@@ -545,11 +571,13 @@ namespace Tes4Compiler
         }
 
         if (code==Scanner::S_ref && mState==PotentialExplicitState)
+        //if (code==Scanner::S_ref_or_member && mState==PotentialExplicitState)
         {
             mState = ExplicitState;
             return true;
         }
 
+//#if 0
         if (code==Scanner::S_member && mState==PotentialExplicitState)
         {
             mState = MemberState;
@@ -557,7 +585,7 @@ namespace Tes4Compiler
             mState = EndState;
             return true;
         }
-
+//#endif
         if (code==Scanner::S_newline && mState==MessageButtonState)
         {
             Generator::message (mCode, mLiterals, mName, mButtons);
@@ -570,7 +598,9 @@ namespace Tes4Compiler
             return true;
         }
 
-        if (code==Scanner::S_member && mState==SetPotentialMemberVarState)
+        //if (code==Scanner::S_member && mState==SetPotentialMemberVarState)
+        if (code == Scanner::S_ref && mState == SetPotentialMemberVarState)
+        //if (code == Scanner::S_ref_or_member && mState == SetPotentialMemberVarState)
         {
             mState = SetMemberVarState;
             return true;

@@ -181,6 +181,7 @@ namespace MWWorld
             /// unloaded.
 
             Ptr search (ESM4::FormId formId);
+            Ptr searchViaEditorId (const std::string& editorId);
             Ptr search (const std::string& id);
             ///< Will return an empty Ptr if cell is not loaded. Does not check references in
             /// containers.

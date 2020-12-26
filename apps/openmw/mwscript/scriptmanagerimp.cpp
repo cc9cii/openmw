@@ -108,6 +108,9 @@ namespace MWScript
             if (mVerbose)
                 std::cout << "compiling script: " << name << std::endl;
 
+            //if (script->mEditorId == "MQ14Script")
+                //std::cout << name << std::endl;
+
             std::cout << "compiling: " << script->mEditorId << std::endl; // FIXME: temp testing
 
             bool Success = true;
@@ -238,6 +241,8 @@ namespace MWScript
         std::string blockName = "gamemode";
         if (blockType != std::string())
             blockName = blockType;
+        else
+            return; // FIXME: stop running gamemode blocks for testing
 
         // FIXME: need to check any arguments passed into the block
         // (e.g. "begin onTrigger player" in CGTrigZoneEmperorBirthsignSCRIPT)
@@ -352,6 +357,8 @@ namespace MWScript
                 std::cout
                     << "scanning script for local variable declarations: " << name
                     << std::endl;
+
+            //std::cout << "locals: " << script->mEditorId << std::endl; // FIXME: temp testing
 
             Compiler::Locals locals;
 

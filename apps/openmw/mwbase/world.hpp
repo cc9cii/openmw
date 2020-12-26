@@ -223,6 +223,8 @@ namespace MWBase
 
             virtual MWWorld::Ptr searchPtrViaFormId (ESM4::FormId formId, bool activeOnly) = 0;
 
+            virtual MWWorld::Ptr searchPtrViaEditorId (const std::string& editorId, bool activeOnly) = 0;
+
             virtual MWWorld::Ptr findContainer (const MWWorld::Ptr& ptr) = 0;
             ///< Return a pointer to a liveCellRef which contains \a ptr.
             /// \note Search is limited to the active cells.

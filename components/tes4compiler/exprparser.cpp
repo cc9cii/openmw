@@ -221,6 +221,7 @@ namespace Tes4Compiler
     bool ExprParser::handleMemberAccess (const std::string& name)
     {
         mMemberOp = false;
+        mRefOp = false; // FIXME: what a mess
 
         std::string name2 = Misc::StringUtils::lowerCase (name);
         std::string id = Misc::StringUtils::lowerCase (mExplicit);
@@ -243,7 +244,8 @@ namespace Tes4Compiler
     ExprParser::ExprParser (Compiler::ErrorHandler& errorHandler, const Compiler::Context& context, Compiler::Locals& locals,
         Compiler::Literals& literals, bool argument)
     : Parser (errorHandler, context), mLocals (locals), mLiterals (literals),
-      mNextOperand (true), mFirst (true), mArgument (argument), mExplicit(""), mRefOp (false), mMemberOp (false)
+      mNextOperand (true), mFirst (true), mArgument (argument), mExplicit(""), mRefOp (false),// mMemberOp (false),
+      mIsQuest(false), mPotentialExplicit("")
     {}
 
     bool ExprParser::parseInt (int value, const Compiler::TokenLoc& loc, Scanner& scanner)
@@ -322,7 +324,9 @@ namespace Tes4Compiler
                 }
             }
 #endif
-            if (mMemberOp && handleMemberAccess (name))
+            // FIXME: if we reach here must have not found any extension "keyword", so mRefOp is really mMemberOp
+            // but the logic is hard to follow so needs a cleanup
+            if ((mMemberOp || mRefOp) && handleMemberAccess (name))
                 return true;
 
             return Parser::parseName (name, loc, scanner);
@@ -338,17 +342,15 @@ namespace Tes4Compiler
 
             char type = mLocals.getType (name2);
 
-            // FIXME: if type == `r` then kinda similar to getContext().isId(name2)
-            if (type == 'r' && mExplicit.empty())
-            {
-                mExplicit = name2;
-                return true;
-            }
-            else if (type!=' ')
+            if (type != ' ')
             {
                 Generator::fetchLocal (mCode, type, mLocals.getIndex (name2));
                 mNextOperand = false;
                 mOperands.push_back (type=='f' ? 'f' : 'l');
+
+                if (type == 'r')
+                    mPotentialExplicit = name;
+
                 return true;
             }
 
@@ -361,7 +363,7 @@ namespace Tes4Compiler
                 mOperands.push_back (type=='f' ? 'f' : 'l');
                 return true;
             }
-
+#if 0
             // die in a fire, Morrowind script compiler!
             if (const Compiler::Extensions *extensions = getContext().getExtensions())
             {
@@ -377,11 +379,26 @@ namespace Tes4Compiler
                     return true;
                 }
             }
+#endif
+            //if ((/*type == 'r' || */getContext().isEditorId(name)) && mExplicit.empty())
+            if (ESM4::FormId formId = getContext().getReference(name2))
+            {
+                mPotentialExplicit = name; // to make parseSpecial check for S_ref
+#if 1
+                pushIntegerLiteral(formId); // WARN: unsigned to signed, hopefully ok
+#else
+                mOperands.push_back('l');
+                Generator::pushInt(mCode, mLiterals, formId);
+                mNextOperand = false;
+#endif
+
+                return true;
+            }
 #if 0
-            // FIXME: isId() doesn't make sense for TES4
-            if (mExplicit.empty() && getContext().isId (name2))
+            else if (mExplicit.empty() && getContext().isQuestId (name2))
             {
                 mExplicit = name2;
+                mIsQuest = true;
                 return true;
             }
 #endif
@@ -503,9 +520,29 @@ namespace Tes4Compiler
                         mTokenLoc = loc;
                         int optionals = parseArguments (argumentType, scanner);
 
-                        extensions->generateFunctionCode (keyword, mCode, mLiterals, mExplicit,
-                            optionals);
+                        extensions->generateFunctionCode (keyword, mCode, mLiterals, mExplicit, optionals);
                         mOperands.push_back (returnType);
+                        mExplicit.clear();
+                        mRefOp = false;
+
+                        mNextOperand = false;
+                        return true;
+                    }
+
+                    if (extensions->isInstruction (keyword, argumentType, hasExplicit))
+                    {
+                        if (!hasExplicit)
+                        {
+                            getErrorHandler().warning ("stray explicit reference (ignoring it)", loc);
+                            mExplicit.clear();
+                        }
+
+                        start();
+
+                        int optionals = parseArguments (argumentType, scanner);
+
+                        extensions->generateInstructionCode(keyword, mCode, mLiterals, mExplicit, optionals);
+                        mOperands.push_back('l'); // FIXME: ?? is this needed for an instruction?
                         mExplicit.clear();
                         mRefOp = false;
 
@@ -664,18 +701,20 @@ namespace Tes4Compiler
                 return true;
             }
 
-            if (!mRefOp && code==Scanner::S_ref)
+            if (!mRefOp && code==Scanner::S_ref && !mIsQuest)
+            //if (!mRefOp && code==Scanner::S_ref_or_member && !mIsQuest)
             {
                 mRefOp = true;
                 return true;
             }
-
-            if (!mMemberOp && code==Scanner::S_member)
+//#if 0
+            if (!mMemberOp && code==Scanner::S_ref && mIsQuest)
             {
+                mIsQuest = false;
                 mMemberOp = true;
                 return true;
             }
-
+//#endif
             return Parser::parseSpecial (code, loc, scanner);
         }
 
@@ -747,6 +786,23 @@ namespace Tes4Compiler
             mTokenLoc = loc;
             scanner.putbackSpecial (code, loc);
             return false;
+        }
+
+        // FIXME: tidy up logic
+        if (!mRefOp && code == Scanner::S_ref && !mIsQuest)
+        //if (!mRefOp && code == Scanner::S_ref_or_member && !mIsQuest)
+        {
+            mExplicit = mPotentialExplicit; // FIXME: convert to lowercase?
+            mPotentialExplicit.clear();
+            mNextOperand = true;
+            mRefOp = true;
+            return true;
+        }
+
+        // FIXME: tidy up logic
+        if (!mPotentialExplicit.empty())
+        {
+            mPotentialExplicit.clear();
         }
 
         if (!mNextOperand)

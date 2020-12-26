@@ -90,6 +90,9 @@ namespace MWScript
                 MWScript::InterpreterContext interpreterContext (
                     &iter->second.mLocals, MWWorld::Ptr(), iter->second.mId);
 
+#if 0
+                if (!ESM4::isFormId(iter->first)) // disable TES4 global scripts for now
+#endif
                 MWBase::Environment::get().getScriptManager()->run (iter->first, interpreterContext);
             }
         }
@@ -114,7 +117,7 @@ namespace MWScript
             scripts.push_back (iter->mId);
         }
 // FIXME: comment out for testing
-#if 0
+#if 1
         const MWWorld::ForeignStore<ESM4::Quest>& questStore = mStore.getForeign<ESM4::Quest>();
         const MWWorld::ForeignStore<ESM4::Script>& scriptStore = mStore.getForeign<ESM4::Script>();
         for (std::vector<ESM4::Quest*>::const_iterator iter = questStore.begin(); iter != questStore.end(); ++iter)

@@ -14,7 +14,6 @@ namespace ESM
 namespace ESM4
 {
     struct Script;
-    struct Locals;
 }
 
 namespace MWScript

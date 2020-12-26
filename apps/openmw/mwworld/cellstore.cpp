@@ -711,6 +711,84 @@ namespace MWWorld
         return Ptr();
     }
 
+    Ptr CellStore::searchViaEditorId(const std::string& editorId)
+    {
+        bool oldState = mHasState;
+
+        mHasState = true;
+
+        if (LiveCellRefBase *ref = mForeignActivators.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mForeignPotions.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mForeignApparatus.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mForeignArmors.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mForeignBooks.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mForeignClothes.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mForeignContainers.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mForeignCreatures.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mForeignDoors.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mForeignIngredients.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mLevelledCreatures.find (editorId))
+            return Ptr (ref, this);
+
+        //if (LiveCellRefBase *ref = mLevelledItems.find (editorId))
+            //return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mForeignLights.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mForeignKeys.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mForeignMiscItems.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mForeignNpcs.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mForeignFurnitures.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mForeignFloras.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mSoulGems.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mSigilStones.find (editorId))
+            return Ptr (ref, this);
+
+        if (LiveCellRefBase *ref = mForeignWeapons.find (editorId))
+            return Ptr (ref, this);
+
+        // needed for script parsing
+        if (LiveCellRefBase *ref = mForeignStatics.find (editorId))
+            return Ptr (ref, this);
+
+        mHasState = oldState;
+
+        return Ptr();
+    }
+
     Ptr CellStore::search(const std::string& id)
     {
         bool oldState = mHasState;

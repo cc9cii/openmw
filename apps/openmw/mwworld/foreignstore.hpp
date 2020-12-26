@@ -69,6 +69,7 @@ namespace MWWorld
         void setUp();
 
         const T *search(const std::string& id) const; // search EditorId
+        const T *searchLower(const std::string &id) const; // search EditorId, convert lowercase first
 
         const T *search(ESM4::FormId id) const; // search BaseObj or DIAL
 
@@ -106,6 +107,7 @@ namespace MWWorld
 
         virtual RecordId load(ESM::ESMReader& esm);
         ForeignId loadForeign(ESM4::Reader& reader);
+        ForeignId loadForeign(T& record);
 
         virtual void write(ESM::ESMWriter& writer, Loading::Listener& progress) const;
 

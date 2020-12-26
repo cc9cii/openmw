@@ -766,6 +766,15 @@ namespace MWWorld
         return mWorldScene->searchPtrViaFormId(formId);
     }
 
+    Ptr World::searchPtrViaEditorId (const std::string& editorId, bool activeOnly)
+    {
+        // FIXME: currently player is still from TES3
+        if (editorId == "player" || editorId == "playerref")
+            return mPlayer->getPlayer();
+
+        return mWorldScene->searchPtrViaEditorId(editorId);
+    }
+
     struct FindContainerFunctor
     {
         Ptr mContainedPtr;

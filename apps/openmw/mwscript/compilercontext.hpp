@@ -42,6 +42,10 @@ namespace MWScript
 
             virtual bool isJournalId (const std::string& name) const;
             ///< Does \a name match a journal ID?
+
+            virtual ESM4::FormId getReference (const std::string& editorId) const;
+            ///< Return the \a FormId of an object reference, identified by its reference
+            /// \a EditorId, in currently active cells.  Return 0 if none found.
     };
 }
 

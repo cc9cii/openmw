@@ -597,20 +597,29 @@ void ESMStore::loadTes4Record (ESM::ESMReader& esm)
                           << ESM4::formIdToString(record.mFormId) << " NOT visible dist" << std::endl;
             }
 #endif
+            // for loading bar (not working that well)
             mForeignCells.incrementRefrCount(esm);
+
+            mForeignRefs.loadForeign(record);
 
             break;
         }
         case ESM4::REC_ACHR:
         {
             // this ACHR must be in "Cell Persistent Child" group
-            reader.skipRecordData();
+            ESM4::ActorCharacter record;
+
+            reader.getRecordData();
+            mForeignAchrs.loadForeign(reader);
             break;
         }
         case ESM4::REC_ACRE: // Oblivion only?
         {
             // this ACHE must be in "Cell Persistent Child" group
-            reader.skipRecordData();
+            ESM4::Reference record;
+            reader.getRecordData();
+            mForeignAcres.loadForeign(reader);
+
             break;
         }
 #if 0

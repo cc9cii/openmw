@@ -118,25 +118,9 @@ namespace MWScript
             return MWBase::Environment::get().getScriptManager()->getGlobalScripts().
                 getLocals (id);
         }
-#if 0
-        else if (const ESM4::Quest* quest =
-            MWBase::Environment::get().getWorld()->getStore().getForeign<ESM4::Quest>().search(id))
-        {
-            //const MWWorld::ESMStore &store = MWBase::Environment::get().getWorld()->getStore();
-            //const ESM4::Quest *quest = store.getForeign<ESM4::Quest>().search (name);
-            const ESM4::Script *script = nullptr;
-            if (quest->mQuestScript)
-            {
-                script = MWBase::Environment::get().getWorld()->getStore().getForeign<ESM4::Script>().search(quest->mQuestScript);
-
-                return Locals(); // MWBase::Environment::get().getScriptManager()->getQuestScriptLocals(id);
-            }
-
-            // FIXME: else condition?
-        }
-#endif
         else
         {
+            // FIXME: this won't work for TES4
             const MWWorld::Ptr ptr = getReferenceImp (id, false);
 
              id = ptr.getClass().getScript (ptr);
@@ -155,21 +139,9 @@ namespace MWScript
             return MWBase::Environment::get().getScriptManager()->getGlobalScripts().
                 getLocals (id);
         }
-#if 0
-        else if (const ESM4::Quest* quest =
-            MWBase::Environment::get().getWorld()->getStore().getForeign<ESM4::Quest>().search(id))
-        {
-            const ESM4::Script *script = nullptr;
-            if (quest->mQuestScript)
-            {
-                script = MWBase::Environment::get().getWorld()->getStore().getForeign<ESM4::Script>().search(quest->mQuestScript);
-
-                return Locals(); // MWBase::Environment::get().getScriptManager()->getQuestScriptLocals(id);
-            }
-        }
-#endif
         else
         {
+            // FIXME: this won't work for TES4
             const MWWorld::Ptr ptr = getReferenceImp (id, false);
 
             id = ptr.getClass().getScript (ptr);

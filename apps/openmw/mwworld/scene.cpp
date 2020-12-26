@@ -2092,6 +2092,16 @@ namespace MWWorld
         return Ptr();
     }
 
+    Ptr Scene::searchPtrViaEditorId (const std::string& editorId)
+    {
+        for (CellStoreCollection::const_iterator iter (mActiveCells.begin());
+            iter != mActiveCells.end(); ++iter)
+            if (Ptr ptr = (*iter)->searchViaEditorId(editorId))
+                return ptr;
+
+        return Ptr();
+    }
+
     // FIXME: calculation around the "32" boundary is not correct, try Cheydinhal
     //
     // FIXME: support FO3/FONV file names
