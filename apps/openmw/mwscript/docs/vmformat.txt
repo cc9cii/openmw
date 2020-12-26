@@ -58,7 +58,9 @@ op 0x20029: PCRaiseRank, explicit reference
 op 0x2002a: PCLowerRank, explicit reference
 op 0x2002b: PCJoinFaction, explicit reference
 op 0x2002c: MenuTest
-opcodes 0x2002d-0x3ffff unused
+opcodes 0x2002d-0x2003f unused
+opcodes 0x20040-0x200ff tes4
+opcodes 0x20100-0x3ffff unused
 
 Segment 4:
 (not implemented yet)
@@ -446,4 +448,8 @@ op 0x20002ff: SetFactionReaction
 op 0x2000300: EnableLevelupMenu
 op 0x2000301: ToggleScripts
 
-opcodes 0x2000302-0x3ffffff unused
+opcodes 0x2000302-0x20003ff unused
+opcodes 0x2000400-0x20006ff tes4
+opcodes 0x2000700-0x3ffffff unused
+
+
