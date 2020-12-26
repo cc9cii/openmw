@@ -530,6 +530,7 @@ namespace Tes4Compiler
                 mNextOperand = false;
                 return true;
             }
+#if 0  // handled as a function
             else if (keyword==Scanner::K_menumode)
             {
                 start();
@@ -542,6 +543,7 @@ namespace Tes4Compiler
                 mNextOperand = false;
                 return true;
             }
+#endif
             else if (keyword==Scanner::K_random)
             {
                 start();

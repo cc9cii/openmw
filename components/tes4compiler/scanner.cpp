@@ -270,7 +270,7 @@ namespace Tes4Compiler
         "messagebox", "message",
         "set", "to",
         "getsquareroot",
-        "menumode",
+        //"menumode", // handled as a function
         "random",
         "startscript", "stopscript", "scriptrunning",
         "getdistance",

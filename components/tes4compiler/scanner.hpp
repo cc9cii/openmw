@@ -54,7 +54,7 @@ namespace Tes4Compiler
                 K_messagebox, K_message,
                 K_set, K_to,
                 K_getsquareroot,
-                K_menumode,
+                //K_menumode,
                 K_random,
                 K_startscript, K_stopscript, K_scriptrunning,
                 K_getdistance,

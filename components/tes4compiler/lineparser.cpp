@@ -500,7 +500,7 @@ namespace Tes4Compiler
 
         if (mAllowExpression)
         {
-            if (keyword==Scanner::K_getsquareroot || keyword==Scanner::K_menumode ||
+            if (keyword==Scanner::K_getsquareroot || //keyword==Scanner::K_menumode ||
                 keyword==Scanner::K_random || keyword==Scanner::K_scriptrunning ||
                 keyword==Scanner::K_getsecondspassed)
             {
