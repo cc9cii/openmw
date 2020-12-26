@@ -627,7 +627,7 @@ namespace Tes4Compiler
                     {
                         mTokenLoc = loc;
 
-                        std::cout << "function " << loc.mLiteral << std::endl; // FIXME: temp testing
+                        //std::cout << "function " << loc.mLiteral << std::endl; // FIXME: temp testing
 
                         int optionals = parseArguments (argumentType, scanner);
 

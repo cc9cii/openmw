@@ -194,12 +194,12 @@ namespace Tes4Compiler
                 if (keyword==Scanner::K_elseif)
                     getErrorHandler().warning ("elseif without matching if", loc);
 
-                std::cout << "control parser keyword: if" << std::endl; // FIXME: temp testing
+                //std::cout << "control parser keyword: if" << std::endl; // FIXME: temp testing
 
                 mExprParser.reset();
                 scanner.scan (mExprParser);
 
-                std::cout << "control parser keyword: if end" << std::endl; // FIXME: temp testing
+                //std::cout << "control parser keyword: if end" << std::endl; // FIXME: temp testing
 
                 mState = IfEndState;
                 return true;

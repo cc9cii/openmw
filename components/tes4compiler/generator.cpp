@@ -421,7 +421,7 @@ namespace Tes4Compiler
         void pushInt (CodeContainer& code, Compiler::Literals& literals, int value)
         {
             int index = literals.addInteger (value);
-            std::cout << "generate push int " << std::dec << value << " index " << index << std::endl; // FIXME: temp testing
+            //std::cout << "generate push int " << std::dec << value << " index " << index << std::endl; // FIXME: temp testing
             opPushInt (code, index);
             opFetchIntLiteral (code);
         }
@@ -436,7 +436,7 @@ namespace Tes4Compiler
         void pushString (CodeContainer& code, Compiler::Literals& literals, const std::string& value)
         {
             int index = literals.addString (value);
-            std::cout << "generate push string " << value << " index " << index << std::endl; // FIXME: temp testing
+            //std::cout << "generate push string " << value << " index " << index << std::endl; // FIXME: temp testing
             opPushInt (code, index);
         }
 
@@ -584,7 +584,7 @@ namespace Tes4Compiler
             if (valueType1=='l' && valueType2=='l')
             {
                 opLogicalAndInt (code);
-                std::cout << "generate boolean and" << std::endl; // FIXME: temp testing
+                //std::cout << "generate boolean and" << std::endl; // FIXME: temp testing
             }
             else
                 throw std::logic_error ("illegal boolean type");
@@ -595,7 +595,7 @@ namespace Tes4Compiler
             if (valueType1=='l' && valueType2=='l')
             {
                 opLogicalOrInt (code);
-                std::cout << "generate boolean or" << std::endl; // FIXME: temp testing
+                //std::cout << "generate boolean or" << std::endl; // FIXME: temp testing
             }
             else
                 throw std::logic_error ("illegal boolean type");
@@ -700,7 +700,7 @@ namespace Tes4Compiler
 
         void compare (CodeContainer& code, char op, char valueType1, char valueType2)
         {
-            std::cout << "generate compare " << op << std::endl; // FIXME: temp testing
+            //std::cout << "generate compare " << op << std::endl; // FIXME: temp testing
 
             if (valueType1=='l' && valueType2=='l')
             {

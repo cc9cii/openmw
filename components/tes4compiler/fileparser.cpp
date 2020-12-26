@@ -126,7 +126,7 @@ namespace Tes4Compiler
                         hasArguments = true;
                     }
 
-                    std::cout << "event: " << mBlockType << std::endl; // FIXME: temp testing
+                    //std::cout << "event: " << mBlockType << std::endl; // FIXME: temp testing
 
                     mScriptParser.reset(true/*keepLocals*/);
                     scanner.scan(mScriptParser);

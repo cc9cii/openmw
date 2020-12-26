@@ -341,7 +341,7 @@ namespace Tes4Compiler
                         std::vector<Interpreter::Type_Code> code;
                         int optionals = mExprParser.parseArguments (argumentType, scanner, code, keyword);
 
-                        std::cout << "instruction " << loc.mLiteral << std::endl; // FIXME: temp testing
+                        //std::cout << "instruction " << loc.mLiteral << std::endl; // FIXME: temp testing
 
                         mCode.insert (mCode.end(), code.begin(), code.end());
                         extensions->generateInstructionCode (keyword, mCode, mLiterals,

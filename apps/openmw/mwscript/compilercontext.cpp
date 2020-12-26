@@ -76,6 +76,29 @@ namespace MWScript
                     break;
             }
         }
+        else if (const ESM4::ActorCreature *acre = store.getForeign<ESM4::ActorCreature>().searchLower(id))
+        {
+            // maybe a member access of a reference e.g. SEHaskillRef.summoned in SE02QuestScript
+            ESM4::FormId baseObj = acre->mBaseObj;
+            int baseType = store.getRecordType(baseObj);
+            switch (baseType)
+            {
+                case ESM4::REC_CREA:
+                {
+                    const ESM4::Creature *crea = store.getForeign<ESM4::Creature>().search(baseObj);
+                    if (crea)
+                    {
+                        ESM4::FormId scriptId = crea->mScriptId;
+                        const ESM4::Script* scriptRecord = store.getForeign<ESM4::Script>().search(scriptId);
+                        if (scriptRecord)
+                            script = ESM4::formIdToString(scriptRecord->mFormId);
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
         else if (const ESM4::Reference* ref = store.getForeign<ESM4::Reference>().searchLower(id))
         {
             ESM4::FormId baseObj = ref->mBaseObj;

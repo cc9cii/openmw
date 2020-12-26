@@ -407,12 +407,12 @@ namespace Tes4Compiler
                 if (c==' ' && !get(c))
                 {
                     special = S_cmpEQ;
-                    std::cout << "scan special: cmpEQ" << std::endl; // FIXME: temp testing
+                    //std::cout << "scan special: cmpEQ" << std::endl; // FIXME: temp testing
                 }
                 else if (c=='=')
                 {
                     special = S_cmpEQ;
-                    std::cout << "scan special: cmpEQ" << std::endl; // FIXME: temp testing
+                    //std::cout << "scan special: cmpEQ" << std::endl; // FIXME: temp testing
                 }
                 else
                 {

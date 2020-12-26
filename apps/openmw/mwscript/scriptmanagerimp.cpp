@@ -111,7 +111,7 @@ namespace MWScript
             //if (script->mEditorId == "MQ14Script")
                 //std::cout << name << std::endl;
 
-            std::cout << "compiling: " << script->mEditorId << std::endl; // FIXME: temp testing
+            //std::cout << "compiling: " << script->mEditorId << std::endl; // FIXME: temp testing
 
             bool Success = true;
             try
