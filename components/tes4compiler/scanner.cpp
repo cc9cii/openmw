@@ -264,7 +264,7 @@ namespace Tes4Compiler
     {
         "begin", "end",
         "short", "long", "float", "ref", "int", // SE06SCRIPT
-        "if", "endif", "else", "elseif",
+        "if", "endif", "else", "elseif", "endif`", // MG09Script
         "while", "endwhile",
         "return",
         "messagebox", "message",

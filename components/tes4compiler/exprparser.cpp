@@ -410,6 +410,7 @@ namespace Tes4Compiler
         }
 
         // FIXME: not sure if K_int needs to be added
+        // FIXME: not sure if K_endif_broken needs to be added
         if (keyword==Scanner::K_end || keyword==Scanner::K_begin ||
             keyword==Scanner::K_short || keyword==Scanner::K_long ||
             keyword==Scanner::K_float || keyword==Scanner::K_if ||

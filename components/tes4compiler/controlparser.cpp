@@ -15,6 +15,7 @@ namespace Tes4Compiler
     bool ControlParser::parseIfBody (int keyword, const Compiler::TokenLoc& loc, Scanner& scanner)
     {
         if (keyword==Scanner::K_endif || keyword==Scanner::K_elseif ||
+            keyword==Scanner::K_endif_broken || // MG09Script
             keyword==Scanner::K_else)
         {
             std::pair<Codes, Codes> entry;
@@ -29,7 +30,7 @@ namespace Tes4Compiler
 
             mCodeBlock.clear();
 
-            if (keyword==Scanner::K_endif)
+            if (keyword==Scanner::K_endif || keyword==Scanner::K_endif_broken)  // MG09Script
             {
                 // store code for if-cascade
                 Codes codes;

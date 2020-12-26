@@ -443,6 +443,7 @@ namespace Tes4Compiler
                     return true;
 
                 case Scanner::K_endif:
+                //case Scanner::K_endif_broken: // MG09Script
 
                     getErrorHandler().warning ("stray endif (ignoring it)", loc);
                     mState = EndState;
