@@ -549,7 +549,7 @@ namespace Tes4Compiler
                     special = S_and;
                 else
                 {
-                    putback (c);
+                    putback (c); // FIXME: unexpected, should geneerate a warning here
                     return false;
                 }
             }
@@ -561,13 +561,10 @@ namespace Tes4Compiler
             if (get (c))
             {
                 if (c == '|')
-                {
                     special = S_or;
-                    std::cout << "scan special: or" << std::endl; // FIXME: temp testing
-                }
                 else
                 {
-                    putback (c);
+                    putback (c); // FIXME: unexpected, should geneerate a warning here
                     return false;
                 }
             }

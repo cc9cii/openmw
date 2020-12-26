@@ -26,10 +26,13 @@ namespace Tes4Compiler
         switch (op)
         {
             case '(':
-            case '&': // FIXME: just a guess of the priority
-            case '|': // FIXME: just a guess of the priority
-
                 return 0;
+
+            case '|': // FIXME: need more testing to confirm the priority
+                return 1;
+
+            case '&': // FIXME: need more testing to confirm the priority
+                return 2;
 
             case 'e': // ==
             case 'n': // !=
@@ -38,21 +41,21 @@ namespace Tes4Compiler
             case 'g': // <
             case 'G': // >=
 
-                return 1;
+                return 3;
 
             case '+':
             case '-':
 
-                return 2;
+                return 4;
 
             case '*':
             case '/':
 
-                return 3;
+                return 5;
 
             case 'm':
 
-                return 4;
+                return 6;
         }
 
         return 0;
