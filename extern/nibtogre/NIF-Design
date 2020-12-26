@@ -5019,7 +5019,7 @@ Probably the best item to work on is scripts.  First check to see when a script 
 
 NOTE: `components` have a dependency on `${NIBTOGRE_LIBRARIES}` due to OEngine using class `NiBtOgre::BtRigidBodyCI`.
 
-NOTE: for some reason the working directory for the laucher doesn't change in MSVC?  Had to copy a couple of DLLs as a workaround.
+NOTE: for some reason the working directory for the launcher doesn't change in MSVC?  Had to copy a couple of DLLs as a workaround.
 
 Launcher's `CMakeLists.txt`: `${SDL2_LIBRARY_ONLY}` was changed to `${SDL2_LIBRARY}`
 
@@ -5601,7 +5601,7 @@ is still valid.  So the parser needs to be able to distinguish between a functio
 
 ## LineParser states
 
-For our scenario LineParser would have been called from the `ScriptParser::parseName` or `ControlParser::parseName` if called from inside an `if` block.
+For our scenario `LineParser` would have been called from the `ScriptParser::parseName` or `ControlParser::parseName` if called from inside an `if` block.
 
     "BeginState"
     Scanner::scanToken --> scanName --> parseKeyword (e.g. "set", "short")
@@ -5769,7 +5769,7 @@ NOTE: later versions of code generator will most likely produce different opcode
 
 ## ToDo
 
-In `Scanner::scanName` maybe use a map to search the keywords?  But then foor such a small number of keywords it may not be beneficial.
+In `Scanner::scanName` maybe use a map to search the keywords?  But then for such a small number of keywords it may not be beneficial.
 
 In `ExprParser`, `CompilerContext::isId()` not used in TES4.
 
@@ -5807,7 +5807,7 @@ By keeping the script id as a string, `mScripts` can be used as is and `clearCel
 
 Because TES3 scripts don't have separate events or blocktypes, all local scripts in a loaded cell always runs.  The local variables for the object references are created during the cell load - see `MWWorld::LocalScripts::addCell()` and `MWWorld::LocalScripts::add()`.  The latter calls `RefData::setLocals()` to create the local variables.
 
-In TES4 only the scripts with `GameMode` block types behave like TES3 local scripts.  However, it is still possible to create the local varibles during the load even if the script itself won't run until an event such as `OnActivate` occurs.  The only issue with this approach is that it is not immediately obvious from reading the code where the local variables are created.
+In TES4 only the scripts with `GameMode` block types behave like TES3 local scripts.  However, it is still possible to create the local variables during the load even if the script itself won't run until an event such as `OnActivate` occurs.  The only issue with this approach is that it is not immediately obvious from reading the code where the local variables are created.
 
 ## Container scripts
 
@@ -5817,7 +5817,7 @@ Not sure what these are.  The code seems to suggest that these are local scripts
 
 Since the function `StartScript` no longer exists in TES4 it is unclear how the global scripts are started.
 
-Accoring to [this article](https://wiki.nexusmods.com/index.php/An_introduction_to_Oblivion_scripting), global scripts are the same as Quest scripts.  So, we now need to figure out when a quest is triggered and starts running.
+According to [this article](https://wiki.nexusmods.com/index.php/An_introduction_to_Oblivion_scripting), global scripts are the same as Quest scripts.  So, we now need to figure out when a quest is triggered and starts running.
 
 ## PlayGroup
 
@@ -6025,7 +6025,332 @@ Note that the interpreter works for both TES3 and TES4, at least for now.
             ControlParser::appendCode
         Scanner::scanName "end"
 
-One solution might be to copy parts of ControlParser to create another, e.g. EventParser.
+# [22/12/2020] Script Compiler (cont.)
+
+## Back to named references
+
+Inside an "if" body, each line is parsed with a `LineParser` starting with `parseName()`.  Previously some code was addd to see if the name was a local ref variable e.g. "myparent".  Now we have to recognise if it might be an `EditorId` of an object `REFR` in a cell.
+
+Similar conditions exist for `ExprParser::parseName()`
+
+In addition to the `EditorId` of an object `REFR`, we may also see `EditorId` of quests. But the following token (e.g. "debug" is the name of a local variable to the script attached to the quest with `EditorId` "CharacterGen".
+
+    scn CGPrisonSecretWallSwitchSCRIPT
+
+    begin onActivate
+        if getstage charactergen < 19 && isActionRef RenoteRef == 1
+            if charactergen.debug == 1
+                messagebox "DEBUG: CGPrisonSecretWallSwitchSCRIPT: Secret wall activated by Renote"
+            endif
+            playgroup forward 1
+            CGPrisonSecretWallRef.playgroup forward 1
+            set charactergen.secretDoor to 1
+            set charactergen.convTimer to 5     ; time for wall to open fully
+        endif
+
+    end
+
+## Explicit syntax variations
+
+Looks like the parser needs to be able to distinguish the same notation to different outcomes:
+
+      <object reference in local variable>.<function or instruction> <arguments>
+      <object reference EditorId>.<function or instruction> <arguments>
+      <quest EditorId>.<quest script local variable> <value>
+
+The scanner can identify the first two by checking the registered extensions.  How to do the third one?
+
+We may be forced to set a flag to indicate a member access when we encouter the special character "." in `ExprParser::parseSpecial()`.
+
+Line 12 of below script hould be of the second form, i.e. `BaurusRef.SayTo player CharGenVoice`  Since it is in the "if" block body, a `LineParser` should first check for a name.
+
+
+     scn CGEmperorScript                                              {{{
+
+    short target
+    ref combattarget
+    ref bladeHelp
+    short temp
+    short warncount	; how many warnings has the Emperor given for player hitting him?
+    short warnstage	; what stage was the last warning?
+
+    begin OnActivate
+        if IsActionRef player == 1 && GetDead == 1
+            BaurusRef.SayTo player CharGenVoice
+        else
+            Activate
+        endif
+    end
+
+    begin gamemode
+
+    ; if dead, set stage:
+    if getstage charactergen == 74
+        if getdead == 1
+            setstage charactergen 76
+        endif
+    endif
+
+    ; talk when it is time
+    if CharacterGen.speaker == 4 && CharacterGen.convTimer <= 0
+        set target to CharacterGen.target
+
+        if target == 0
+            set CharacterGen.convTimer to Say CharGenMain 1
+        elseif target == 1
+            set CharacterGen.convTimer to SayTo BaurusRef, CharGenMain 1
+        elseif target == 2
+            set CharacterGen.convTimer to SayTo RenoteRef, CharGenMain 1
+        elseif target == 3
+            set CharacterGen.convTimer to SayTo GlenroyRef, CharGenMain 1
+        elseif target == 4
+            set CharacterGen.convTimer to SayTo UrielSeptimRef, CharGenMain 1
+        elseif target == 5
+            set CharacterGen.convTimer to SayTo player, CharGenMain 1
+        elseif target == 6
+
+        endif
+
+        ; special case -- endless loop with Glenroy
+        if charactergen.convCount == 35
+            set charactergen.convTimer to 10
+        endif
+
+        ; special case -- endless loop with player
+        if charactergen.convCount == 45
+            set charactergen.convTimer to 12
+        endif
+
+    endif
+
+    ; special: birthsign speech
+    ;if ( getstage charactergen == 42 || getstage charactergen == 44 ) && CharacterGen.convTimer <= 0
+    ;	set CharacterGen.convTimer to SayTo player, CGEmperorBirthsign 1
+    ;endif
+
+    end
+
+    ; Assassin kills emperor in one blow
+    begin OnHit CGAssassinFinal
+        kill
+    end
+
+    ; NOTE: order is important here. OnHit player block needs to come first
+    begin OnHit player
+        if getdead == 0
+            if warncount <= 4
+                stopcombat
+                player.scaonActor
+            endif
+            SayTo player CharGenEmperor 1
+            set warnCount to warnCount + 1
+            set warnstage to getstage charactergen
+
+            ; make sure disposition of anybody never goes below 30
+            ; Baurus
+            set temp to BaurusRef.getdisposition player
+            if temp < 30
+                set temp to 30 - temp
+                BaurusRef.moddisposition player temp
+            endif
+
+            ; Renote
+            set temp to RenoteRef.getdisposition player
+            if temp < 30
+                set temp to 30 - temp
+                RenoteRef.moddisposition player temp
+            endif
+
+            ; Emperor
+            set temp to UrielSeptimRef.getdisposition player
+            if temp < 30
+                set temp to 30 - temp
+                UrielSeptimRef.moddisposition player temp
+            endif
+
+            ; Glenroy
+            set temp to GlenroyRef.getdisposition player
+            if temp < 30
+                set temp to 30 - temp
+                GlenroyRef.moddisposition player temp
+            endif
+
+        endif
+    end
+
+    begin OnStartCombat
+        if warnstage < getstage charactergen
+            set warncount to 0
+        endif
+
+            ; Blades react if not the player
+            set combattarget to GetCombatTarget
+            if combattarget != player && combattarget > 0
+                if getdistance BaurusRef < getdistance GlenroyRef || GlenroyRef.GetDead == 1
+                    set bladeHelp to BaurusRef
+                    if charactergen.debug == 1
+                        message "DEBUG: Baurus calling for help for Emperor"
+                    endif
+                else
+                    set bladeHelp to GlenroyRef
+                    if charactergen.debug == 1
+                        message "DEBUG: Glenroy calling for help for Emperor"
+                    endif
+                endif
+                bladeHelp.SayTo player CharGenBlades
+                bladeHelp.startcombat combattarget
+            endif
+    end
+
+    begin OnHit
+        if getstage charactergen < 74
+            ; Emperor can't die until the end of charactergen
+            set temp to GetBaseActorValue health
+            forceav health, temp
+        endif
+    end
+
+    begin OnPackageDone CGEmperorToMarkerB
+        setstage CharacterGen 16
+    end
+
+
+    begin OnPackageDone CGEmperorToMarkerH
+        setstage CharacterGen 62
+    end
+
+    begin OnPackageDone CGEmperorToMarkerJ
+        setstage CharacterGen 68
+    end                                                               }}}
+
+## Identifiers
+
+Currently there's some difficulty distinguishing an object reference being used for explicit function call and it being used in an expression (e.g. comparison).
+
+    ScriptParser (name == "if") -> ScriptParser::parseKeyword
+        ControlParser::parseKeyword (keyword = "if) -> scan with ExprParser
+            Scanner::scanName (extension, local variable or EditorId, unlikely to be a keyword inside "if")
+                ExprParser::parseName or ExprParser::parseKeyword
+
+Here is where we have some trouble.  If we find a local ref variable or an `EditorId`, we need to check if that will result in an explicit function call or just a reference value.
+
+One possible solution is to defer the decision till the next token.  If we encounter a "." then we have an explicit function call.  If we find a white space or ")", "||" or "&&" then we have a reference value.
+
+            if combattarget != player && combattarget > 0
+                  ^               ^           ^
+                  |               |           |
+            should contain    FormId of     check that there
+            the FormId from   the player    is a combat target
+            GetCombatTarget   (EditorId)
+            (local ref var)
+
+# [23/12/2020 - 24/12/2020] Script Compiler (cont.)
+
+## References again
+
+In TES3, the `Scanner` identifies `->` as a "ref" special token and `.` as a "member" special token.  However in TES4 `.` can represent either.  Hence we will need a different way to distinguish between the two.
+
+For TES3 `LineParser` and `ExprParser` use `S_ref` and `S_member`.
+
+Member variable access is required for object scripts or quest scripts.  References are used for calling script functions (explicit).  In TES3 the `LineParser` uses the following logic to distinguish:
+
+    Start: if a name is an object `Id` then go to "PotentialExplicitState" and store the name in `mExplicit`
+    PotentialExplicitState: if the `Scanner` detects `S_ref` then go to "ExplicitState" or
+                            if the `Scanner` detects `S_member` then go to  "MemberState"
+
+### New logic for TES4
+
+Since there are no special token to distinguish the two scenarios we need to use other ways.
+
+Note that member accesses are for object and quest scripts.  So one possible solution is to detect the type of reference.  i.e. member access for scripts else explicit functions/instructions
+
+Alternatively, if the name following the special token is not a function or instruction we can deduce that they are script member variables.
+
+## Persistent references for global scripts
+
+For compiling global scripts it is not possible to check if an identifier is a reference by searching the active cells.  In fact the references wouldn't have been loaded, i.e. we will be forced to load *all* cells to be able to check.
+
+However, `GlarthirRef` for example, is a "persistent" reference.  That means it should be possible to load all the references required by the global scripts.  The difficulty is in where and how to manage the data.  Currently the references are stored in `CellStore` and it would be impractical to keep all of those with persistent references "active".
+
+It may be possible to keep them in `ESMStore` then have its run-time data updated when the reference is loaded to a cell.  i.e. store the references in `CellRefList` but have the location data updated as the references are moved into a scene (by becoming a `Ptr`?).  This approach will mean that we need to take extra care that the reference data in two places do not get out of sync (the one in `ESMStore` and the other in `CellStore`).  See the notes on LOD data back in 7/04/2020, especially regarding the `Ptr` and `CellRef` data structures.
+
+Maybe keep `CellRefList<ESM4::Npc>` in `ESMStore` and just keep the `FormId` of NPCs in `CellStore`? But doing so will mean that we will need to keep a number of different types of `CellRefList` for each base object types, e.g. Statics, Doors, etc.  It may be better to store the `ACHR`, `ACRE` and `REFR` records themselves.
+
+## More reference base object types
+
+Creatures, containers, furniture
+
+# [25/12/2020 - 26/12/2020] Script Compiler (cont.)
+
+Now able to parse all the global scripts after addressing below issues.
+
+## Parsing issues
+
+Looks like `ExprParser` can't handle the `(` special in complex situations e.g. SE06SCRIPT:
+
+    if SEKanehRef.getincell XPCylarne01 == 1 && ( SEKanehRef.getdistance player < 750 || getstagedone SE06 70 == 1 )
+
+Potential solution - change the priority of the `||` and `&&` operations to be higher than `(`.  Not entirely sure if I really understand this.
+
+## AI package reference
+
+SE05QuestScript expects reference from AIPackage:
+
+    ;Make sure Script Package stays on Herdir's target if he takes a while to get there for any reason
+
+        if ( SEHerdirRef.CastSpell >= 1 )
+            if ( HerdirTarget.GetCurrentAIPackage != SE05TortureHoldPosition )
+                if ( HerdirTarget.GetSitting == 0 )
+                    HerdirTarget.AddScriptPackage SE05TortureHoldPosition
+                endif
+            endif
+        endif
+
+Sequence of current code:
+
+        S_open mOperators.push_back
+        ExprParser::parseName HerdirTarget is a local ref, mPotentialExplicit
+        ExprParser::parseSpecial mExplicit = HerdirTarget, mRefOp = true
+        ExprParser::parseKeyword GetCurrentAIPackage is a function
+        ExprParser::parseSpecial compare not equal pushBinaryOperator
+        ExprParser::parseName SE05TortureHoldPosition <- is an EditorId of an AIPackage i.e. is a ref
+           getContext().getReference(name2) should have picked it up
+
+## Strange quirks
+
+Ignore the "endif" with extra "backtick" character in MG09Script.
+
+SE06SCRIPT uses "int" rather than "long" to declare the local variables.
+
+## Message display seconds parameter
+
+See TG11HeistScript and MQ14Script for an examples.
+
+Need to add the handler in `LineParser::parseInt()`.
+
+## Stray itentifier
+
+SE11QuestScript uses another script's local variable (SERakheranScript).  SERakheranScript has:
+
+    ;Variables
+        short   IsHostile                       ;Variable for apostle being hostile to player
+        short   FindPlayer                  ;Set to 1 when player enters the cell XPHowlingHalls02
+        short   HasSpokenTo Player      ;Set to 1 after Rakheran greets the player
+        short   PlayerHasAcceptedOffer  ;Set to 1 when the player accepts Rakheran's offer
+        ...
+
+Need to add a special check to `DeclarationParser::parseName()`
+
+## Accessing local variables of references (in if condition)
+
+SE05QuestScript
+
+    if ( HerdirTarget.GetCurrentAIPackage != SE05TortureHoldPosition )
+
+Need to update `CompilerContext::getMemberType()` to handle various object types.
+
+
+
 
 
 

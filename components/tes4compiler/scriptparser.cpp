@@ -48,6 +48,15 @@ namespace Tes4Compiler
         if (keyword==Scanner::K_endif)
         {
             // surplus endif
+            // e.g. Dark18MotherScript: near the end one endif is not commented out
+            //      MG18Script: looks like the main if condition line was deleted
+            //      RufioDie_Script: some if conditions commented but not endif
+            //      MQ14Script: an if condition missing
+            //      Dark05AssassinatedScript: an if condition missing
+            //      MS13Script: not clear if elseif is meant to be if
+            //      MG09Script: an if condition missing
+            //      ArenaGrandChampionMatchScript: an if condition missing (more than once)
+            //      MGMageConversationFollowScript: a mess
             getErrorHandler().warning ("endif without matching if/elseif", loc);
 
             SkipParser skip (getErrorHandler(), getContext());
