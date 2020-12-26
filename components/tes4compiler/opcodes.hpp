@@ -614,6 +614,7 @@ namespace Tes4Compiler
         const int opcodeDisable                             = 0x20005d4;
         const int opcodeDisableExplicit                     = 0x20005d5;
         const int opcodeDisableLinkedPathPoints             = 0x20005d6;
+        const int opcodeDisableLinkedPathPointsExplicit     = 0x2000611; // unexpected
         const int opcodeEnable                              = 0x20005d7;
         const int opcodeEnableExplicit                      = 0x20005d8;
         const int opcodeEnableFastTravel                    = 0x20005d9;
@@ -682,6 +683,7 @@ namespace Tes4Compiler
         const int opcodeGetCurrentTime                      = 0x200060e;
         const int opcodeGetDayOfWeek                        = 0x200060f;
         const int opcodeGetSecondsPassed                    = 0x2000610;
+        // last used value is 0x2000611
     }
 }
 

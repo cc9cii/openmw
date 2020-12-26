@@ -911,8 +911,10 @@ namespace Tes4Compiler
                 ("closeobliviongate",     "/l",     opcodeCloseOblivionGate, opcodeCloseOblivionGateExplicit);
             extensions.registerInstruction
                 ("disable",               "",       opcodeDisable, opcodeDisableExplicit);
+            // has explicit despite https://en.uesp.net/wiki/Tes4Mod:Script_Functions
+            // indicating it is not a RefFunc - see MQ16Script
             extensions.registerInstruction
-                ("disablelinkedpathpoints", "",     opcodeDisableLinkedPathPoints, -1);
+                ("disablelinkedpathpoints", "",     opcodeDisableLinkedPathPoints, opcodeDisableLinkedPathPointsExplicit);
             extensions.registerInstruction
                 ("enable",                "",       opcodeEnable, opcodeEnableExplicit);
             extensions.registerInstruction
