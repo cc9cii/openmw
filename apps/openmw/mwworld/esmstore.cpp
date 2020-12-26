@@ -440,8 +440,8 @@ void ESMStore::loadTes4Record (ESM::ESMReader& esm)
         case ESM4::REC_HDPT: reader.getRecordData(); id = mHeadParts.loadForeign(reader);
                              mForeignIds[id.mId] = ESM4::REC_HDPT; break;
         case ESM4::REC_GLOB: reader.getRecordData(); id = mForeignGlobals.loadForeign(reader);
-                             mForeignIds[id.mId] = ESM4::REC_HAIR; break;
-        case ESM4::REC_HAIR: reader.getRecordData(); id = mForeignGlobals.loadForeign(reader);
+                             mForeignIds[id.mId] = ESM4::REC_GLOB; break;
+        case ESM4::REC_HAIR: reader.getRecordData(); id = mForeignHairs.loadForeign(reader);
                              mForeignIds[id.mId] = ESM4::REC_HAIR; break;
         case ESM4::REC_EYES: reader.getRecordData(); id = mForeignEyesSet.loadForeign(reader);
                              mForeignIds[id.mId] = ESM4::REC_EYES; break;
