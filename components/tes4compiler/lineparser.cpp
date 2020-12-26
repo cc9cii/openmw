@@ -395,6 +395,7 @@ namespace Tes4Compiler
             {
                 case Scanner::K_short:
                 case Scanner::K_long:
+                case Scanner::K_int: // SE06SCRIPT uses "int"
                 case Scanner::K_float:
                 case Scanner::K_ref:
                 {

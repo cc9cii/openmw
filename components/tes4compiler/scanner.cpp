@@ -263,7 +263,7 @@ namespace Tes4Compiler
     static const char *keywords[] =
     {
         "begin", "end",
-        "short", "long", "float", "ref",
+        "short", "long", "float", "ref", "int", // SE06SCRIPT
         "if", "endif", "else", "elseif",
         "while", "endwhile",
         "return",

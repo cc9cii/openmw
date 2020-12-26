@@ -16,7 +16,6 @@ namespace Compiler
 namespace Tes4Compiler
 {
     class Parser;
-    //class TES4Extensions;
 
     /// \brief Scanner
     ///
@@ -48,7 +47,7 @@ namespace Tes4Compiler
             enum keyword
             {
                 K_begin, K_end,
-                K_short, K_long, K_float, K_ref,
+                K_short, K_long, K_float, K_ref, K_int, // SE06SCRIPT uses "int"
                 K_if, K_endif, K_else, K_elseif,
                 K_while, K_endwhile,
                 K_return,

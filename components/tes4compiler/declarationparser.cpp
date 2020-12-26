@@ -74,6 +74,7 @@ bool Tes4Compiler::DeclarationParser::parseKeyword (int keyword, const Compiler:
         {
             case Scanner::K_short: mType = 's'; break;
             case Scanner::K_long: mType = 'l'; break;
+            case Scanner::K_int: mType = 'l'; break; // SE06SCRIPT uses "int"
             case Scanner::K_float: mType = 'f'; break;
             case Scanner::K_ref: mType = 'r'; break;
             default: mType = 0;

@@ -78,7 +78,8 @@ namespace Tes4Compiler
 
         // local variable declaration
         if (mState == BeginState && (keyword == Scanner::K_short || keyword == Scanner::K_long
-                || keyword == Scanner::K_float || keyword == Scanner::K_ref))
+                || keyword == Scanner::K_float || keyword == Scanner::K_ref
+                || keyword == Scanner::K_int)) // SE06SCRIPT uses "int"
         {
             LineParser& lineParser = mScriptParser.getLineParser();
             lineParser.reset();

@@ -21,8 +21,8 @@ bool Tes4Compiler::QuickFileParser::parseKeyword (int keyword, const Compiler::T
     if (keyword == Scanner::K_begin || keyword == Scanner::K_end)
         return false;
 
-    if (keyword == Scanner::K_short || keyword == Scanner::K_long
-            || keyword == Scanner::K_float || keyword == Scanner::K_ref)
+    if (keyword == Scanner::K_short || keyword == Scanner::K_long // SE06SCRIPT uses "int"
+            || keyword == Scanner::K_float || keyword == Scanner::K_ref || keyword==Scanner::K_int)
     {
         mDeclarationParser.reset();
         scanner.putbackKeyword (keyword, loc);
