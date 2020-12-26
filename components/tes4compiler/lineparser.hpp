@@ -27,7 +27,7 @@ namespace Tes4Compiler
                 SetMemberVarState, SetMemberVarState2,
                 MessageState, MessageCommaState, MessageButtonState, MessageButtonCommaState,
                 EndState, PotentialEndState /* may have a stray string argument */,
-                PotentialExplicitState, ExplicitState, MemberState
+                PotentialExplicitState, ExplicitState//, MemberState
             };
 
             Compiler::Locals& mLocals;

@@ -24,10 +24,11 @@ namespace Tes4Compiler
         if (!mExplicit.empty())
         {
             mExprParser.parseName (mExplicit, loc, scanner);
-            if (mState == MemberState)
-                mExprParser.parseSpecial (Scanner::S_member, loc, scanner);
-            else
-                mExprParser.parseSpecial (Scanner::S_ref, loc, scanner);
+            //if (mState == MemberState)
+                //mExprParser.parseSpecial (Scanner::S_member, loc, scanner);
+            //else
+                //mExprParser.parseSpecial (Scanner::S_ref, loc, scanner);
+                mExprParser.parseSpecial (Scanner::S_ref_or_member, loc, scanner);
         }
 
         scanner.scan (mExprParser);
@@ -219,15 +220,6 @@ namespace Tes4Compiler
 
                 return true;
             }
-#if 0
-            else if (getContext().isQuestId(name))
-            {
-                mState = PotentialExplicitState;
-                mExplicit = name2;
-
-                return true;
-            }
-#endif
         }
 
         if (mState==StartState && mAllowExpression)
@@ -570,14 +562,13 @@ namespace Tes4Compiler
             return true;
         }
 
-        if (code==Scanner::S_ref && mState==PotentialExplicitState)
-        //if (code==Scanner::S_ref_or_member && mState==PotentialExplicitState)
+        if (code==Scanner::S_ref_or_member && mState==PotentialExplicitState)
         {
             mState = ExplicitState;
             return true;
         }
 
-//#if 0
+#if 0
         if (code==Scanner::S_member && mState==PotentialExplicitState)
         {
             mState = MemberState;
@@ -585,7 +576,7 @@ namespace Tes4Compiler
             mState = EndState;
             return true;
         }
-//#endif
+#endif
         if (code==Scanner::S_newline && mState==MessageButtonState)
         {
             Generator::message (mCode, mLiterals, mName, mButtons);
@@ -598,9 +589,7 @@ namespace Tes4Compiler
             return true;
         }
 
-        //if (code==Scanner::S_member && mState==SetPotentialMemberVarState)
-        if (code == Scanner::S_ref && mState == SetPotentialMemberVarState)
-        //if (code == Scanner::S_ref_or_member && mState == SetPotentialMemberVarState)
+        if (code == Scanner::S_ref_or_member && mState == SetPotentialMemberVarState)
         {
             mState = SetMemberVarState;
             return true;

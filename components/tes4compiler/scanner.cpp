@@ -395,9 +395,9 @@ namespace Tes4Compiler
                     return scanFloat ("", parser, cont);
             }
 
-            //special = S_ref_or_member;
+            special = S_ref_or_member;
             //special = S_member;
-            special = S_ref; // FIXME: temp testing
+            //special = S_ref;
         }
         else if (c=='=')
         {
@@ -452,8 +452,8 @@ namespace Tes4Compiler
             if (get (c))
             {
                 if (c=='>')
-                    special = S_ref; // FIXME: shouldn't happen, generate a warning
-                    //special = S_ref_or_member;
+                    //special = S_ref;
+                    special = S_ref_or_member; // FIXME: shouldn't happen, generate a warning
                 else
                 {
                     putback (c);
@@ -473,8 +473,8 @@ namespace Tes4Compiler
                 if (get (c))
                 {
                     if (c=='>')
-                        special = S_ref; // FIXME: shouldn't happen, generate a warning
-                        //special = S_ref_or_member;
+                        //special = S_ref;
+                        special = S_ref_or_member; // FIXME: shouldn't happen, generate a warning
                     else
                     {
                         putback (c);

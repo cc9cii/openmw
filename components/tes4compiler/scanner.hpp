@@ -71,8 +71,9 @@ namespace Tes4Compiler
                 S_plus, S_minus, S_mult, S_div,
                 S_and, S_or,
                 S_comma,
-                S_ref, S_member
-                //S_ref_or_member
+                //S_ref,
+                S_member,
+                S_ref_or_member
             };
 
         private:

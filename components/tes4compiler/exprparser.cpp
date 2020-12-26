@@ -244,8 +244,8 @@ namespace Tes4Compiler
     ExprParser::ExprParser (Compiler::ErrorHandler& errorHandler, const Compiler::Context& context, Compiler::Locals& locals,
         Compiler::Literals& literals, bool argument)
     : Parser (errorHandler, context), mLocals (locals), mLiterals (literals),
-      mNextOperand (true), mFirst (true), mArgument (argument), mExplicit(""), mRefOp (false),// mMemberOp (false),
-      mIsQuest(false), mPotentialExplicit("")
+      mNextOperand (true), mFirst (true), mArgument (argument), mExplicit(""), mRefOp (false), mMemberOp (false),
+      mPotentialExplicit("")
     {}
 
     bool ExprParser::parseInt (int value, const Compiler::TokenLoc& loc, Scanner& scanner)
@@ -299,31 +299,6 @@ namespace Tes4Compiler
     {
         if (!mExplicit.empty())
         {
-// FIXME: some experimentation
-#if 0
-            // FIXME: check if name is an extension here?
-            std::string name2 = Misc::StringUtils::lowerCase(name);
-            if (const Compiler::Extensions* extensions = getContext().getExtensions())
-            {
-                //if (getContext().isJournalId(name2))
-                {
-                    // JournalID used as an argument. Use the index of that JournalID
-                    //Generator::pushString(mCode, mLiterals, name2);
-                    int keyword = extensions->searchKeyword(name2);
-                    std::string argumentType;
-                    bool hasExplicit = false;
-                    if (extensions->isInstruction (keyword, argumentType, hasExplicit))
-                    {
-                        int optionals = parseArguments (argumentType, scanner);
-                        extensions->generateInstructionCode(keyword, mCode, mLiterals, mExplicit, optionals);
-                        mNextOperand = false;
-                        mOperands.push_back('l');
-
-                        return true;
-                    }
-                }
-            }
-#endif
             // FIXME: if we reach here must have not found any extension "keyword", so mRefOp is really mMemberOp
             // but the logic is hard to follow so needs a cleanup
             if ((mMemberOp || mRefOp) && handleMemberAccess (name))
@@ -380,28 +355,14 @@ namespace Tes4Compiler
                 }
             }
 #endif
-            //if ((/*type == 'r' || */getContext().isEditorId(name)) && mExplicit.empty())
-            if (ESM4::FormId formId = getContext().getReference(name2))
+            ESM4::FormId formId = getContext().getReference(name2);
+            if ((type == 'r' || formId != 0) && mExplicit.empty())
             {
                 mPotentialExplicit = name; // to make parseSpecial check for S_ref
-#if 1
                 pushIntegerLiteral(formId); // WARN: unsigned to signed, hopefully ok
-#else
-                mOperands.push_back('l');
-                Generator::pushInt(mCode, mLiterals, formId);
-                mNextOperand = false;
-#endif
 
                 return true;
             }
-#if 0
-            else if (mExplicit.empty() && getContext().isQuestId (name2))
-            {
-                mExplicit = name2;
-                mIsQuest = true;
-                return true;
-            }
-#endif
         }
         else
         {
@@ -701,20 +662,18 @@ namespace Tes4Compiler
                 return true;
             }
 
-            if (!mRefOp && code==Scanner::S_ref && !mIsQuest)
-            //if (!mRefOp && code==Scanner::S_ref_or_member && !mIsQuest)
+            if (!mRefOp && code==Scanner::S_ref_or_member)
             {
                 mRefOp = true;
                 return true;
             }
-//#if 0
-            if (!mMemberOp && code==Scanner::S_ref && mIsQuest)
+#if 0
+            if (!mMemberOp && code==Scanner::S_ref_or_member)
             {
-                mIsQuest = false;
                 mMemberOp = true;
                 return true;
             }
-//#endif
+#endif
             return Parser::parseSpecial (code, loc, scanner);
         }
 
@@ -788,9 +747,7 @@ namespace Tes4Compiler
             return false;
         }
 
-        // FIXME: tidy up logic
-        if (!mRefOp && code == Scanner::S_ref && !mIsQuest)
-        //if (!mRefOp && code == Scanner::S_ref_or_member && !mIsQuest)
+        if (!mRefOp && code == Scanner::S_ref_or_member)
         {
             mExplicit = mPotentialExplicit; // FIXME: convert to lowercase?
             mPotentialExplicit.clear();
