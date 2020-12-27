@@ -249,7 +249,7 @@ namespace Tes4Compiler
         Compiler::Literals& literals, bool argument)
     : Parser (errorHandler, context), mLocals (locals), mLiterals (literals),
       mNextOperand (true), mFirst (true), mArgument (argument), mExplicit(""), mRefOp (false), mMemberOp (false),
-      mPotentialExplicit("")
+      mPotentialExplicit(""), mPotentialReference(0)
     {}
 
     bool ExprParser::parseInt (int value, const Compiler::TokenLoc& loc, Scanner& scanner)
@@ -360,10 +360,12 @@ namespace Tes4Compiler
             }
 #endif
             ESM4::FormId formId = getContext().getReference(name2);
-            if ((type == 'r' || formId != 0) && mExplicit.empty())
+            //if ((type == 'r' || formId != 0) && mExplicit.empty())
+            if (formId != 0)
             {
                 mPotentialExplicit = name; // to make parseSpecial check for S_ref
-                pushIntegerLiteral(formId); // WARN: unsigned to signed, hopefully ok
+                //pushIntegerLiteral(formId); // WARN: unsigned to signed, hopefully ok
+                mPotentialReference = formId;
 
                 return true;
             }
@@ -699,6 +701,28 @@ namespace Tes4Compiler
 
         mFirst = false;
 
+        if (!mRefOp && code == Scanner::S_ref_or_member)
+        {
+            mExplicit = mPotentialExplicit; // FIXME: convert to lowercase?
+            mPotentialExplicit.clear();
+            mNextOperand = true;
+            mRefOp = true;
+            return true;
+        }
+
+        // FIXME: tidy up logic
+        if (!mPotentialExplicit.empty())
+        {
+            mPotentialExplicit.clear();
+            if (mPotentialReference != 0)
+            {
+                pushIntegerLiteral(mPotentialReference); // FIXME: formId or ai package type
+                mPotentialReference = 0;
+            }
+        }
+        // falls through
+
+
         if (code==Scanner::S_newline)
         {
             // end marker
@@ -749,21 +773,6 @@ namespace Tes4Compiler
             mTokenLoc = loc;
             scanner.putbackSpecial (code, loc);
             return false;
-        }
-
-        if (!mRefOp && code == Scanner::S_ref_or_member)
-        {
-            mExplicit = mPotentialExplicit; // FIXME: convert to lowercase?
-            mPotentialExplicit.clear();
-            mNextOperand = true;
-            mRefOp = true;
-            return true;
-        }
-
-        // FIXME: tidy up logic
-        if (!mPotentialExplicit.empty())
-        {
-            mPotentialExplicit.clear();
         }
 
         if (!mNextOperand)

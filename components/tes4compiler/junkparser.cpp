@@ -38,9 +38,9 @@ bool Tes4Compiler::JunkParser::parseKeyword (int keyword, const Compiler::TokenL
 
 bool Tes4Compiler::JunkParser::parseSpecial (int code, const Compiler::TokenLoc& loc, Scanner& scanner)
 {
-    if (code==Scanner::S_member)
-        reportWarning ("found junk (ignoring it)", loc);
-    else
+    //if (code==Scanner::S_member)
+        //reportWarning ("found junk (ignoring it)", loc);
+    //else
         scanner.putbackSpecial (code, loc);
 
     return false;

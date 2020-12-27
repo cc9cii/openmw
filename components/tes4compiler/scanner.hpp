@@ -72,7 +72,7 @@ namespace Tes4Compiler
                 S_and, S_or,
                 S_comma,
                 //S_ref,
-                S_member,
+                //S_member,
                 S_ref_or_member
             };
 

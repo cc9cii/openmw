@@ -31,6 +31,7 @@ namespace Tes4Compiler
             bool mRefOp;
             bool mMemberOp;
             std::string mPotentialExplicit;
+            unsigned int mPotentialReference;
 
             int getPriority (char op) const;
 
