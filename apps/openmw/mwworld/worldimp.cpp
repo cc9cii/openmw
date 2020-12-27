@@ -759,7 +759,7 @@ namespace MWWorld
 
         if (!activeOnly)
         {
-            ret = mCells.getForeignPtr (lowerCaseName);
+            ret = mCells.getPtr (lowerCaseName);
             if (!ret.isEmpty())
                 return ret;
         }
