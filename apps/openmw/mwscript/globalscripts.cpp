@@ -226,7 +226,17 @@ namespace MWScript
 
         if (iter==mScripts.end())
         {
-            if (const ESM::Script *script = mStore.get<ESM::Script>().find (name))
+             if (ESM4::isFormId(name))
+            {
+                if (const ESM4::Script* script = mStore.getForeign<ESM4::Script>().find(name))
+                {
+                    GlobalScriptDesc desc;
+                    desc.mLocals.configure(*script);
+
+                    iter = mScripts.insert(std::make_pair(name, desc)).first;
+                }
+            }
+            else if (const ESM::Script *script = mStore.get<ESM::Script>().find (name))
             {
                 GlobalScriptDesc desc;
                 desc.mLocals.configure (*script);
