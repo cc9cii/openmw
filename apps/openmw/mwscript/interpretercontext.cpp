@@ -540,6 +540,43 @@ namespace MWScript
         return static_cast<float>(std::sqrt(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2]));
     }
 
+    float InterpreterContext::getDistanceToRef (const std::string& name, const std::string& id) const
+    {
+        // NOTE: id may be empty, indicating an implicit reference
+
+        MWWorld::Ptr ref2;
+
+        if (id.empty())
+            ref2 = getReferenceImp();
+        else
+            ref2 = MWBase::Environment::get().getWorld()->getForeignPtr(id, false);
+
+        if (ref2.getContainerStore()) // is the object contained?
+        {
+            MWWorld::Ptr container = MWBase::Environment::get().getWorld()->findContainer(ref2);
+
+            if (!container.isEmpty())
+                ref2 = container;
+            else
+                throw std::runtime_error("failed to find container ptr");
+        }
+
+        const MWWorld::Ptr ref = MWBase::Environment::get().getWorld()->getForeignPtr(name, false);
+
+        // If the objects are in different worldspaces, return a large value (just like vanilla)
+        if (ref.getCell()->getCell()->getCellId().mWorldspace != ref2.getCell()->getCell()->getCellId().mWorldspace)
+            return std::numeric_limits<float>::max();
+
+        double diff[3];
+
+        const float* const pos1 = ref.getRefData().getPosition().pos;
+        const float* const pos2 = ref2.getRefData().getPosition().pos;
+        for (int i=0; i<3; ++i)
+            diff[i] = pos1[i] - pos2[i];
+
+        return static_cast<float>(std::sqrt(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2]));
+    }
+
     bool InterpreterContext::hasBeenActivated (const MWWorld::Ptr& ptr)
     {
         if (!mActivated.isEmpty() && mActivated==ptr)

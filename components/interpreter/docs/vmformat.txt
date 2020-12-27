@@ -138,6 +138,7 @@ op 72: and
 op 73: or
 op 74: fetch local ref
 op 75: store local ref
+// TES4 codes below
 op 76: store stack[0] in member short stack[2] of object with ID stack[1]
 op 77: store stack[0] in member long stack[2] of object with ID stack[1]
 op 78: store stack[0] in member float stack[2] of object with ID stack[1]
@@ -154,5 +155,8 @@ op 88: replace stack[0] with member short stack[1] of global script with ID stac
 op 89: replace stack[0] with member long stack[1] of global script with ID stack[0]
 op 90: replace stack[0] with member float stack[1] of global script with ID stack[0]
 op 91: replace stack[0] with member ref stack[1] of global script with ID stack[0]
+op 92: replace stack[0] with distance between implicit reference and a reference of ID stack[0]
+op 93: explicit reference = stack[0]; pop;
+       replace stack[0] with distance between explicit reference and a reference of ID stack[0]
 opcodes 76-33554431 unused
 opcodes 33554432-67108863 reserved for extensions

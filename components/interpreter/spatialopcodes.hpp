@@ -37,6 +37,38 @@ namespace Interpreter
                 runtime[0].mFloat = distance;
             }            
     };    
+
+    class OpGetDistanceToRef : public Opcode0
+    {
+        public:
+
+            virtual void execute (Runtime& runtime)
+            {
+                std::string name = runtime.getStringLiteral (runtime[0].mInteger); // 1 mandatory argument
+
+                Type_Float distance = runtime.getContext().getDistanceToRef (name);
+
+                runtime[0].mFloat = distance;
+            }
+    };
+
+    class OpGetDistanceToRefExplicit : public Opcode0
+    {
+        public:
+
+            virtual void execute (Runtime& runtime)
+            {
+                int index = runtime[0].mInteger;
+                runtime.pop();
+                std::string id = runtime.getStringLiteral (index); // explicit ref editor id (formid better?)
+
+                std::string name = runtime.getStringLiteral (runtime[0].mInteger); // 1 mandatory argument
+
+                Type_Float distance = runtime.getContext().getDistanceToRef (name, id);
+
+                runtime[0].mFloat = distance;
+            }
+    };
 }
 
 #endif

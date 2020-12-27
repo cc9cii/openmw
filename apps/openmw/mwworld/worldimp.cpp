@@ -732,6 +732,56 @@ namespace MWWorld
         throw std::runtime_error ("unknown ID: " + name);
     }
 
+    Ptr World::getForeignPtr (const std::string& name, bool activeOnly)
+    {
+#if 0
+        Ptr ret = searchPtr(name, activeOnly);
+#else
+        Ptr ret;
+        // the player is always in an active cell.
+        if (name == "player")
+        {
+            return mPlayer->getPlayer();
+        }
+
+        std::string lowerCaseName = Misc::StringUtils::lowerCase(name);
+
+        for (Scene::CellStoreCollection::const_iterator iter (mWorldScene->getActiveCells().begin());
+            iter!=mWorldScene->getActiveCells().end(); ++iter)
+        {
+            // TODO: caching still doesn't work efficiently here (only works for the one CellStore that the reference is in)
+            CellStore* cellstore = *iter;
+            Ptr ptr = mCells.getForeignPtr (lowerCaseName, *cellstore, false);
+
+            if (!ptr.isEmpty())
+                return ptr;
+        }
+
+        if (!activeOnly)
+        {
+            ret = mCells.getForeignPtr (lowerCaseName);
+            if (!ret.isEmpty())
+                return ret;
+        }
+
+        for (Scene::CellStoreCollection::const_iterator iter (mWorldScene->getActiveCells().begin());
+            iter!=mWorldScene->getActiveCells().end(); ++iter)
+        {
+            CellStore* cellstore = *iter;
+            Ptr ptr = cellstore->searchInContainer(lowerCaseName);
+            if (!ptr.isEmpty())
+                return ptr;
+        }
+
+        Ptr ptr = mPlayer->getPlayer().getClass()
+            .getContainerStore(mPlayer->getPlayer()).search(lowerCaseName);
+        //return ptr;
+#endif
+        if (!ret.isEmpty())
+            return ret;
+        throw std::runtime_error ("unknown ID: " + name);
+    }
+
     Ptr World::getPtrViaHandle (const std::string& handle)
     {
         Ptr res = searchPtrViaHandle (handle);

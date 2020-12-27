@@ -92,6 +92,9 @@ namespace Interpreter
             virtual float getDistance (const std::string& name, const std::string& id = "") const
                  = 0;
 
+            virtual float getDistanceToRef (const std::string& name, const std::string& id = "") const
+                 = 0;
+
             virtual float getSecondsPassed() const = 0;
 
             virtual bool isDisabled (const std::string& id = "") const = 0;

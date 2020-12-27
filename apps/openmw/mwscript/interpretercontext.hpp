@@ -142,6 +142,9 @@ namespace MWScript
             virtual float getDistance (const std::string& name, const std::string& id = "") const;
             ///< @note if \a id is empty, assumes an implicit reference
 
+            virtual float getDistanceToRef (const std::string& name, const std::string& id = "") const;
+            ///< @note if \a id is empty, assumes an implicit reference
+
             bool hasBeenActivated (const MWWorld::Ptr& ptr);
             ///< \attention Calling this function for the right reference will mark the action as
             /// been handled.

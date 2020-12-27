@@ -141,5 +141,8 @@ namespace Interpreter
         // spacial
         interpreter.installSegment5 (49, new OpGetDistance);
         interpreter.installSegment5 (57, new OpGetDistanceExplicit);
+        // TES4 equivalents below
+        interpreter.installSegment5 (92, new OpGetDistanceToRef);
+        interpreter.installSegment5 (93, new OpGetDistanceToRefExplicit);
     }
 }

@@ -529,6 +529,33 @@ MWWorld::Ptr MWWorld::Cells::getPtr (const std::string& name, CellStore& cell,
     return Ptr();
 }
 
+MWWorld::Ptr MWWorld::Cells::getForeignPtr(const std::string& name, CellStore& cell,
+    bool searchInContainers)
+{
+    if (cell.getState() == CellStore::State_Unloaded)
+        cell.preload(mStore, mReader);
+
+    if (cell.getState() == CellStore::State_Preloaded)
+    {
+        if (cell.hasId(name))
+        {
+            cell.load(mStore, mReader);
+        }
+        else
+            return Ptr();
+    }
+
+    Ptr ptr = cell.searchViaEditorId(name);
+
+    if (!ptr.isEmpty())
+        return ptr;
+
+    if (searchInContainers)
+        return cell.searchInContainer(name);
+
+    return Ptr();
+}
+
 MWWorld::Ptr MWWorld::Cells::getPtr (const std::string& name)
 {
     // First check the cache
