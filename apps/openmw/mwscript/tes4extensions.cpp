@@ -111,6 +111,33 @@ namespace MWScript
         };
 
         template<class R>
+        class OpSetStage : public Interpreter::Opcode0
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime)
+                {
+                    MWWorld::Ptr ptr = R()(runtime);
+
+                    // there is a mandatory string argument
+                    std::string questName = runtime.getStringLiteral (runtime[0].mInteger);
+                    runtime.pop();
+
+                    // also an integer
+                    Interpreter::Type_Integer stage = runtime[0].mInteger;
+                    runtime.pop();
+
+                    const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
+                    const ESM4::Quest *quest = store.getForeign<ESM4::Quest>().search(questName);
+
+                    // FIXME
+
+
+                    std::cout << "SetStage: " << questName << ", " << stage << std::endl; // FIXME: temp testing
+                }
+        };
+
+        template<class R>
         class OpGetLocked : public Interpreter::Opcode0
         {
             public:
@@ -300,16 +327,163 @@ namespace MWScript
                 }
         };
 
+        template<class R>
+        class OpGetCurrentAIProcedure : public Interpreter::Opcode0
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime)
+                {
+                    MWWorld::Ptr ptr = R()(runtime);
+
+                    //std::cout << "GetCurrentAIProcedure: " << std::endl; // FIXME: temp testing
+
+                    runtime.push (2); // FIXME: just a dummy for testing
+                }
+        };
+
+        template<class R>
+        class OpEvaluatePackage : public Interpreter::Opcode0
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime)
+                {
+                    //MWWorld::Ptr ptr = R()(runtime);
+                    //std::string editorId = runtime.getStringLiteral(runtime[0].mInteger);
+                    //runtime.pop();
+
+                    std::cout << "EvaluatePackage: " << std::endl; // FIXME: temp testing
+                }
+        };
+
+        template<class R>
+        class OpGetLineOfSight : public Interpreter::Opcode0
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime)
+                {
+                    //MWWorld::Ptr ptr = R()(runtime);
+                    int index = runtime[0].mInteger;
+                    runtime.pop();
+                    std::string id = runtime.getStringLiteral (index); // explicit ref editor id
+
+                    // 1 mandatory argument
+                    std::string objectEditorId = runtime.getStringLiteral(runtime[0].mInteger);
+                    runtime.pop();
+
+                    //std::cout << "GetLineOfSight: " << id << " - " << objectEditorId << std::endl; // FIXME: temp testing
+
+                    runtime.push(1);  // should this be runtime[0].mInteger = 1 ?
+                }
+        };
+
+        template<class R>
+        class OpUnLock : public Interpreter::Opcode1
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime, unsigned int arg0)
+                {
+
+                    //MWWorld::Ptr ptr = R()(runtime);
+
+                    // handle the arguments
+                    Interpreter::Type_Integer flag = 0;
+                    if (arg0 >= 1)
+                    {
+                        // FIXME: untested, prob wrong
+                        Interpreter::Type_Integer flag = runtime[0].mInteger;
+                        std::cout << "arg " << flag << std::endl;
+
+                        runtime.pop();
+                    }
+                    else // implicit
+                    {
+                        MWWorld::Ptr ptr = R()(runtime);
+                    }
+
+                    std::cout << "UnLock" << std::endl;
+                }
+        };
+
+        template<class R>
+        class OpSetFactionReaction : public Interpreter::Opcode0
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime)
+                {
+                    //MWWorld::Ptr ptr = R()(runtime);
+                    int index = runtime[0].mInteger;
+                    runtime.pop();
+                    std::string id = runtime.getStringLiteral (index); // 1st mandatory argument
+
+                    // 2nd mandatory argument
+                    std::string id2 = runtime.getStringLiteral(runtime[0].mInteger);
+                    runtime.pop();
+
+                    // 3rd mandatory argument
+                    Interpreter::Type_Integer value = runtime[0].mInteger;
+                    runtime.pop();
+
+                    std::cout << "SetFactionReaction: " << id << ", " << id2 << " " << value << std::endl; // FIXME: temp testing
+                }
+        };
+
+        template<class R>
+        class OpSetActorValue : public Interpreter::Opcode0
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime)
+                {
+                    //MWWorld::Ptr ptr = R()(runtime);
+                    int index = runtime[0].mInteger;
+                    runtime.pop();
+                    std::string id = runtime.getStringLiteral (index); // 1st mandatory argument
+
+                    // 2nd mandatory argument
+                    Interpreter::Type_Integer value = runtime[0].mInteger;
+                    runtime.pop();
+
+                    std::cout << "SetActorValue: " << id << " " << value << std::endl; // FIXME: temp testing
+                }
+        };
+
         void installOpcodes (Interpreter::Interpreter& interpreter)
         {
+            // Actor
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Actor::opcodeSetActorValue, new OpSetActorValue<ImplicitRef>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Actor::opcodeSetActorValueExplicit, new OpSetActorValue<ExplicitTes4Ref>);
+
+            // AI
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4AI::opcodeEvaluatePackage, new OpEvaluatePackage<ImplicitRef>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4AI::opcodeEvaluatePackageExplicit, new OpEvaluatePackage<ExplicitTes4Ref>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4AI::opcodeGetCurrentAIProcedure, new OpGetCurrentAIProcedure<ImplicitRef>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4AI::opcodeGetCurrentAIProcedureExplicit, new OpGetCurrentAIProcedure<ExplicitTes4Ref>);
+
+            // Animation
             interpreter.installSegment5
                 (Tes4Compiler::Tes4Animation::opcodeIsAnimPlaying, new OpIsAnimPlaying<ImplicitRef>);
 
             interpreter.installSegment5
                 (Tes4Compiler::Tes4Animation::opcodePlayGroup, new OpPlayGroup<ImplicitRef>);
             interpreter.installSegment5
-                (Tes4Compiler::Tes4Animation::opcodePlayGroupExplicit, new OpPlayGroup<ExplicitRef>);
+                (Tes4Compiler::Tes4Animation::opcodePlayGroupExplicit, new OpPlayGroup<ExplicitTes4Ref>);
 
+            // Faction
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Faction::opcodeSetFactionReaction, new OpSetFactionReaction<ImplicitRef>);
+
+            // Inventory
             interpreter.installSegment3
                 (Tes4Compiler::Tes4Inventory::opcodeActivate, new OpActivate<ImplicitRef>);
             interpreter.installSegment3
@@ -319,9 +493,19 @@ namespace MWScript
             interpreter.installSegment5
                 (Tes4Compiler::Tes4Inventory::opcodeGetItemCountExplicit, new OpGetItemCount<ExplicitTes4Ref>);
 
+            // Movement
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Movement::opcodeGetLineOfSight, new OpGetLineOfSight<ImplicitRef>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Movement::opcodeGetLineOfSightExplicit, new OpGetLineOfSight<ExplicitTes4Ref>);
+
+            // Quest
             interpreter.installSegment5
                 (Tes4Compiler::Tes4Quest::opcodeGetStage, new OpGetStage<ImplicitRef>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Quest::opcodeSetStage, new OpSetStage<ImplicitRef>);
 
+            // Misc
             interpreter.installSegment5
                 (Tes4Compiler::Tes4Misc::opcodeGetLocked, new OpGetLocked<ImplicitRef>);
 
@@ -334,7 +518,11 @@ namespace MWScript
             interpreter.installSegment5
                 (Tes4Compiler::Tes4Misc::opcodeIsActionRef, new OpIsActionRef<ImplicitRef>);
             interpreter.installSegment5
-                (Tes4Compiler::Tes4Misc::opcodeIsActionRefExplicit, new OpIsActionRef<ExplicitRef>);
+                (Tes4Compiler::Tes4Misc::opcodeIsActionRefExplicit, new OpIsActionRef<ExplicitTes4Ref>);
+            interpreter.installSegment3
+                (Tes4Compiler::Tes4Misc::opcodeUnLock, new OpUnLock<ImplicitRef>);
+            interpreter.installSegment3
+                (Tes4Compiler::Tes4Misc::opcodeUnLockExplicit, new OpUnLock<ExplicitTes4Ref>);
         }
     }
 }
