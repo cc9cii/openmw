@@ -361,7 +361,7 @@ namespace
 
     void opGetDistance (Tes4Compiler::Generator::CodeContainer& code)
     {
-        code.push_back (Tes4Compiler::Generator::segment5 (49));
+        code.push_back (Tes4Compiler::Generator::segment5 (92));
     }
 
     void opGetSecondsPassed (Tes4Compiler::Generator::CodeContainer& code)
@@ -401,7 +401,7 @@ namespace
 
     void opGetDistanceExplicit (Tes4Compiler::Generator::CodeContainer& code)
     {
-        code.push_back (Tes4Compiler::Generator::segment5 (57));
+        code.push_back (Tes4Compiler::Generator::segment5 (93));
     }
 
     void opLogicalAndInt (Tes4Compiler::Generator::CodeContainer& code)
