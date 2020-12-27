@@ -20,6 +20,7 @@
 #include <components/compiler/exception.hpp>
 #include <components/compiler/quickfileparser.hpp>
 #include <components/tes4compiler/quickfileparser.hpp>
+#include <components/interpreter/context.hpp>
 
 #include "../mwworld/esmstore.hpp"
 
@@ -242,7 +243,8 @@ namespace MWScript
         if (blockType != std::string())
             blockName = blockType;
 
-
+        if (blockName == "gamemode" && interpreterContext.menuMode())
+            return false;
 
 
         // FIXME: for testing - don't run quest scripts for now
