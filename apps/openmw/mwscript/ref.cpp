@@ -24,18 +24,23 @@ MWWorld::Ptr MWScript::ExplicitTes4Ref::operator() (Interpreter::Runtime& runtim
 {
     // FIXME: sometimes refId is the EditorId of the REFR and other times it is a local ref variable
     //        how to distinguish?  getLocalRef() can throw and we can't be certain that the index is correct
+    //
+    // One ugly way is to search assuming that the index is for a literal string of an EditorId, then
+    // if it fails to return a valid Ptr then assume it must be an index for a ref variable holding
+    // a FormId
 
-
-    //std::string editorId = runtime.getStringLiteral(runtime[0].mInteger);
-
-
-    unsigned int ref = runtime.getContext().getLocalRef(runtime[0].mInteger);
-
-
-    runtime.pop();
+    std::string editorId = runtime.getStringLiteral(runtime[0].mInteger);
 
     // FIXME: duplicated searching, maybe cache it somewhere?
-    //return MWBase::Environment::get().getWorld()->searchPtrViaEditorId(editorId, activeOnly);
+    MWWorld::Ptr ptr = MWBase::Environment::get().getWorld()->searchPtrViaEditorId(editorId, activeOnly);
+    if (ptr)
+    {
+        runtime.pop();
+        return ptr;
+    }
+
+    unsigned int ref = runtime.getContext().getLocalRef(runtime[0].mInteger);
+    runtime.pop();
 
     return MWBase::Environment::get().getWorld()->searchPtrViaFormId(ref, activeOnly);
 }
