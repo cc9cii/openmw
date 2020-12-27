@@ -59,6 +59,13 @@ namespace MWClass
         return ref->mBase->mFullName;
     }
 
+    std::string ForeignWeapon::getEditorId (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::Weapon> *ref = ptr.get<ESM4::Weapon>();
+
+        return ref->mBase->mEditorId;
+    }
+
     bool ForeignWeapon::hasToolTip (const MWWorld::Ptr& ptr) const
     {
         MWWorld::LiveCellRef<ESM4::Weapon> *ref = ptr.get<ESM4::Weapon>();

@@ -6349,6 +6349,14 @@ SE05QuestScript
 
 Need to update `CompilerContext::getMemberType()` to handle various object types.
 
+# [27/12/2020] Interpreter
+
+## `RefId` woes
+
+The `ContainerStore::count()` uses `getCellRef().getRefId()` to match against the supplied string.  However TES4 scripts supply the `EditorId` of the base object. e.g. `GetItemCount` used in `CGChest02SCRIPT` (ImperialDungeon05)
+
+The whole thing needs a bit of rethink, but for now just add a TES4 specific method.
+
 
 
 

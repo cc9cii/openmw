@@ -46,6 +46,13 @@ namespace MWClass
         return ref->mBase->mFullName;
     }
 
+    std::string ForeignApparatus::getEditorId (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::Apparatus> *ref = ptr.get<ESM4::Apparatus>();
+
+        return ref->mBase->mEditorId;
+    }
+
     bool ForeignApparatus::hasToolTip (const MWWorld::Ptr& ptr) const
     {
         MWWorld::LiveCellRef<ESM4::Apparatus> *ref = ptr.get<ESM4::Apparatus>();

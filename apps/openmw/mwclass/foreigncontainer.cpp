@@ -58,7 +58,9 @@ namespace MWClass
             {
                 ESM::ContItem item;
                 item.mCount = ref->mBase->mInventory.at(i).count;
-                item.mItem.assign(ESM4::formIdToString(ref->mBase->mInventory.at(i).item)); // FIXME
+                // FIXME: maybe the base object's EditorId should be used here
+                // but to do so we need to search the ESMStore
+                item.mItem.assign(ESM4::formIdToString(ref->mBase->mInventory.at(i).item));
 
                 inventory.mList.push_back(item);
             }

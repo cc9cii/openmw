@@ -137,6 +137,20 @@ int MWWorld::ContainerStore::count(const std::string &id)
     return total;
 }
 
+int MWWorld::ContainerStore::countForeign(const std::string &id)
+{
+    int total=0;
+    for (MWWorld::ContainerStoreIterator iter(begin()); iter != end(); ++iter)
+    {
+        std::string baseEditorId = iter->getClass().getEditorId(*iter);
+
+        if (Misc::StringUtils::ciEqual(baseEditorId, id))
+            total += iter->getRefData().getCount();
+    }
+
+    return total;
+}
+
 void MWWorld::ContainerStore::unstack(const Ptr &ptr, const Ptr& container)
 {
     if (ptr.getRefData().getCount() <= 1)

@@ -91,6 +91,8 @@ namespace MWWorld
             ///< \return name (the one that is to be presented to the user; not the internal one);
             /// can return an empty string.
 
+            virtual std::string getEditorId (const Ptr& ptr) const;
+
             virtual void adjustPosition(const MWWorld::Ptr& ptr, bool force) const;
             ///< Adjust position to stand on ground. Must be called post model load
             /// @param force do this even if the ptr is flying

@@ -23,6 +23,7 @@ namespace
 {
 bool isGold (const MWWorld::Ptr& ptr)
 {
+    // FIXME: probably no longer relevant for TES4
     return Misc::StringUtils::ciEqual(ptr.getCellRef().getRefId(), "gold_001")
                     || Misc::StringUtils::ciEqual(ptr.getCellRef().getRefId(), "gold_005")
                     || Misc::StringUtils::ciEqual(ptr.getCellRef().getRefId(), "gold_010")
@@ -58,6 +59,13 @@ namespace MWClass
         MWWorld::LiveCellRef<ESM4::MiscItem> *ref = ptr.get<ESM4::MiscItem>();
 
         return ref->mBase->mFullName;
+    }
+
+    std::string ForeignMiscItem::getEditorId (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::MiscItem> *ref = ptr.get<ESM4::MiscItem>();
+
+        return ref->mBase->mEditorId;
     }
 
     bool ForeignMiscItem::hasToolTip (const MWWorld::Ptr& ptr) const

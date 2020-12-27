@@ -458,4 +458,9 @@ namespace MWWorld
     {
         throw std::runtime_error("class does not support armor ratings");
     }
+
+    std::string Class::getEditorId(const Ptr &ptr) const
+    {
+        return "";
+    }
 }

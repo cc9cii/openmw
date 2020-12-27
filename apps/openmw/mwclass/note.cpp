@@ -45,6 +45,13 @@ namespace MWClass
         return ref->mBase->mFullName;
     }
 
+    std::string Note::getEditorId (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::Note> *ref = ptr.get<ESM4::Note>();
+
+        return ref->mBase->mEditorId;
+    }
+
     bool Note::hasToolTip (const MWWorld::Ptr& ptr) const
     {
         MWWorld::LiveCellRef<ESM4::Note> *ref = ptr.get<ESM4::Note>();

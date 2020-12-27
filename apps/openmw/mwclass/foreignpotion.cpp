@@ -49,6 +49,13 @@ namespace MWClass
         return ref->mBase->mFullName;
     }
 
+    std::string ForeignPotion::getEditorId (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::Potion> *ref = ptr.get<ESM4::Potion>();
+
+        return ref->mBase->mEditorId;
+    }
+
     bool ForeignPotion::hasToolTip (const MWWorld::Ptr& ptr) const
     {
         MWWorld::LiveCellRef<ESM4::Potion> *ref = ptr.get<ESM4::Potion>();

@@ -46,6 +46,13 @@ namespace MWClass
         return ref->mBase->mFullName;
     }
 
+    std::string ForeignIngredient::getEditorId (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::Ingredient> *ref = ptr.get<ESM4::Ingredient>();
+
+        return ref->mBase->mEditorId;
+    }
+
     int ForeignIngredient::getValue (const MWWorld::Ptr& ptr) const
     {
         MWWorld::LiveCellRef<ESM4::Ingredient> *ref = ptr.get<ESM4::Ingredient>();

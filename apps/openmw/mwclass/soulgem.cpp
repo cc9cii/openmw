@@ -46,6 +46,13 @@ namespace MWClass
         return ref->mBase->mFullName;
     }
 
+    std::string SoulGem::getEditorId (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::SoulGem> *ref = ptr.get<ESM4::SoulGem>();
+
+        return ref->mBase->mEditorId;
+    }
+
     bool SoulGem::hasToolTip (const MWWorld::Ptr& ptr) const
     {
         MWWorld::LiveCellRef<ESM4::SoulGem> *ref = ptr.get<ESM4::SoulGem>();

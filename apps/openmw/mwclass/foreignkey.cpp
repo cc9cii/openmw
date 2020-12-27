@@ -45,6 +45,13 @@ namespace MWClass
         return ref->mBase->mFullName;
     }
 
+    std::string ForeignKey::getEditorId (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::Key> *ref = ptr.get<ESM4::Key>();
+
+        return ref->mBase->mEditorId;
+    }
+
     bool ForeignKey::hasToolTip (const MWWorld::Ptr& ptr) const
     {
         MWWorld::LiveCellRef<ESM4::Key> *ref = ptr.get<ESM4::Key>();

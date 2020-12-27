@@ -278,6 +278,28 @@ namespace MWScript
                 }
         };
 
+        template<class R>
+        class OpGetItemCount : public Interpreter::Opcode0
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime)
+                {
+                    MWWorld::Ptr ptr = R()(runtime);
+
+                    // 1 mandatory argument
+                    std::string objectEditorId = runtime.getStringLiteral(runtime[0].mInteger);
+                    runtime.pop();
+
+                    MWWorld::ContainerStore& containerStore = ptr.getClass().getContainerStore(ptr);
+                    int count = containerStore.countForeign(objectEditorId);
+
+                    //std::cout << "GetItemCount: " << objectEditorId << ", " << count << std::endl; // FIXME: temp testing
+
+                    runtime.push (count);  // should this be runtime[0].mInteger = count ?
+                }
+        };
+
         void installOpcodes (Interpreter::Interpreter& interpreter)
         {
             interpreter.installSegment5
@@ -292,6 +314,10 @@ namespace MWScript
                 (Tes4Compiler::Tes4Inventory::opcodeActivate, new OpActivate<ImplicitRef>);
             interpreter.installSegment3
                 (Tes4Compiler::Tes4Inventory::opcodeActivateExplicit, new OpActivate<ExplicitTes4Ref>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Inventory::opcodeGetItemCount, new OpGetItemCount<ImplicitRef>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Inventory::opcodeGetItemCountExplicit, new OpGetItemCount<ExplicitTes4Ref>);
 
             interpreter.installSegment5
                 (Tes4Compiler::Tes4Quest::opcodeGetStage, new OpGetStage<ImplicitRef>);

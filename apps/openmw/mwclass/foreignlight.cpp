@@ -59,6 +59,13 @@ namespace MWClass
         return ref->mBase->mFullName;
     }
 
+    std::string ForeignLight::getEditorId (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::Light> *ref = ptr.get<ESM4::Light>();
+
+        return ref->mBase->mEditorId;
+    }
+
     bool ForeignLight::hasToolTip (const MWWorld::Ptr& ptr) const
     {
         MWWorld::LiveCellRef<ESM4::Light> *ref = ptr.get<ESM4::Light>();

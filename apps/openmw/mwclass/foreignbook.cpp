@@ -49,6 +49,13 @@ namespace MWClass
             return ref->mBase->mEditorId; // FO3 BookGeneric
     }
 
+    std::string ForeignBook::getEditorId (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::Book> *ref = ptr.get<ESM4::Book>();
+
+        return ref->mBase->mEditorId;
+    }
+
     bool ForeignBook::hasToolTip (const MWWorld::Ptr& ptr) const
     {
         MWWorld::LiveCellRef<ESM4::Book> *ref = ptr.get<ESM4::Book>();

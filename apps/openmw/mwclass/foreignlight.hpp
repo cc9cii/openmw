@@ -21,6 +21,8 @@ namespace MWClass
 
             virtual std::string getName (const MWWorld::Ptr& ptr) const;
 
+            virtual std::string getEditorId (const MWWorld::Ptr& ptr) const;
+
             virtual bool hasToolTip (const MWWorld::Ptr& ptr) const;
 
             virtual MWGui::ToolTipInfo getToolTipInfo (const MWWorld::Ptr& ptr) const;

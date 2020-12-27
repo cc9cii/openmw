@@ -194,6 +194,8 @@ namespace MWWorld
             /// @return How many items with refID \a id are in this container?
             int count (const std::string& id);
 
+            int countForeign (const std::string& id); // count(), but match the base object's EditorId instead
+
         protected:
             ContainerStoreIterator addNewStack (const Ptr& ptr, int count);
             ///< Add the item to this container (do not try to stack it onto existing items)

@@ -46,6 +46,13 @@ namespace MWClass
         return ref->mBase->mFullName;
     }
 
+    std::string SigilStone::getEditorId (const MWWorld::Ptr& ptr) const
+    {
+        MWWorld::LiveCellRef<ESM4::SigilStone> *ref = ptr.get<ESM4::SigilStone>();
+
+        return ref->mBase->mEditorId;
+    }
+
     bool SigilStone::hasToolTip (const MWWorld::Ptr& ptr) const
     {
         MWWorld::LiveCellRef<ESM4::SigilStone> *ref = ptr.get<ESM4::SigilStone>();
