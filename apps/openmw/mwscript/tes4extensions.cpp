@@ -349,11 +349,9 @@ namespace MWScript
 
                 virtual void execute (Interpreter::Runtime& runtime)
                 {
-                    //MWWorld::Ptr ptr = R()(runtime);
-                    //std::string editorId = runtime.getStringLiteral(runtime[0].mInteger);
-                    //runtime.pop();
+                    MWWorld::Ptr ptr = R()(runtime);
 
-                    std::cout << "EvaluatePackage: " << std::endl; // FIXME: temp testing
+                    std::cout << "EvaluatePackage: " << ptr.getCellRef().getRefId() << std::endl; // FIXME: temp testing
                 }
         };
 

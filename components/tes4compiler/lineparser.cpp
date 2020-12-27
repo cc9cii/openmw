@@ -218,7 +218,7 @@ namespace Tes4Compiler
             if (type == 'r' || getContext().getReference(name2) != 0)
             {
                 mState = PotentialExplicitState;
-                mExplicit = name; // NOTE: name used here because searchViaEditorId is case sensitive
+                mExplicit = name2;
 
                 return true;
             }
