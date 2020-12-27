@@ -35,23 +35,31 @@ namespace MWScript
 
     // NOTE: assumes that the ScriptManager knows TES4 script names in the string form of FormId
     std::pair<char, bool> CompilerContext::getMemberType (const std::string& name,
-        const std::string& id) const
+        const std::string& id, std::string *scriptId) const
     {
         std::string script;
-        bool reference = false; // FIXME: how do we know if the script is local or global?
+        bool reference = true;
 
         const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
 
         if (const ESM4::Script *scriptRecord = store.getForeign<ESM4::Script>().search (id))
         {
-            // FIXME: does this ever occur?  also it will fail since the search is case sensitive
+            // FIXME: does this scenario ever occur?
             script = ESM4::formIdToString(scriptRecord->mFormId);
-            //reference = true; // this means not global scripts
+
+            if (scriptId)
+                *scriptId = script;
+
+            // not quest (global) scripts so reference is kept unchanged
         }
         else if (const ESM4::Quest* questRecord = store.getForeign<ESM4::Quest>().search(id))
         {
             script = ESM4::formIdToString(questRecord->mQuestScript);
-            // quests are global scripts so reference is kept false
+
+            if (scriptId)
+                *scriptId = script;
+
+            reference = false; // false means quest (global) scripts
         }
         else if (const ESM4::ActorCharacter *achr = store.getForeign<ESM4::ActorCharacter>().searchLower(id))
         {
@@ -197,8 +205,8 @@ namespace MWScript
 
     ESM4::FormId CompilerContext::getReference (const std::string& lowerEditorId) const
     {
-        if (lowerEditorId == "player")
-            return 0x121212; // FIXME: temp testing hack
+        if (lowerEditorId == "player" || lowerEditorId == "playerref")
+            return 0x00000014;
 
         // first search the active cells
         MWWorld::Ptr ptr
@@ -223,7 +231,7 @@ namespace MWScript
 
         const ESM4::AIPackage *pack = store.getForeign<ESM4::AIPackage>().searchLower(lowerEditorId);
         if (pack)
-            return pack->mFormId;
+            return pack->mData.type;
 
         const ESM4::Quest *quest = store.getForeign<ESM4::Quest>().search (lowerEditorId);
         if (quest && quest->mQuestScript)

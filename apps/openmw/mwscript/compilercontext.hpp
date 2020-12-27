@@ -31,7 +31,7 @@ namespace MWScript
             virtual char getGlobalType (const std::string& name) const;
 
             virtual std::pair<char, bool> getMemberType (const std::string& name,
-                const std::string& id) const;
+                const std::string& id, std::string *scriptId = nullptr) const;
             ///< Return type of member variable \a name in script \a id or in script of reference of
             /// \a id
             /// \return first: 'l: long, 's': short, 'f': float, 'r': ref, ' ': does not exist.

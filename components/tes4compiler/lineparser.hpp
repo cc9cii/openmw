@@ -42,6 +42,7 @@ namespace Tes4Compiler
             char mType;
             ExprParser mExprParser;
             bool mAllowExpression;
+            std::string mScriptId;
 
             void parseExpression (Scanner& scanner, const Compiler::TokenLoc& loc);
 

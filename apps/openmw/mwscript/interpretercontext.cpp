@@ -69,6 +69,26 @@ namespace MWScript
         }
     }
 
+    const MWWorld::Ptr InterpreterContext::getForeignReferenceImp(
+        const std::string& id, bool activeOnly, bool doThrow) const
+    {
+        if (!id.empty())
+        {
+            return MWBase::Environment::get().getWorld()->getForeignPtr(id, activeOnly);
+        }
+        else
+        {
+            if (mReference.isEmpty() && !mTargetId.empty())
+                mReference =
+                MWBase::Environment::get().getWorld()->searchPtrViaEditorId(mTargetId, false);
+
+            if (mReference.isEmpty() && doThrow)
+                throw std::runtime_error("no implicit reference");
+
+            return mReference;
+        }
+    }
+
     const Locals& InterpreterContext::getMemberLocals (std::string& id, bool global)
         const
     {
@@ -114,14 +134,30 @@ namespace MWScript
         const
     {
         if (global)
+#if 1
         {
             return MWBase::Environment::get().getScriptManager()->getGlobalScripts().
                 getLocals (id);
         }
+#else
+        {
+            const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
+
+            const ESM4::Quest* quest = store.getForeign<ESM4::Quest>().search(id);
+            if (quest && quest->mQuestScript)
+            {
+                const ESM4::Script* script = store.getForeign<ESM4::Script>().search(quest->mQuestScript);
+                if (script)
+                    id = ESM4::formIdToString(script->mFormId);
+
+                return MWBase::Environment::get().getScriptManager()->getGlobalScripts().
+                    getLocals (id);
+            }
+        }
+#endif
         else
         {
-            // FIXME: this won't work for TES4
-            const MWWorld::Ptr ptr = getReferenceImp (id, false);
+            const MWWorld::Ptr ptr = getForeignReferenceImp (id, false);
 
              id = ptr.getClass().getScript (ptr);
 
@@ -135,14 +171,30 @@ namespace MWScript
     Locals& InterpreterContext::getScriptMemberLocals (std::string& id, bool global)
     {
         if (global)
+#if 1
         {
             return MWBase::Environment::get().getScriptManager()->getGlobalScripts().
                 getLocals (id);
         }
+#else
+        {
+            const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
+
+            const ESM4::Quest* quest = store.getForeign<ESM4::Quest>().search(id);
+            if (quest && quest->mQuestScript)
+            {
+                const ESM4::Script* script = store.getForeign<ESM4::Script>().search(quest->mQuestScript);
+                if (script)
+                    id = ESM4::formIdToString(script->mFormId);
+
+                return MWBase::Environment::get().getScriptManager()->getGlobalScripts().
+                    getLocals (id);
+            }
+        }
+#endif
         else
         {
-            // FIXME: this won't work for TES4
-            const MWWorld::Ptr ptr = getReferenceImp (id, false);
+            const MWWorld::Ptr ptr = getForeignReferenceImp (id, false);
 
             id = ptr.getClass().getScript (ptr);
 

@@ -40,7 +40,7 @@ namespace Compiler
             ///< 'l: long, 's': short, 'f': float, 'r': ref, ' ': does not exist.
 
             virtual std::pair<char, bool> getMemberType (const std::string& name,
-                const std::string& id) const = 0;
+                const std::string& id, std::string *scriptId = nullptr) const = 0;
             ///< Return type of member variable \a name in script \a id or in script of reference of
             /// \a id
             /// \return first: 'l: long, 's': short, 'f': float, 'r': ref, ' ': does not exist.

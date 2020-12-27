@@ -225,12 +225,16 @@ namespace Tes4Compiler
 
         std::string name2 = Misc::StringUtils::lowerCase (name);
         std::string id = Misc::StringUtils::lowerCase (mExplicit);
+        std::string scriptId = "";
 
-        std::pair<char, bool> type = getContext().getMemberType (name2, id);
+        std::pair<char, bool> type = getContext().getMemberType (name2, id, &scriptId);
 
         if (type.first!=' ')
         {
-            Generator::fetchMember (mCode, mLiterals, type.first, name2, id, !type.second);
+            if (scriptId.empty())
+                Generator::fetchMember (mCode, mLiterals, type.first, name2, id, !type.second);
+            else
+                Generator::fetchMember (mCode, mLiterals, type.first, name2, scriptId, !type.second);
 
             mNextOperand = false;
             mExplicit.clear();

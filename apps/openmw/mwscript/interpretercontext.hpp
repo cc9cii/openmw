@@ -46,6 +46,9 @@ namespace MWScript
             const MWWorld::Ptr getReferenceImp (const std::string& id = "",
                 bool activeOnly = false, bool doThrow=true) const;
 
+            const MWWorld::Ptr getForeignReferenceImp (const std::string& id = "",
+                bool activeOnly = false, bool doThrow=true) const;
+
             const Locals& getMemberLocals (std::string& id, bool global) const;
             ///< \a id is changed to the respective script ID, if \a id wasn't a script ID before
 

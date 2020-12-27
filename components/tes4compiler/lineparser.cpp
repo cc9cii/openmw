@@ -58,7 +58,7 @@ namespace Tes4Compiler
         Compiler::Locals& locals, Compiler::Literals& literals, std::vector<Interpreter::Type_Code>& code, bool allowExpression)
     : Parser (errorHandler, context), mLocals (locals), mLiterals (literals), mCode (code),
        mState (StartState), mReferenceMember(false), mButtons(0), mType(0),
-       mExprParser (errorHandler, context, locals, literals), mAllowExpression (allowExpression)
+       mExprParser (errorHandler, context, locals, literals), mAllowExpression (allowExpression), mScriptId("")
     {}
 
     bool LineParser::parseInt (int value, const Compiler::TokenLoc& loc, Scanner& scanner)
@@ -120,6 +120,7 @@ namespace Tes4Compiler
                 return true;
             }
 
+            // global variable (i.e. not quest script variable)
             type = getContext().getGlobalType (name2);
             if (type!=' ')
             {
@@ -135,7 +136,8 @@ namespace Tes4Compiler
         if (mState==SetMemberVarState)
         {
             mMemberName = Misc::StringUtils::lowerCase (name);
-            std::pair<char, bool> type = getContext().getMemberType (mMemberName, mName);
+            mScriptId = "";
+            std::pair<char, bool> type = getContext().getMemberType (mMemberName, mName, &mScriptId);
 
             if (type.first!=' ')
             {
@@ -270,7 +272,8 @@ namespace Tes4Compiler
         if (mState==SetMemberVarState)
         {
             mMemberName = loc.mLiteral;
-            std::pair<char, bool> type = getContext().getMemberType (mMemberName, mName);
+            mScriptId = "";
+            std::pair<char, bool> type = getContext().getMemberType (mMemberName, mName, &mScriptId);
 
             if (type.first!=' ')
             {
@@ -501,6 +504,7 @@ namespace Tes4Compiler
         }
         else if (mState==SetGlobalVarState && keyword==Scanner::K_to)
         {
+            // global variable i.e. *not* quest script variable (confusing)
             mExprParser.reset();
             scanner.scan (mExprParser);
 
@@ -514,14 +518,20 @@ namespace Tes4Compiler
         }
         else if (mState==SetMemberVarState2 && keyword==Scanner::K_to)
         {
+            // if mReferenceMember == false assign to quest script variable
             mExprParser.reset();
             scanner.scan (mExprParser);
 
             std::vector<Interpreter::Type_Code> code;
             char type = mExprParser.append (code);
 
-            Generator::assignToMember (mCode, mLiterals, mType, mMemberName, mName, code, type,
-                !mReferenceMember);
+            if (mScriptId.empty())
+                Generator::assignToMember (mCode, mLiterals, mType, mMemberName, mName, code, type,
+                    !mReferenceMember);
+            else
+                Generator::assignToMember (mCode, mLiterals, mType, mMemberName, mScriptId, code, type,
+                    !mReferenceMember);
+            mScriptId = "";
 
             mState = EndState;
             return true;
