@@ -65,11 +65,11 @@ namespace MWScript
                 Compiler::Context& compilerContext, Compiler::Context& tes4CompilerContext, int warningsMode,
                 const std::vector<std::string>& scriptBlacklist);
 
-            virtual void run (const std::string& name, Interpreter::Context& interpreterContext,
+            virtual bool run (const std::string& name, Interpreter::Context& interpreterContext,
                               const std::string& blockType = std::string());
             ///< Run the script with the given name (compile first, if not compiled yet)
 
-            void runForeign (const std::string& name, Interpreter::Context& interpreterContext,
+            bool runForeign (const std::string& name, Interpreter::Context& interpreterContext,
                               const std::string& blockType = std::string());
 
             virtual bool compile (const std::string& name);

@@ -161,7 +161,7 @@ namespace MWScript
         return false;
     }
 
-    void ScriptManager::run (const std::string& name, Interpreter::Context& interpreterContext,
+    bool ScriptManager::run (const std::string& name, Interpreter::Context& interpreterContext,
                               const std::string& blockType)
     {
         if (ESM4::isFormId(name))
@@ -177,7 +177,7 @@ namespace MWScript
                 // failed -> ignore script from now on.
                 std::vector<Interpreter::Type_Code> empty;
                 mScripts.insert (std::make_pair (name, std::make_pair (empty, Compiler::Locals())));
-                return;
+                return false;
             }
 
             iter = mScripts.find (name);
@@ -213,7 +213,7 @@ namespace MWScript
     // Those local variables are created during the loading of the cell in which the object
     // references are located.  If the run-time data were saved then the local variables'
     // contents are restored when the saved game is loaded.
-    void ScriptManager::runForeign (const std::string& name, Interpreter::Context& interpreterContext,
+    bool ScriptManager::runForeign (const std::string& name, Interpreter::Context& interpreterContext,
                               const std::string& blockType)
     {
         // compile script
@@ -228,7 +228,7 @@ namespace MWScript
                 ScriptCollection emptyMap;
                 emptyMap.insert(std::make_pair(std::string(), std::make_pair(empty, Compiler::Locals())));
                 mForeignScripts.insert (std::make_pair (name, emptyMap));
-                return;
+                return false;
             }
 
             iter = mForeignScripts.find (name);
@@ -242,7 +242,7 @@ namespace MWScript
         if (blockType != std::string())
             blockName = blockType;
         else
-            return; // FIXME: stop running gamemode blocks for testing
+            return false; // FIXME: stop running gamemode blocks for testing
 
         // FIXME: need to check any arguments passed into the block
         // (e.g. "begin onTrigger player" in CGTrigZoneEmperorBirthsignSCRIPT)
@@ -262,6 +262,8 @@ namespace MWScript
                     std::cout << "0x" << std::setfill('0') << std::setw(8) << std::hex << iter2->second.first[i] << std::endl;
 #endif
                 mInterpreter.run (&iter2->second.first[0], iter2->second.first.size(), interpreterContext);
+
+                return true; // found a matching block, so the script did something
             }
             catch (const std::exception& e)
             {
@@ -270,6 +272,8 @@ namespace MWScript
 
                 iter2->second.first.clear(); // don't execute again.
             }
+
+            return false; // didn't find a matching block type
     }
 
     std::pair<int, int> ScriptManager::compileAll()

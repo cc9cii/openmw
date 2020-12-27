@@ -556,6 +556,11 @@ namespace MWScript
         return mActivationHandled;
     }
 
+    void InterpreterContext::setActivationBeenHandled()
+    {
+        mActivationHandled = true;
+    }
+
     void InterpreterContext::activate (const MWWorld::Ptr& ptr, const MWWorld::Ptr& actor)
     {
         mActivated = ptr;

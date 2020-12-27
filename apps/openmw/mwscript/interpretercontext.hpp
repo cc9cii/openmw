@@ -146,6 +146,8 @@ namespace MWScript
             ///< \attention Calling this function for the right reference will mark the action as
             /// been handled.
 
+            void setActivationBeenHandled();
+
             bool hasActivationBeenHandled() const;
 
             void activate (const MWWorld::Ptr& ptr, const MWWorld::Ptr& actor);

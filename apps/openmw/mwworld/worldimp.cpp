@@ -3823,11 +3823,12 @@ namespace MWWorld
 
                 // NOTE: MWWorld::LocalScripts::addForeign() creates the local variables when
                 // the object reference is loaded (as a part of the cell loading)
-                MWBase::Environment::get().getScriptManager()->run (script, interpreterContext, "onactivate");
+                if (MWBase::Environment::get().getScriptManager()->run (script, interpreterContext, "onactivate"))
+                    interpreterContext.setActivationBeenHandled();
             }
-            // below logic doesn't make sense? why activate if the script didn't?
-            // added 'else' as a possible fix
-            else if (!interpreterContext.hasActivationBeenHandled())
+
+            // sometimes a script is enabled for an object but does not have "OnActivate" block
+            if (!interpreterContext.hasActivationBeenHandled())
                 interpreterContext.executeActivation(object, actor);
         }
         else
