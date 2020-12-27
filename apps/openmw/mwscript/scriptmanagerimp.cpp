@@ -241,8 +241,26 @@ namespace MWScript
         std::string blockName = "gamemode";
         if (blockType != std::string())
             blockName = blockType;
-        else
-            return false; // FIXME: stop running gamemode blocks for testing
+
+
+
+
+        // FIXME: for testing - don't run quest scripts for now
+        const MWWorld::ForeignStore<ESM4::Quest>& questStore = mStore.getForeign<ESM4::Quest>();
+        const MWWorld::ForeignStore<ESM4::Script>& scriptStore = mStore.getForeign<ESM4::Script>();
+        for (std::vector<ESM4::Quest*>::const_iterator iter = questStore.begin(); iter != questStore.end(); ++iter)
+        {
+            if (ESM4::FormId scriptId = (*iter)->mQuestScript)
+            {
+                if (name == ESM4::formIdToString(scriptId))
+                    return false;
+            }
+        }
+
+
+
+
+
 
         // FIXME: need to check any arguments passed into the block
         // (e.g. "begin onTrigger player" in CGTrigZoneEmperorBirthsignSCRIPT)
