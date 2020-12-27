@@ -298,44 +298,45 @@ namespace
         code.push_back (Tes4Compiler::Generator::segment5 (global ? 70 : 64));
     }
 #else
+    // NOTE: here global means quest script
     void opStoreScriptMemberShort (Tes4Compiler::Generator::CodeContainer& code, bool global)
     {
-        code.push_back (Tes4Compiler::Generator::segment5 (global ? 76 : 84));
+        code.push_back (Tes4Compiler::Generator::segment5 (global ? 84 : 76));
     }
 
     void opStoreScriptMemberLong (Tes4Compiler::Generator::CodeContainer& code, bool global)
     {
-        code.push_back (Tes4Compiler::Generator::segment5 (global ? 77 : 85));
+        code.push_back (Tes4Compiler::Generator::segment5 (global ? 85 : 77));
     }
 
     void opStoreScriptMemberFloat (Tes4Compiler::Generator::CodeContainer& code, bool global)
     {
-        code.push_back (Tes4Compiler::Generator::segment5 (global ? 78 : 86));
+        code.push_back (Tes4Compiler::Generator::segment5 (global ? 86 : 78));
     }
 
     void opStoreScriptMemberRef (Tes4Compiler::Generator::CodeContainer& code, bool global)
     {
-        code.push_back (Tes4Compiler::Generator::segment5 (global ? 79 : 87));
+        code.push_back (Tes4Compiler::Generator::segment5 (global ? 87 : 79));
     }
 
     void opFetchScriptMemberShort (Tes4Compiler::Generator::CodeContainer& code, bool global)
     {
-        code.push_back (Tes4Compiler::Generator::segment5 (global ? 80 : 88));
+        code.push_back (Tes4Compiler::Generator::segment5 (global ? 88 : 80));
     }
 
     void opFetchScriptMemberLong (Tes4Compiler::Generator::CodeContainer& code, bool global)
     {
-        code.push_back (Tes4Compiler::Generator::segment5 (global ? 81 : 89));
+        code.push_back (Tes4Compiler::Generator::segment5 (global ? 89 : 81));
     }
 
     void opFetchScriptMemberFloat (Tes4Compiler::Generator::CodeContainer& code, bool global)
     {
-        code.push_back (Tes4Compiler::Generator::segment5 (global ? 82 : 90));
+        code.push_back (Tes4Compiler::Generator::segment5 (global ? 90 : 82));
     }
 
     void opFetchScriptMemberRef (Tes4Compiler::Generator::CodeContainer& code, bool global)
     {
-        code.push_back (Tes4Compiler::Generator::segment5 (global ? 83 : 91));
+        code.push_back (Tes4Compiler::Generator::segment5 (global ? 91 : 83));
     }
 #endif
     void opRandom (Tes4Compiler::Generator::CodeContainer& code)
