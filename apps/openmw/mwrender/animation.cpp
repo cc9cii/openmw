@@ -1532,16 +1532,16 @@ int Animation::getAnimatedDoorState() const
     {
         int openState = 0;
         std::map<std::string, std::vector<Ogre::Entity*> >::iterator it
-            = mObjectRoot->mForeignObj->mNodeAnimEntityMap.find("Open");
+            = mObjectRoot->mForeignObj->mNodeAnimEntityMap.find("open");
         if (it != mObjectRoot->mForeignObj->mNodeAnimEntityMap.end())
         {
-            if (it->second[0]->hasAnimationState("Open") && it->second[0]->getAnimationState("Open")->getEnabled())
+            if (it->second[0]->hasAnimationState("open") && it->second[0]->getAnimationState("open")->getEnabled())
             {
                 bool hasEndedOpen = false;
                 for (unsigned int i = 0; i < it->second.size(); ++i)
                 {
                     // check that all have ended
-                    hasEndedOpen &= it->second[i]->getAnimationState("Open")->hasEnded();
+                    hasEndedOpen &= it->second[i]->getAnimationState("open")->hasEnded();
 
                     if (!hasEndedOpen) // only needs one to be unfinished
                     {
@@ -1557,16 +1557,16 @@ int Animation::getAnimatedDoorState() const
 
         int closeState = 0;
         std::map<std::string, std::vector<Ogre::Entity*> >::iterator it2
-            = mObjectRoot->mForeignObj->mNodeAnimEntityMap.find("Close");
+            = mObjectRoot->mForeignObj->mNodeAnimEntityMap.find("close");
         if (it2 != mObjectRoot->mForeignObj->mNodeAnimEntityMap.end())
         {
-            if (it2->second[0]->hasAnimationState("Close") && it2->second[0]->getAnimationState("Close")->getEnabled())
+            if (it2->second[0]->hasAnimationState("close") && it2->second[0]->getAnimationState("close")->getEnabled())
             {
                 bool hasEndedClose = false;
                 for (unsigned int i = 0; i < it2->second.size(); ++i)
                 {
                     // check that all have ended
-                    hasEndedClose &= it2->second[i]->getAnimationState("Close")->hasEnded();
+                    hasEndedClose &= it2->second[i]->getAnimationState("close")->hasEnded();
 
                     if (!hasEndedClose) // only needs one to be unfinished
                     {

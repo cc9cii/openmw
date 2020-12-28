@@ -229,10 +229,10 @@ namespace MWClass
 
                 return action;
             }
-            else if (anim->hasAnimation("Open") || anim->hasAnimation("Close"))
+            else if (anim->hasAnimation("open") || anim->hasAnimation("close"))
             {
                 boost::shared_ptr<MWWorld::Action> action(new MWWorld::ActionDoor(ptr));
-                if (anim->hasAnimation("Open"))
+                if (anim->hasAnimation("open"))
                 {
                     // NOTE: some doors have sound specified in the animation TextKey
                     // (see MWRender::Animation::handleTextKey() and activateAnimatedDoor())

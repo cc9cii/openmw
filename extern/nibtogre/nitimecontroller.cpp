@@ -29,6 +29,8 @@
 #include <stdexcept>
 #include <iostream> // FIXME: debugging only
 
+#include <boost/algorithm/string.hpp>
+
 #include <OgreSkeleton.h>
 #include <OgreKeyFrame.h>
 #include <OgreBone.h>
@@ -615,13 +617,15 @@ void NiBtOgre::NiMultiTargetTransformController::build(int32_t nameIndex, const 
     // NOTE: assume that NiControllerManager and NiControllerSequence is built already
     //assert(mNiControllerSequeceBuilt == true); // throw instead?
 
-    //if (mModel.indexToString(nameIndex) == "Close") // FIXME: testing
+    //if (mModel.indexToString(nameIndex) == "close") // FIXME: testing
         //return;
 
-    std::string animationId = /*"NiMTTransform@block_" + std::to_string(interpolator->selfRef()) + */mModel.indexToString(nameIndex);
+    // TES4 scripts may use lowercase string to identify animations, e.g.:
+    //     playgroup forward 1
+    // therefore we use should use the lowercase animation id throughout
+    std::string animationId = boost::to_lower_copy(
+            /*"NiMTTransform@block_" + std::to_string(interpolator->selfRef()) + */mModel.indexToString(nameIndex));
     float totalAnimationLength = stopTime - startTime; // use the ones from the controller sequence
-
-
 
     // FIXME: animation should be created by NiSequenceController
     Ogre::Animation *animation;

@@ -29,6 +29,8 @@
 #include <stdexcept>
 #include <iostream> // FIXME
 
+#include <boost/algorithm/string.hpp>
+
 #include <OgreController.h>
 #include <OgreSkeletonInstance.h>
 #include <OgreControllerManager.h>
@@ -357,7 +359,11 @@ void NiBtOgre::NiControllerSequence::buildFO3(const NiDefaultAVObjectPalette& ob
         }
     }
 
-    std::string animName = mModel.indexToString(mNameIndex);
+    // TES4 scripts may use lowercase string to identify animations, e.g.:
+    //     playgroup forward 1
+    // therefore we use should use the lowercase animation id throughout
+    // (have not checked if FO3 scripts do the same, but assumed they would)
+    std::string animName = boost::to_lower_copy(mModel.indexToString(mNameIndex));
     for (size_t i = 0; i < mControlledBlocks.size(); ++i)
     {
         if (mModel.nifVer() < 0x0a01006a) // 10.1.0.106

@@ -1662,13 +1662,13 @@ namespace MWWorld
                 // Once we load the door's cell again (or re-enable the door), Door::insertObject will reinsert to mDoorStates.
                 mDoorStates.erase(it++);
             }
-            else if ((isForeignDoor || isForeignActivatorDoor) && anim->hasAnimation("Open") && (/*anim->getAnimatedDoorState() == 0 || */anim->getAnimatedDoorState() == 1))
+            else if ((isForeignDoor || isForeignActivatorDoor) && anim->hasAnimation("open") && (/*anim->getAnimatedDoorState() == 0 || */anim->getAnimatedDoorState() == 1))
             {
-                bool finished =  anim->addTime("Open", duration); // returns true if animation ended
+                bool finished =  anim->addTime("open", duration); // returns true if animation ended
                 // it->first is Ptr (i.e. the door)
                 //it->first.getClass().setDoorState(it->first, 0);
 
-                std::vector<Ogre::Bone*> bones = anim->getBones("Open");
+                std::vector<Ogre::Bone*> bones = anim->getBones("open");
                 for (unsigned int i = 0; i < bones.size(); ++i)
                 {
 #if 0
@@ -1708,19 +1708,19 @@ namespace MWWorld
                                 //Ogre::Radian(1.57f), Ogre::Vector3::UNIT_Z));
                 if (finished)
                 {
-                    //anim->activateAnimatedDoor("Open", false);
+                    //anim->activateAnimatedDoor("open", false);
                     mDoorStates.erase(it++);
                 }
                 else
                     it++;
             }
-            else if ((isForeignDoor || isForeignActivatorDoor) && anim->hasAnimation("Close") && anim->getAnimatedDoorState() == 2)
+            else if ((isForeignDoor || isForeignActivatorDoor) && anim->hasAnimation("close") && anim->getAnimatedDoorState() == 2)
             {
-                bool finished =  anim->addTime("Close", duration); // returns true if animation ended
+                bool finished =  anim->addTime("close", duration); // returns true if animation ended
                 // it->first is Ptr (i.e. the door)
                 //it->first.getClass().setDoorState(it->first, 2);
 
-                std::vector<Ogre::Bone*> bones = anim->getBones("Close");
+                std::vector<Ogre::Bone*> bones = anim->getBones("close");
                 for (unsigned int i = 0; i < bones.size(); ++i)
                 {
 #if 0
@@ -1754,13 +1754,13 @@ namespace MWWorld
 
                 if (finished)
                 {
-                    //anim->activateAnimatedDoor("Close", false);
+                    //anim->activateAnimatedDoor("close", false);
                     mDoorStates.erase(it++);
                 }
                 else
                     it++;
             }
-            else if ((isForeignDoor || isForeignActivatorDoor) && anim->hasAnimation("Open") && anim->getAnimatedDoorState() == 0)
+            else if ((isForeignDoor || isForeignActivatorDoor) && anim->hasAnimation("open") && anim->getAnimatedDoorState() == 0)
             {
                 mDoorStates.erase(it++); // FIXME: hack to reset the doors (still not quite right, anyway)
             }
@@ -2526,7 +2526,7 @@ namespace MWWorld
         if (isForeignDoor || isForeignActivatorDoor)
         {
             MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(door);
-            if (anim->hasAnimation("Open") || anim->hasAnimation("Close"))
+            if (anim->hasAnimation("open") || anim->hasAnimation("close"))
             {
                 // can get lenth and time positon of the AnimationState for the Skeleton
                 // can get NodeAnimationTrack->getAssociatedNode
@@ -2537,25 +2537,25 @@ namespace MWWorld
                     if (1)//anim->getAnimatedDoorState() == 0) // FIXME: temp commented out
                     {
                         state = 1; // if closed, then open
-                        anim->activateAnimatedDoor("Open", true); // true = enable
+                        anim->activateAnimatedDoor("open", true); // true = enable
                     }
                     else
                     {
                         state = 2; // if open, then close
-                        //anim->activateAnimatedDoor("Open", false);
-                        //anim->activateAnimatedDoor("Close", true);
+                        //anim->activateAnimatedDoor("open", false);
+                        //anim->activateAnimatedDoor("close", true);
                     }
                     break;
                 case 2:
                     state = 1; // if closing, then open
-                    anim->activateAnimatedDoor("Close", false);
-                    anim->activateAnimatedDoor("Open", true);
+                    anim->activateAnimatedDoor("close", false);
+                    anim->activateAnimatedDoor("open", true);
                     break;
                 case 1:
                 default:
                     state = 2; // if opening, then close
-                    anim->activateAnimatedDoor("Open", false);
-                    anim->activateAnimatedDoor("Close", true);
+                    anim->activateAnimatedDoor("open", false);
+                    anim->activateAnimatedDoor("close", true);
                     break;
                 }
                 door.getClass().setDoorState(door, state);
