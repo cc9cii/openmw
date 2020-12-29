@@ -29,6 +29,8 @@
 #include <stdexcept>
 #include <iostream>  // FIXME: debugging only
 
+#include <boost/algorithm/string.hpp>
+
 #include <OgreMesh.h>
 #include <OgreAnimation.h>
 #include <OgreAnimationTrack.h>
@@ -150,7 +152,10 @@ NiBtOgre::NiTimeControllerRef NiBtOgre::NiGeomMorpherController::build(Ogre::Mes
     if (!mControllerSequence)
         return mNextControllerRef;
 
-    animationId = mModel.indexToString(mControllerSequence->getNameIndex());
+    // TES4 scripts may use lowercase string to identify animations, e.g.:
+    //     playgroup forward 1
+    // therefore we use should use the lowercase animation id throughout
+    animationId = boost::to_lower_copy(mModel.indexToString(mControllerSequence->getNameIndex()));
 
     Ogre::Animation *animation;
     if (mesh->hasAnimation(animationId))
