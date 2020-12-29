@@ -359,7 +359,7 @@ void NiBtOgre::NiModel::createMesh(bool isMorphed, Ogre::SkeletonPtr suppliedSke
         // only if it has not been built already
         if (mBuildData.mMeshBuildList.find(rootIndex) == mBuildData.mMeshBuildList.end())
         {
-            std::string meshName = getName() + "#0@" + rootNode->getName();
+            std::string meshName = getName() + "#0%" + rootNode->getName();
             Ogre::MeshPtr mesh = meshManager.getByName(meshName, "General");
             if (!mesh)
                 mesh = meshLoader.createMesh(meshName, mGroup, this, rootIndex);
