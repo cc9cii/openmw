@@ -104,7 +104,7 @@ namespace MWScript
                     // FIXME
 
 
-                    std::cout << "GetStage: " << editorId << std::endl; // FIXME: temp testing
+                    //std::cout << "GetStage: " << editorId << std::endl; // FIXME: temp testing
 
                     runtime.push (0); // FIXME: just a dummy for testing
                 }
@@ -171,7 +171,7 @@ namespace MWScript
                     if (arg0 >= 1) // explicit
                     {
                         std::string name = runtime.getStringLiteral(runtime[0].mInteger);
-                        std::cout << "arg " << name << std::endl;
+                        std::cout << "Activate: arg " << name << std::endl;
 
                         // FIXME: not 100% sure if below method is correct
                         unsigned int ref = runtime.getContext().getLocalRef(runtime[0].mInteger);
@@ -194,7 +194,7 @@ namespace MWScript
                     {
                         // FIXME: not 100% sure if below method is correct
                         flag = runtime[0].mInteger;
-                        std::cout << "arg " << flag << std::endl;
+                        std::cout << "Activate: arg " << flag << std::endl;
                         runtime.pop();
                     }
 
@@ -224,27 +224,28 @@ namespace MWScript
 
                 virtual void execute (Interpreter::Runtime& runtime)
                 {
-
                     MWWorld::Ptr ptr = R()(runtime);
 
-                    // FIXME: how to get the 2 arguments?
+                    // first mandatory arg
                     std::string playgroupId = runtime.getStringLiteral(runtime[0].mInteger);
                     runtime.pop();
 
-                    Interpreter::Type_Integer count = runtime[0].mInteger;
+                    // second mandatory arg
+                    Interpreter::Type_Integer flag = runtime[0].mInteger;
                     runtime.pop();
 
-                    // FIXME: need a new method with MWClass
-
-                    std::cout << "PlayGroup: " << playgroupId << " " << count << std::endl; // FIXME: temp testing
+                    std::cout << "PlayGroup: " << playgroupId << " " << flag; // FIXME: temp testing
 
                     MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
                     if (anim->hasAnimation("Forward") || anim->hasAnimation("Backward"))
                     {
-                        std::cout << "has animation" << std::endl;
+                        std::cout << " (has animation Forward or Backword)" << std::endl;
                     }
+                    else
+                        std::cout << std::endl;
 
-
+                    // FIXME: should use runtime.getContext() here
+                    //const_cast<MWWorld::Class&>(ptr.getClass()).playgroup(ptr, playgroupId, flag);
                 }
         };
 
@@ -263,7 +264,7 @@ namespace MWScript
                     std::cout << "GetSelf: " << ESM4::formIdToString(formId) << std::endl; // FIXME: temp testing
 
                     InterpreterContext& context = static_cast<InterpreterContext&> (runtime.getContext());
-                    std::cout << "mTargetFormId: " << ESM4::formIdToString(context.getTargetFormId()) << std::endl;
+                    std::cout << "GetSelf: mTargetFormId: " << ESM4::formIdToString(context.getTargetFormId()) << std::endl;
 
                     runtime.push (formId);
                 }
@@ -402,7 +403,7 @@ namespace MWScript
                         MWWorld::Ptr ptr = R()(runtime);
                     }
 
-                    std::cout << "UnLock" << std::endl;
+                    //std::cout << "UnLock" << std::endl;
                 }
         };
 
@@ -450,9 +451,44 @@ namespace MWScript
                 }
         };
 
+        template<class R>
+        class OpSetDestroyed : public Interpreter::Opcode0
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime)
+                {
+                    MWWorld::Ptr ptr = R()(runtime);
+
+                    // has 1 mandatory argument
+                    Interpreter::Type_Integer value = runtime[0].mInteger;
+                    runtime.pop();
+
+                    std::cout << "SetDestroyed: " << value << std::endl; // FIXME: temp testing
+                }
+        };
+
+        template<class R>
+        class OpGetDead : public Interpreter::Opcode0
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime)
+                {
+
+                    MWWorld::Ptr ptr = R()(runtime);
+
+                    //std::cout << "GetDead: " << std::endl; // FIXME: temp testing
+
+                    runtime.push (1); // FIXME:
+                }
+        };
+
         void installOpcodes (Interpreter::Interpreter& interpreter)
         {
             // Actor
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Actor::opcodeGetDead, new OpGetDead<ImplicitRef>);
             interpreter.installSegment5
                 (Tes4Compiler::Tes4Actor::opcodeSetActorValue, new OpSetActorValue<ImplicitRef>);
             interpreter.installSegment5
@@ -504,6 +540,11 @@ namespace MWScript
                 (Tes4Compiler::Tes4Quest::opcodeSetStage, new OpSetStage<ImplicitRef>);
 
             // Misc
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Misc::opcodeSetDestroyed, new OpSetDestroyed<ImplicitRef>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Misc::opcodeSetDestroyedExplicit, new OpSetDestroyed<ExplicitTes4Ref>);
+
             interpreter.installSegment5
                 (Tes4Compiler::Tes4Misc::opcodeGetLocked, new OpGetLocked<ImplicitRef>);
 
