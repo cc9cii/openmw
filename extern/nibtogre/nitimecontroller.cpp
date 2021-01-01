@@ -476,6 +476,18 @@ NiBtOgre::NiTimeControllerRef NiBtOgre::NiControllerManager::build(std::multimap
     return mNextControllerRef;
 }
 
+void NiBtOgre::NiControllerManager::getControllerSequenceMap(std::map<std::string, NiControllerSequence*>& result) const
+{
+    for (std::size_t i = 0; i < mControllerSequences.size(); ++i)
+    {
+        if (NiControllerSequence *sequence = mModel.getRef<NiControllerSequence>(mControllerSequences[i]))
+        {
+            std::string animName = mModel.indexToString(sequence->getNameIndex());
+            result.insert(std::make_pair(animName, sequence));
+        }
+    }
+}
+
 // Seen in NIF ver 20.0.0.4, 20.0.0.5
 NiBtOgre::NiMultiTargetTransformController::NiMultiTargetTransformController(uint32_t index, NiStream *stream, const NiModel& model, BuildData& data)
     : NiTimeController(index, stream, model, data), mData(data) // for accessing mSkeleton later
@@ -591,11 +603,13 @@ void NiBtOgre::NiMultiTargetTransformController::registerTarget(const NiControll
         mTargetInterpolators.push_back(std::make_pair(bone, interpolator));
 }
 
+// FIXME: below comment block is out of date
+
 /*
  * **************************** DO NOT USE AS IS *******************************
  *
  * This method and NiBtOgre::NiControllerSequence::build() was designed to use
- * Ogre's vertex animation code.  However, they only work for simple animations
+ * Ogre's node animation code.  However, they only work for simple animations
  * e.g. Oblivion's doors.  Complex animations that include child nodes without
  * controllers (some doors and activators in FO3/FONV and the activator for the
  * enterance to Benirus Manor's sealed portal).
@@ -620,11 +634,8 @@ void NiBtOgre::NiMultiTargetTransformController::build(int32_t nameIndex, const 
     //if (mModel.indexToString(nameIndex) == "close") // FIXME: testing
         //return;
 
-    // TES4 scripts may use lowercase string to identify animations, e.g.:
-    //     playgroup forward 1
-    // therefore we use should use the lowercase animation id throughout
-    std::string animationId = boost::to_lower_copy(
-            /*"NiMTTransform@block_" + std::to_string(interpolator->selfRef()) + */mModel.indexToString(nameIndex));
+    // TES4 scripts may use lowercase string to identify animations (e.g. playgroup forward 1)
+    std::string animationId = boost::to_lower_copy(mModel.indexToString(nameIndex));
     float totalAnimationLength = stopTime - startTime; // use the ones from the controller sequence
 
     // FIXME: animation should be created by NiSequenceController

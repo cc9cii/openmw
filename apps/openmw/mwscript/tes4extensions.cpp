@@ -158,8 +158,10 @@ namespace MWScript
         template<class R>
         class OpActivate : public Interpreter::Opcode1
         {
-            public:
+            std::string mCurrentActor;
+            std::string mCurrentObject;
 
+            public:
                 virtual void execute (Interpreter::Runtime& runtime, unsigned int arg0)
                 {
 
@@ -205,15 +207,28 @@ namespace MWScript
                     else
                         std::cout << "Activate" << std::endl;
 #endif
-                    InterpreterContext& context = static_cast<InterpreterContext&> (runtime.getContext());
+                    // FIXME: hack to avoid an infinite loop
+                    // Apparently some level of looping is expected!? See the "Nesting" section
+                    // of https://cs.elderscrolls.com/index.php?title=Activate for more details
+                    if (mCurrentActor == actor.getCellRef().getRefId() &&
+                        mCurrentObject == ptr.getCellRef().getRefId())
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        mCurrentActor = actor.getCellRef().getRefId();
+                        mCurrentObject = ptr.getCellRef().getRefId();
+                    }
 
-// FIXME: not quite working, commented out for now
-#if 0
+                    InterpreterContext& context = static_cast<InterpreterContext&> (runtime.getContext());
                     if (flag)
                         context.executeActivationScript(ptr, actor);
                     else
-#endif
                         context.executeActivation(ptr, actor);
+
+                    mCurrentActor = "";
+                    mCurrentObject = "";
                 }
         };
 
@@ -237,7 +252,7 @@ namespace MWScript
                     std::cout << "PlayGroup: " << playgroupId << " " << flag; // FIXME: temp testing
 
                     MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
-                    if (anim->hasAnimation("Forward") || anim->hasAnimation("Backward"))
+                    if (anim->hasAnimation("forward") || anim->hasAnimation("backward"))
                     {
                         std::cout << " (has animation Forward or Backword)" << std::endl;
                     }
@@ -245,7 +260,7 @@ namespace MWScript
                         std::cout << std::endl;
 
                     // FIXME: should use runtime.getContext() here
-                    //const_cast<MWWorld::Class&>(ptr.getClass()).playgroup(ptr, playgroupId, flag);
+                    const_cast<MWWorld::Class&>(ptr.getClass()).playgroup(ptr, playgroupId, flag);
                 }
         };
 

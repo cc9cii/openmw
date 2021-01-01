@@ -85,8 +85,6 @@ namespace NiBtOgre
         BoundingBox   mBoundingBox; // to 4.2.2.0
 
         NiCollisionObjectRef mCollisionObjectRef; // from 10.0.1.0
-
-        bool mHasAnim; // FIXME: can't remember the purpose
     };
 
     class NiCamera : public NiAVObject

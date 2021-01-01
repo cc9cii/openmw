@@ -27,7 +27,7 @@
 */
 #include "nigeometry.hpp"
 
-#include <cassert>
+//#include <cassert>
 #include <stdexcept>
 #include <iostream> // FIXME: debugging only
 
@@ -403,14 +403,14 @@ const std::vector<Ogre::Vector3>& NiBtOgre::NiTriBasedGeom::getVertices(bool mor
 // Some NiTriStrips have NiBinaryExtraData (tangent space) - not sure what to do with them
 bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& bounds)
 {
-    // If inst->mFlags says no animation, no havok then most likely static.  Also check if
-    // there is a skin instance (and maybe also see if Oblivion layer is OL_STATIC even though
+    // If BuildData::mBuildFlags says no animation, no havok then most likely static.  Also check
+    // if there is a skin instance (and maybe also see if Oblivion layer is OL_STATIC even though
     // that flag is just for the editor)
 
-    // If ((inst->mFlags & Flag_EnableHavok) != 0)
+    // If (mModel.buildData().havokEnabled())
     //
-    // This means physics will determine the position of the rendering mesh. To allow that the
-    // Ogre::Entity for the corresponding Ogre::Mesh needs to be controlled via its Ogre::SceneNode.
+    // This means physics will determine the position of the rendering mesh. i.e. the
+    // Ogre::Entity for the corresponding Ogre::Mesh will be controlled via its Ogre::SceneNode.
     //
     // Each NiGeometry probably should be a SubMesh. e.g. clutter/apple01.nif has 4 sub meshes
     // defined by 4 NiTriStrips, Apple01:0 - Apple01:3.  The ChildSceneNode associated with the
@@ -430,26 +430,51 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
     // Note ragdoll here is done with Bullet moving the SceneNode associated with the Entity.
     // i.e. no bones are used (or required)
 
-    // FIXME: if the mesh is static, we probably need to apply the full transform of the model
-    // else we need the transform only from the parent NiNode
-    // This decision can be made by NiGeometry itself
-    //
-    //Ogre::SubMesh *sub = mesh->createSubMesh();
+    // If the mesh is static, we need to apply the full transform of the model else we need the
+    // transform only from the NiNode that is the base of the animation.
 
     const NiGeometryData* data = mModel.getRef<NiGeometryData>(mDataRef);
-    //std::string type = mModel.blockType(data->selfRef());
+    //std::string type = mModel.blockType(data->selfRef()); // FIXME: temp testing
+
+    Ogre::Matrix4 transform = Ogre::Matrix4(Ogre::Matrix4::IDENTITY);
+    bool isDynamic = false;
+
+    // FIXME: temporary workaround
+    bool doorHack = mModel.getName().find("door") != std::string::npos ||
+                    mModel.getName().find("Door") != std::string::npos;
+
+    // ICDoor04, UpperChest02 - these have animation flag but are static. Therefore we can't
+    // rely on that flag.  We have to confirm with an extra check by calling isDynamicMesh().
+    //
+    // NOTE: Flag_HasSkin may not be set if only some of the NiGeometry blocks have skin.
+    // NOTE: need to check for havok after the check for animation because some doors can have havok enabled
+    //       e.g. GateDoor03 of ARNHallGateDoor01.NIF (COC "Vilverin")
+    if (mModel.buildData().animEnabled() && !doorHack)
+    {
+        NiNodeRef rootAnimNode = 0;
+        if (mParent->isDynamicMesh(&rootAnimNode))
+        {
+            isDynamic = true;
+            mParent->getTransform(rootAnimNode, transform); // get transform to rootAnimNode
+            transform = transform * mLocalTransform;
+
+            if (rootAnimNode != mParent->selfRef())
+                mParent->setAnimRoot(rootAnimNode);
+        }
+    }
+    else if (mSkinInstanceRef != -1 || mModel.buildData().havokEnabled() || doorHack)
+    {
+        isDynamic = true;
+        transform = mParent->getLocalTransform() * mLocalTransform;
+    }
+    else
+    {
+        // static, the entities will be attached to the root node
+        transform = mParent->getWorldTransform() * mLocalTransform;
+    }
 
 #if 0
-    // FIXME: move the flags to NiModel::mBuildData
-    //
-    // ICDoor04, UpperChest02 - these have animation flag but are static. Maybe ignore this flag?
-    // NOTE: Flag_HasSkin may not be set if only some of the NiGeometry blocks have skin.
-    bool isStatic = (inst->mFlags & Flag_HasSkin) == 0 &&
-                    (inst->mFlags & Flag_EnableHavok) == 0 &&
-                    (inst->mFlags & Flag_EnableAnimation) == 0;
-#else
     bool isStatic = true;
-#endif
 
 //  Ogre::Matrix4 localTransform = Ogre::Matrix4(Ogre::Matrix4::IDENTITY);
 //  localTransform.makeTransform(NiAVObject::mTranslation,
@@ -477,6 +502,7 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
         //transform = mParent->getLocalTransform() * mLocalTransform;
     else
         transform = mParent->getWorldTransform() * mLocalTransform;
+#endif
 
     // NOTE: below code copied from components/nifogre/mesh.cpp (OpenMW)
 
@@ -489,7 +515,7 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
     bool vertShadowBuffer = false;
 
     // TODO: seems to make no difference to vertex anim
-    if (mSkinInstanceRef != -1/* || NiAVObject::mHasAnim*/ || mModel.hasSkeleton())
+    if (isDynamic || mModel.hasSkeleton())
     {
         vertUsage = Ogre::HardwareBuffer::HBU_DYNAMIC_WRITE_ONLY;
         vertShadowBuffer = true;
@@ -809,6 +835,8 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
         // FIXME: for some reason this block is needed for npc animations to work but it
         // shouldn't
 
+        // Definitely required for Storm Atronachs but not sure why // FIXME:
+
         // for node animation
 
         // FIXME: the issue seems to be that the child nodes are not being moved
@@ -822,7 +850,7 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
 
 
         // FIXME: I have no idea why "HeadAnims" is needed, but without it the NPCs don't show up
-        //std::cout << "mystery " << mModel.getName() << " " << mParent.getName() << std::endl;
+        //std::cout << "mystery " << mesh->getName() << " " << mModel.getName() << " " << mParent->getName() << std::endl;
 
 
 

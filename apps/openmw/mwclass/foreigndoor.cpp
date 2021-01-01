@@ -173,7 +173,8 @@ namespace MWClass
 
         MWWorld::ContainerStore &invStore = actor.getClass().getContainerStore(actor);
 
-        bool needKey = ptr.getCellRef().isLocked() && ptr.getCellRef().getLockLevel() > 0;
+        // FIXME: temporarily removed lock ckeck to help with testing
+        bool needKey = false; //ptr.getCellRef().isLocked() && ptr.getCellRef().getLockLevel() > 0;
         bool hasKey = false;
         std::string keyName;
 

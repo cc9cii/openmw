@@ -349,14 +349,14 @@ void ForeignCreatureAnimation::addForeignAnimSource(const std::string& model, co
 
 #endif
     assert(!skeleton.isNull() && "skeleton.nif should have been built already");
-    NiModelPtr anim = NiBtOgre::NiModelManager::getSingleton().getOrLoadByName(animName, group);
+    NiModelPtr animModel = NiBtOgre::NiModelManager::getSingleton().getOrLoadByName(animName, group);
 
     // Animation::AnimSource : public Ogre::AnimationAlloc
     //   (has a) std::multimap<float, std::string> mTextKeys
     //   (also has a vector of 4 Ogre real controllers)  TODO: check if 4 is enough
     Ogre::SharedPtr<AnimSource> animSource(OGRE_NEW AnimSource);
     std::vector<Ogre::Controller<Ogre::Real> > controllers;
-    anim->buildAnimation(mSkelBase, anim, animSource->mTextKeys, controllers, /*mObjectRoot->skeleton.get()*/skeleton.get());
+    animModel->buildAnimation(mSkelBase, animModel, animSource->mTextKeys, controllers, skeleton.get());
 
     if (animSource->mTextKeys.empty() || controllers.empty())
         return;

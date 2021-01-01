@@ -6357,7 +6357,59 @@ The `ContainerStore::count()` uses `getCellRef().getRefId()` to match against th
 
 The whole thing needs a bit of rethink, but for now just add a TES4 specific method.
 
+# [28/12/2020 - 30/12/2020] Activator
 
+## Animation design problem
+
+Can't remember how things were done - seems so long ago.
+
+Currently door animations are implemented Ogre's Node Animation.  This can lead to trobles - see notes around 20/04/2020.
+
+# [01/01/2021] Activator animation
+
+## Tripwire script infinite loop issue
+
+CTrigTripwire01 in Vilverin:
+
+    scn CTrigTripwire01SCRIPT
+
+    short triggered
+    ref target
+    ref mySelf
+
+    begin onActivate
+
+        if triggered == 0
+            set target to getParentRef
+            set mySelf to getSelf
+            target.activate mySelf 1 <--- calls activate script before setting triggered to 1
+            playgroup forward 0
+            set triggered to 1
+            setDestroyed 1
+        endif
+
+    end
+
+    begin onTrigger
+
+        if triggered == 0
+            set target to getParentRef
+            set mySelf to getSelf
+            target.activate mySelf 1
+            playgroup forward 0
+            set triggered to 1
+            setDestroyed 1
+        endif
+
+    end
+
+    begin onReset
+
+        reset3DState
+        set triggered to 0
+        setDestroyed 0
+
+    end
 
 
 

@@ -85,6 +85,7 @@ namespace NiBtOgre
     class NiObjectNET;
     struct NiTransformInterpolator;
     struct NiInterpolator;
+    class NiControllerSequence;
 
     class NiTimeController : public NiObject
     {
@@ -191,6 +192,8 @@ namespace NiBtOgre
 
         NiTimeControllerRef build(std::multimap<float, std::string>& textKeys,
                 std::vector<Ogre::Controller<float> >& controllers);
+
+        void getControllerSequenceMap(std::map<std::string, NiControllerSequence*>& result) const;
     };
 
     typedef NiTimeController NiInterpController;

@@ -55,6 +55,8 @@ namespace MWClass
             virtual void writeAdditionalState (const MWWorld::Ptr& ptr, ESM::ObjectState& state)
                 const;
             ///< Write additional state from \a ptr into \a state.
+
+            virtual void playgroup(const MWWorld::Ptr& ptr, const std::string& animation, int flag = 0);
     };
 }
 

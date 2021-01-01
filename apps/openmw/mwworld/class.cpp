@@ -463,4 +463,9 @@ namespace MWWorld
     {
         return "";
     }
+
+    void Class::playgroup(const MWWorld::Ptr& ptr, const std::string& animation, int flag)
+    {
+        throw std::runtime_error("class does not support playing animations");
+    }
 }

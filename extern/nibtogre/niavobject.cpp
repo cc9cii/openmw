@@ -38,7 +38,7 @@
 #endif
 
 NiBtOgre::NiAVObject::NiAVObject(uint32_t index, NiStream *stream, const NiModel& model, BuildData& data)
-    : NiObjectNET(index, stream, model, data), mHasBoundingBox(false)//, mHasAnim(false)
+    : NiObjectNET(index, stream, model, data), mHasBoundingBox(false)
       //, mWorldTransform(Ogre::Matrix4::IDENTITY)
 {
     if (!stream) // must be a dummy block being inserted

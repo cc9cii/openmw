@@ -160,6 +160,8 @@ NiBtOgre::NiControllerSequence::NiControllerSequence(uint32_t index, NiStream *s
     //}
 }
 
+// FIXME: below comment blocks are out of date
+
 /*
  * **************************** DO NOT USE AS IS *******************************
  *
@@ -437,7 +439,7 @@ void NiBtOgre::NiControllerSequence::buildFO3(const NiDefaultAVObjectPalette& ob
 //
 // That means the target NiAVObjects and NiTimeControllers are in the other model, not the 'kf'
 // animation file.  The animation NiModel supplies the interpolators and their data.
-void NiBtOgre::NiControllerSequence::build(Ogre::Entity *skelBase, NiModelPtr anim,
+void NiBtOgre::NiControllerSequence::build(Ogre::Entity *skelBase, NiModelPtr animModel,
         std::multimap<float, std::string>& textKeys,
         std::vector<Ogre::Controller<float> >& controllers,
         const NiModel& targetModel, const std::map<std::string, NiAVObjectRef>& objRefMap)
@@ -446,11 +448,23 @@ void NiBtOgre::NiControllerSequence::build(Ogre::Entity *skelBase, NiModelPtr an
 // find "Accum Root Name" (mTargetNameIndex) and ensure that there is a corresponding node in
 // the supplied skeleton
 
+    // TES4 scripts can use lowercase names when specifying animations
+    std::string animName = boost::to_lower_copy(mModel.indexToString(mNameIndex));
+
     const NiTextKeyExtraData *data = mModel.getRef<NiTextKeyExtraData>(mTextKeysRef);
     for (unsigned int i = 0; i < data->mTextKeys.size(); ++i)
     {
+        // meshes\dungeons\chargen\cgprisoncellgate01.nif in ImperialDungeon01 has a TextKey without a name value
+        if (data->mTextKeys[i].text == -1)
+            continue;
+
         float time = data->mTextKeys[i].time;
-        textKeys.insert(std::make_pair(time, mModel.indexToString(data->mTextKeys[i].text)));
+
+        if (animModel.get() != &targetModel)
+            textKeys.insert(std::make_pair(time, mModel.indexToString(data->mTextKeys[i].text)));
+        else
+            // need to put the TextKeys in TES3 format for now
+            textKeys.insert(std::make_pair(time, animName + ": " + mModel.indexToString(data->mTextKeys[i].text)));
     }
 
     for (unsigned int i = 0; i < mControlledBlocks.size(); ++i)
@@ -501,7 +515,8 @@ void NiBtOgre::NiControllerSequence::build(Ogre::Entity *skelBase, NiModelPtr an
                 continue;
 
             NiGeomMorpherController *controller;
-            if (mControlledBlocks[i].controller2Ref != -1)
+            // NOTE: if animModel is the same as targetModel (e.g. activators) then below check does not apply
+            if (mControlledBlocks[i].controller2Ref != -1 && animModel.get() != &targetModel)
                 //controller = mModel.getRef<NiGeomMorpherController>(mControlledBlocks[i].controller2Ref);
                 throw std::logic_error("anim file shouldn't have controllers: "
                         +mModel.blockType(mControlledBlocks[i].controller2Ref));
@@ -551,8 +566,9 @@ void NiBtOgre::NiControllerSequence::build(Ogre::Entity *skelBase, NiModelPtr an
 
             // find the NiTransformController attached to the target bone
             // to do that need NiModel of skeleton.nif and a lookup map (i.e. object palette)
+            // NOTE: if animModel is the same as targetModel (e.g. activators) then below check does not apply
             NiTransformController *controller;
-            if (mControlledBlocks[i].controller2Ref != -1)
+            if (mControlledBlocks[i].controller2Ref != -1 && animModel.get() != &targetModel)
                 throw std::logic_error("anim file shouldn't have controllers: "
                         +mModel.blockType(mControlledBlocks[i].controller2Ref));
             else
@@ -581,7 +597,7 @@ void NiBtOgre::NiControllerSequence::build(Ogre::Entity *skelBase, NiModelPtr an
 
             // FIXME: test if we need to supply this
             Ogre::ControllerValueRealPtr srcval;// = Ogre::ControllerManager::getSingleton().getFrameTimeSource();
-            Ogre::ControllerValueRealPtr dstval(OGRE_NEW TransformController::Value(bone, anim, interpolator));
+            Ogre::ControllerValueRealPtr dstval(OGRE_NEW TransformController::Value(bone, animModel, interpolator));
             Ogre::ControllerFunctionRealPtr func(OGRE_NEW TransformController::Function(this, false));
 
             controllers.push_back(Ogre::Controller<Ogre::Real>(srcval, dstval, func));

@@ -69,6 +69,7 @@ namespace NiBtOgre
         std::string mNodeName; // cached here since used frequently
         NiNode *mParent;       // cached here since used frequently
         BuildData& mData;
+        NiNode *mAnimRoot; // FIXME: used for children of animated nodes
 
         std::string mSkinTexture;
 
@@ -124,6 +125,11 @@ namespace NiBtOgre
 
         // an attempt to fix the head/ear/eyes rotation issue
         const Ogre::Quaternion getLocalRotation() const { return Ogre::Quaternion(NiAVObject::mRotation); }
+
+        bool isDynamicMesh(NiNodeRef *nodeRef) const;
+        const void getTransform(NiNodeRef nodeRef, Ogre::Matrix4& transform, bool nodeOffset = false) const;
+        NiNode *getAnimRoot() const { return mAnimRoot; }
+        void setAnimRoot(NiNodeRef nodeRef);
     };
 
     typedef NiNode AvoidNode;

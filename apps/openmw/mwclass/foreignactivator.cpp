@@ -125,14 +125,7 @@ namespace MWClass
     // FIXME: only some actions supported for now
     boost::shared_ptr<MWWorld::Action> ForeignActivator::activate(const MWWorld::Ptr &ptr, const MWWorld::Ptr &actor) const
     {
-        //MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr); // currently unused
-        if (1)//anim->hasAnimation("Open") || anim->hasAnimation("Close"))
-        {
-            boost::shared_ptr<MWWorld::Action> action(new MWWorld::ActionDoor(ptr));
-            return action;
-        }
-        else
-            return boost::shared_ptr<MWWorld::Action>(new MWWorld::NullAction);
+        return boost::shared_ptr<MWWorld::Action>(new MWWorld::NullAction);
     }
 
     std::string ForeignActivator::getScript (const MWWorld::Ptr& ptr) const
@@ -190,6 +183,21 @@ namespace MWClass
 
         ESM::DoorState& state2 = dynamic_cast<ESM::DoorState&>(state);
         state2.mDoorState = customData.mDoorState;
+    }
+
+    void ForeignActivator::playgroup(const MWWorld::Ptr& ptr, const std::string& animation, int flag)
+    {
+        MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
+        if (anim->hasAnimation(animation))
+        {
+            std::cout << "Activator playgroup: " << animation << std::endl; // FIXME: temp testing
+
+            // FIXME: flag not used yet
+            //        0 = wait till current animation completes before starting
+            //        1 = immediate start
+            //        2 = immediate start at the loop cycle
+            anim->play(animation, 0, 1, true, 1.0f, "start", "end", 0.0f, 0);
+        }
     }
 
     void ForeignActivator::registerSelf()

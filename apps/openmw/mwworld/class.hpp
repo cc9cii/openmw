@@ -352,6 +352,8 @@ namespace MWWorld
 
             /// Get the effective armor rating, factoring in the actor's skills, for the given armor.
             virtual int getEffectiveArmorRating(const MWWorld::Ptr& ptr, const MWWorld::Ptr& actor) const;
+
+            virtual void playgroup(const MWWorld::Ptr& ptr, const std::string& animation, int flag = 0);
     };
 }
 

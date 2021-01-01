@@ -25,7 +25,7 @@
 */
 #include "ninode.hpp"
 
-#include <cassert>
+//#include <cassert>
 #include <stdexcept>
 #include <memory>
 #include <iostream> // FIXME: debugging only
@@ -65,7 +65,7 @@ NiBtOgre::BSFadeNode::BSFadeNode(uint32_t index, NiStream *stream, const NiModel
 NiBtOgre::NiNode::NiNode(uint32_t index, NiStream *stream, const NiModel& model, BuildData& data)
     : NiAVObject(index, stream, model, data)
     //, mNodeName((NiObjectNET::mNameIndex == -1) ? std::to_string(index) : model.indexToString(mNameIndex))
-    , mData(data), mSkinTexture("")
+    , mData(data), mAnimRoot(nullptr), mSkinTexture("")
 {
     if (!stream) // must be a dummy block being inserted
     {
@@ -193,6 +193,119 @@ NiBtOgre::NiTriBasedGeom *NiBtOgre::NiNode::getSubMeshChildFO3(bool hat)
     }
 
     throw std::logic_error("NiNode: NiTriBasedGeom name does not match \"Hat\" nor \"NoHat\"");
+}
+
+// FIXME: this is called by each of the sub-mesh
+// can be optimised by having the node to call it and provide the result as a parameter
+
+// strategy for deciding whether the sub-mesh should be "static", i.e. the vertex
+// transforms to include the parent NiNode's world transform (to the root node) or
+// "dynamic" that includes  the local transform only
+//
+// the following cases should use only the local transform:
+//   - node animated (which includes havok enabled?)
+//
+// but these should include parent NiNode's local transform as well because Ogre's logic for
+// bone weights
+//   - skinned
+//
+// to figure out if the sub-mesh's parent is node animated (NOTE: below relies on
+// the current design where NiModel is built before the meshes are created on demand)
+//
+//  1. my parent NiNode is a target of a transform controller
+//  2. my parent NiNode is a descendant of a transform controller target
+//     but not a target itself
+//
+// NOTE: the ControlledBlocks in NiControllerSequence may include sub-meshes (e.g. NiTriStrips)
+//       it may be best to use NiMultiTargetTransformController which should only have NiNodes
+//
+// WARN: if a NiMultiTargetTransformController exists then all the meshes in the model are
+//       considered "dynamic"
+//
+bool NiBtOgre::NiNode::isDynamicMesh(NiNodeRef *nodeRef) const
+{
+    const NiMultiTargetTransformController *controller = mModel.getNiMultiTargetTransformController();
+    if (!controller)
+        return false;
+
+    if (!mModel.buildData().hasNodeAnimation())
+        //throw std::logic_error("Animated bones should have been found by now.");
+        return false; // FIXME: don't throw since activator code is not ready yet
+
+    NiObjectNETRef targetRef = controller->mTargetRef;
+    if (targetRef == selfRef())
+    {
+        *nodeRef = targetRef; // starting point of transform
+        return true;
+    }
+    else
+    {
+        // in most cases the node will be one of the extra targets; check them first
+        std::vector<NiAVObjectRef> extraTargets = controller->mExtraTargetRefs;
+        for (std::size_t i = 0; i < extraTargets.size(); ++i)
+        {
+            if (extraTargets[i] == selfRef())
+            {
+                *nodeRef = extraTargets[i]; // starting point of transform
+                return true;
+            }
+        }
+
+        // occasionally the node may be a descendant of a target
+        // e.g. "Box02" is a descendant of "gear 12" in BenirusDoor01
+        // (COC "AnvilBenirusManorBasement")
+        std::cout << mNodeName << " searching ancestor" << std::endl; // FIXME: temp testing
+        NiNode* node = mParent;
+        while (node)
+        {
+            for (std::size_t i = 0; i < extraTargets.size(); ++i)
+            {
+                if (extraTargets[i] == node->selfRef())
+                {
+                    *nodeRef = extraTargets[i]; // starting point of transform
+                    return true;
+                }
+            }
+
+            node = node->mParent;
+        }
+    }
+
+    throw std::runtime_error("NiNode cannot find an animation target node.");
+}
+
+void NiBtOgre::NiNode::setAnimRoot(NiNodeRef nodeRef)
+{
+    // used to find the bone to attach the entities
+    mAnimRoot = mModel.getRef<NiNode>(nodeRef);
+}
+
+// get the transform up to the specified nodeRef
+// FIXME: nodeOffset currently not used by the caller
+const void NiBtOgre::NiNode::getTransform(NiNodeRef nodeRef, Ogre::Matrix4& transform, bool nodeOffset) const
+{
+    if (nodeRef == selfRef()) // found
+    {
+        if (nodeOffset)
+            transform = mLocalTransform;
+    }
+    else
+    {
+        if (!mParent)
+        {
+            std::cout << "getTransform: node not found" << std::endl; // FIXME: should throw?
+
+            if (nodeOffset)
+                transform = mLocalTransform;
+        }
+        else
+        {
+            // recurse till we find nodeRef
+            Ogre::Matrix4 worldTransform = Ogre::Matrix4(Ogre::Matrix4::IDENTITY);
+            mParent->getTransform(nodeRef, worldTransform);
+            transform = worldTransform * mLocalTransform;
+        }
+    }
 }
 
 //  Some of the Ogre code in this method is based on v0.36 of OpenMW. (including boundsfinder.hpp)

@@ -89,7 +89,8 @@ namespace MWMechanics
     inline std::string getLeveledObject(const std::vector<ESM4::LVLO>& items, bool allLevels, int8_t failChance)
     {
         const MWWorld::Ptr& player = MWBase::Environment::get().getWorld()->getPlayerPtr();
-        int playerLevel = player.getClass().getCreatureStats(player).getLevel();
+        // FIXME: temporarily increased player level to help with testing Stmorm Atronach animations
+        int playerLevel = 19;//player.getClass().getCreatureStats(player).getLevel();
 
         // FIXME: FO3/FONV/TES5 have LVLI with failChance of 100 - may have a special meaning
         if (Misc::Rng::roll0to99() < failChance) // failChance [0..99] for TES4

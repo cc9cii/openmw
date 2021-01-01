@@ -819,7 +819,7 @@ namespace MWWorld
     Ptr World::searchPtrViaEditorId (const std::string& editorId, bool activeOnly)
     {
         // FIXME: currently player is still from TES3
-        if (editorId == "player" || editorId == "playerref")
+        if (editorId == "player" || editorId == "playerref" || editorId == "Player")
             return mPlayer->getPlayer();
 
         return mWorldScene->searchPtrViaEditorId(editorId);

@@ -41,6 +41,7 @@
 #include "ninode.hpp"
 #include "nisequence.hpp"
 #include "nigeometry.hpp" // for getVertices()
+#include "nitimecontroller.hpp" // NiMultiTargetTransformController
 
 // "nif" is the full path to the mesh from the resource directory/BSA added to Ogre::ResourceGroupManager.
 // This name is required later for Ogre resource managers such as MeshManager.
@@ -107,11 +108,15 @@ void NiBtOgre::NiModel::preUnloadImpl() // for manual loading
 void NiBtOgre::NiModel::loadImpl()
 {
     createNiObjects();
+
     findBoneNodes(true); // not really needed, but this allows NiNode::addBones() to search for names
     // objects being built may require the skeleton to exist, so load it now
+    // e.g. NiMultiTargetTransformController::build(), NiTriBasedGeom::buildSubMesh()
     buildSkeleton(true/*load*/);
+
     //if (blockType(0) == "NiTriShape")
         //return; // FIXME: morroblivion\environment\bittercoast\bcscum03.nif
+
     createMesh();
     buildModel();
 }
@@ -399,13 +404,38 @@ void NiBtOgre::NiModel::buildModel()
 //       returns object index based on a text string name.  The indices from another model
 //       (e.g.  bow) won't be useful.  i.e. we need a different solution.
 //       TODO: check if the object names can clash
-void NiBtOgre::NiModel::buildAnimation(Ogre::Entity *skelBase, NiModelPtr anim,
+void NiBtOgre::NiModel::buildAnimation(Ogre::Entity *skelBase, NiModelPtr model,
         std::multimap<float, std::string>& textKeys,
         std::vector<Ogre::Controller<Ogre::Real> >& controllers,
         NiModel *skeleton, NiModel *bow)
 {
-    getRef<NiControllerSequence>(getRootIndex())->build(skelBase, anim, textKeys, controllers, *skeleton, skeleton->getObjectPalette());
+    getRef<NiControllerSequence>(getRootIndex())->build(skelBase, model, textKeys, controllers, *skeleton, skeleton->getObjectPalette());
 }
+
+// for activator animations (and maybe doors, too)
+void NiBtOgre::NiModel::buildAnimation(Ogre::Entity *skelBase, NiModelPtr model,
+        std::multimap<float, std::string>& textKeys,
+        std::vector<Ogre::Controller<Ogre::Real> >& controllers,
+        NiModel *skeleton, NiControllerSequence *animation)
+{
+    animation->build(skelBase, model, textKeys, controllers, *skeleton, skeleton->getObjectPalette());
+}
+
+void NiBtOgre::NiModel::getControllerSequenceMap(std::map<std::string, NiControllerSequence*>& result) const
+{
+    for (std::size_t i = 0; i < mNiObjects.size(); ++i)
+    {
+        // assumed there is only one; if not, the first one is used
+        if (mNiHeader->blockType(i) == "NiControllerManager")
+        {
+            // get the map from the NiControllerManager
+            getRef<NiControllerManager>(i)->getControllerSequenceMap(result);
+        }
+    }
+
+    return; // FIXME: throw?
+}
+
 #if 0
 void NiBtOgre::NiModel::createCollisionshapes()
 {
@@ -579,6 +609,18 @@ std::uint32_t NiBtOgre::NiModel::getRootIndex() const
         //throw std::logic_error("NiNode parent map: multiple parents");
 
     return mRoots[0];
+}
+
+const NiBtOgre::NiMultiTargetTransformController *NiBtOgre::NiModel::getNiMultiTargetTransformController() const
+{
+    for (std::size_t i = 0; i < mNiObjects.size(); ++i)
+    {
+        // assumed there is only one; if not, the first one is returned
+        if (mNiHeader->blockType(i) == "NiMultiTargetTransformController")
+            return getRef<NiMultiTargetTransformController>(i);
+    }
+
+    return nullptr;
 }
 
 void NiBtOgre::BuildData::setNiNodeParent(NiAVObjectRef child, NiNode *parent)

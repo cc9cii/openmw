@@ -61,6 +61,8 @@ namespace NiBtOgre
     struct BtOgreInst;
     class NiModel;
     class NiNode;
+    class NiControllerSequence;
+    class NiMultiTargetTransformController;
 
     enum BuildFlags {
         Flag_EnableHavok         = 0x0001,
@@ -340,11 +342,20 @@ namespace NiBtOgre
 
         //void createCollisionshapes();
 
-        void buildAnimation(Ogre::Entity *skelBase, NiModelPtr anim,
+        void buildAnimation(Ogre::Entity *skelBase, NiModelPtr model,
                 std::multimap<float, std::string>& textKeys,
                 std::vector<Ogre::Controller<Ogre::Real> >& controllers,
                 NiModel *skeleton,
                 NiModel *bow = nullptr);
+
+        void buildAnimation(Ogre::Entity *skelBase, NiModelPtr model,
+                std::multimap<float, std::string>& textKeys,
+                std::vector<Ogre::Controller<Ogre::Real> >& controllers,
+                NiModel *skeleton,
+                NiControllerSequence *animation);
+
+        void getControllerSequenceMap(std::map<std::string, NiControllerSequence*>& result) const;
+
         const std::map<std::string, NiAVObjectRef>& getObjectPalette() const { return mObjectPalette; }
 
         Ogre::SkeletonPtr getSkeleton() const { return mSkeleton; }
@@ -393,6 +404,8 @@ namespace NiBtOgre
         template<class T>
         T *insertDummyBlock(const std::string& blockType); // for landscape LOD meshes
         inline std::uint32_t addString(const std::string& str) { return mNiHeader->addString(str); }
+
+        const NiMultiTargetTransformController *getNiMultiTargetTransformController() const;
 
     private:
 

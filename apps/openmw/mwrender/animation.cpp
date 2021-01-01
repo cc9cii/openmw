@@ -2018,12 +2018,15 @@ ObjectAnimation::ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &mod
                 Ogre::SceneNode *child = mInsert->createChildSceneNode();
                 mPhysicsNodeMap[it->first] = child;
 
-                std::map<int32_t, Ogre::Entity*>::iterator eit = mObjectRoot->mForeignObj->mEntities.find(it->first);
+                std::map<NiBtOgre::NiNodeRef, Ogre::Entity*>::iterator eit
+                    = mObjectRoot->mForeignObj->mEntities.find(it->first);
+
                 if (eit != mObjectRoot->mForeignObj->mEntities.end())
                 {
                     //if(eit->second->isAttached())
                         //eit->second->detachFromParent();
                     child->attachObject(eit->second);
+
                     std::cout << "havok " << eit->second->getMesh()->getName() << std::endl; // FIXME
                 }
             }
