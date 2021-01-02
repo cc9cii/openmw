@@ -6411,6 +6411,15 @@ CTrigTripwire01 in Vilverin:
 
     end
 
+# [02/01/2021] Door animation
+
+Now that activator animations are working, time to try using the same for door animations.
+
+## Issues
+
+  * BenirusDoor01.NIF either the animation plays too fast or the sound starts late - worked around by using "0.5f" speed multiplier when calling `play()` from `MWRender::Animation::activateAnimatedDoor()`
+  * Physics shapes for activators not updated
+  * Physics shapes for animRoot not done
 
 
 

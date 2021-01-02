@@ -5,7 +5,6 @@
 #include <OgreSceneNode.h>
 #include <OgreEntity.h>
 #include <OgreSkeletonInstance.h>
-//#include <OgreBone.h> // FIXME: temp testing
 #include <OgreMesh.h>
 #include <OgreTagPoint.h>
 
@@ -139,33 +138,13 @@ namespace MWRender
 #if 0
             // FIXME: doesn't work as expected, see SewerWheel01 (COC "Dark04Sewers02")
             Ogre::Bone* bone = mSkelBase->getSkeleton()->getBone(boneName);
-            //tag = 
+            //tag =
             mSkelBase->attachObjectToBone(boneName, cit->second,
             bone->_getBindingPoseInverseOrientation(), bone->_getBindingPoseInversePosition());
 #else
-            //tag =
             mSkelBase->attachObjectToBone(boneName, cit->second);
 #endif
         }
-
-        // FIXME: for testing only
-#if 0
-        if (skelinst->hasBone("chain2"))
-        {
-
-            scene = NifOgre::ObjectScenePtr (new NifOgre::ObjectScene(mInsert->getCreator()));
-
-            NiBtOgre::NiModelManager& modelManager = NiBtOgre::NiModelManager::getSingleton();
-            std::string meshName = "meshes\\clutter\\apple01.nif";
-            NiModelPtr object = modelManager.getOrLoadByName(meshName, "General");
-            scene->mForeignObj
-                = std::make_unique<NiBtOgre::BtOgreInst>(NiBtOgre::BtOgreInst(object, mInsert->createChildSceneNode()));
-            scene->mForeignObj->instantiate();
-            scene->mForeignObj->mEntities[0]->detachFromParent();
-            mSkelBase->attachObjectToBone("chain2", scene->mForeignObj->mEntities[0]);
-
-        }
-#endif
 
         addActivatorAnimSource();
     }
@@ -239,27 +218,12 @@ namespace MWRender
             }
         }
 
-        Animation::play(groupname, priority, groups, autodisable, speedmult, start, stop, startpoint, loops, loopfallback);
+        Animation::play(groupname, priority, groups, autodisable, speedmult,
+                        start, stop, startpoint, loops, loopfallback);
     }
 
     Ogre::Vector3 ForeignActivatorAnimation::runAnimation(float duration)
     {
-        // FIXME: for temp testing
-#if 0
-        if (mPtr.get<ESM4::Activator>()->mBase->mEditorId.find("Wheel") != std::string::npos)
-        {
-            Ogre::Bone* bone = mSkelBase->getSkeleton()->getBone("chain2");
-            if (bone)
-            {
-                Ogre::Vector3 pos = tag->getParent()->_getDerivedPosition();
-                if (zPos != pos.z)
-                    std::cout << "runAnimation " << static_cast<Ogre::Node*>(bone) << " "<< pos.z << std::endl;
-
-                zPos = pos.z;
-            }
-        }
-#endif
-
         return Animation::runAnimation(duration);
     }
 }

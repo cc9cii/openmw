@@ -439,17 +439,13 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
     Ogre::Matrix4 transform = Ogre::Matrix4(Ogre::Matrix4::IDENTITY);
     bool isDynamic = false;
 
-    // FIXME: temporary workaround
-    bool doorHack = mModel.getName().find("door") != std::string::npos ||
-                    mModel.getName().find("Door") != std::string::npos;
-
     // ICDoor04, UpperChest02 - these have animation flag but are static. Therefore we can't
     // rely on that flag.  We have to confirm with an extra check by calling isDynamicMesh().
     //
     // NOTE: Flag_HasSkin may not be set if only some of the NiGeometry blocks have skin.
     // NOTE: need to check for havok after the check for animation because some doors can have havok enabled
     //       e.g. GateDoor03 of ARNHallGateDoor01.NIF (COC "Vilverin")
-    if (mModel.buildData().animEnabled() && !doorHack)
+    if (mModel.buildData().animEnabled())
     {
         NiNodeRef rootAnimNode = 0;
         if (mParent->isDynamicMesh(&rootAnimNode))
@@ -462,7 +458,7 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
                 mParent->setAnimRoot(rootAnimNode);
         }
     }
-    else if (mSkinInstanceRef != -1 || mModel.buildData().havokEnabled() || doorHack)
+    else if (mSkinInstanceRef != -1 || mModel.buildData().havokEnabled())
     {
         isDynamic = true;
         transform = mParent->getLocalTransform() * mLocalTransform;

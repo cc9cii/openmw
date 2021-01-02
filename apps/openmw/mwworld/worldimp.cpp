@@ -1652,7 +1652,6 @@ namespace MWWorld
         while (it != mDoorStates.end())
         {
             bool isForeignDoor = it->first.getBase()->mClass->getTypeName() == typeid (ESM4::Door).name();
-            bool isForeignActivatorDoor = it->first.getBase()->mClass->getTypeName() == typeid (ESM4::Activator).name();
             MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(it->first);
 
             if (!mWorldScene->isCellActive(*it->first.getCell()) || !it->first.getRefData().getBaseNode())
@@ -1662,13 +1661,12 @@ namespace MWWorld
                 // Once we load the door's cell again (or re-enable the door), Door::insertObject will reinsert to mDoorStates.
                 mDoorStates.erase(it++);
             }
-            else if ((isForeignDoor || isForeignActivatorDoor) && anim->hasAnimation("open") && (/*anim->getAnimatedDoorState() == 0 || */anim->getAnimatedDoorState() == 1))
-            {
-                bool finished =  anim->addTime("open", duration); // returns true if animation ended
+            else if (isForeignDoor && anim->hasAnimation("open") && it->second == 1)            {
+                bool finished = !anim->isPlaying("open");
                 // it->first is Ptr (i.e. the door)
                 //it->first.getClass().setDoorState(it->first, 0);
 
-                std::vector<Ogre::Bone*> bones = anim->getBones("open");
+                std::vector<Ogre::Bone*> bones = anim->getBones();
                 for (unsigned int i = 0; i < bones.size(); ++i)
                 {
 #if 0
@@ -1714,13 +1712,13 @@ namespace MWWorld
                 else
                     it++;
             }
-            else if ((isForeignDoor || isForeignActivatorDoor) && anim->hasAnimation("close") && anim->getAnimatedDoorState() == 2)
+            else if (isForeignDoor && anim->hasAnimation("close") && it->second == 2)
             {
-                bool finished =  anim->addTime("close", duration); // returns true if animation ended
+                bool finished = !anim->isPlaying("close");
                 // it->first is Ptr (i.e. the door)
                 //it->first.getClass().setDoorState(it->first, 2);
 
-                std::vector<Ogre::Bone*> bones = anim->getBones("close");
+                std::vector<Ogre::Bone*> bones = anim->getBones();
                 for (unsigned int i = 0; i < bones.size(); ++i)
                 {
 #if 0
@@ -1760,7 +1758,7 @@ namespace MWWorld
                 else
                     it++;
             }
-            else if ((isForeignDoor || isForeignActivatorDoor) && anim->hasAnimation("open") && anim->getAnimatedDoorState() == 0)
+            else if (isForeignDoor && anim->hasAnimation("open") && it->second == 0)
             {
                 mDoorStates.erase(it++); // FIXME: hack to reset the doors (still not quite right, anyway)
             }
@@ -2522,8 +2520,7 @@ namespace MWWorld
         int state = door.getClass().getDoorState(door);
 
         bool isForeignDoor = door.getBase()->mClass->getTypeName() == typeid (ESM4::Door).name();
-        bool isForeignActivatorDoor = door.getBase()->mClass->getTypeName() == typeid (ESM4::Activator).name();
-        if (isForeignDoor || isForeignActivatorDoor)
+        if (isForeignDoor)
         {
             MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(door);
             if (anim->hasAnimation("open") || anim->hasAnimation("close"))

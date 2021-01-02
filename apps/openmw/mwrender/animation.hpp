@@ -357,9 +357,7 @@ public:
     void detachObjectFromBone(Ogre::MovableObject *obj);
 
     void activateAnimatedDoor(const std::string& animation, bool activate);
-    int getAnimatedDoorState() const;
-    bool addTime(const std::string& anim, float duration);
-    std::vector<Ogre::Bone*> getBones(const std::string& animation) const;
+    std::vector<Ogre::Bone*> getBones() const;
 };
 
 class ObjectAnimation : public Animation {

@@ -527,9 +527,6 @@ bool Animation::hasAnimation(const std::string &anim)
             return true;
     }
 
-    if (mObjectRoot && mObjectRoot->mForeignObj)
-        return mObjectRoot->mForeignObj->hasNodeAnimation(anim);   // HACK for foreign doors/activators
-
     return false;
 }
 
@@ -713,8 +710,8 @@ void Animation::updatePosition(float oldtime, float newtime, Ogre::Vector3 &posi
     mAccumRoot->setPosition(-off);
 }
 
-// * find 'groupname' in 'keys'
-// * then look for the textmap keys 'groupname'+': '+'start' and 'groupname'+': '+'stop'
+// * find groupname (i.e. animation name) in 'keys'
+// * then look for the textmap keys groupname+': '+start and groupname+': '+stop
 // * update 'state' start/stop time with those of the found keys
 // * update 'state' mTime with 'startpoint'
 // * update 'state' loop start/stop time as requied
@@ -751,8 +748,49 @@ bool Animation::reset(AnimState &state, const NifOgre::TextKeyMap &keys, const s
             }
             ++it;
         }
+
         if (it == keys.end())
             return false;
+
+        state.mTime = state.mStartTime + ((state.mStopTime - state.mStartTime) * startpoint);
+
+        return true;
+    }
+    else if (mPtr.getTypeName() == typeid(ESM4::Door).name() || mPtr.getTypeName() == typeid(ESM4::Activator).name())
+    {
+        NifOgre::TextKeyMap::const_iterator it(keys.begin());
+        while (it != keys.end())
+        {
+            if (it->second == groupname+": "+start)
+            {
+                state.mStartTime = it->first;
+                // FIXME ignore loopfallback and just hard code for now
+                state.mLoopStartTime = it->first;
+                //state.mLoopStopTime = std::numeric_limits<float>::max();
+                break;
+            }
+            ++it;
+        }
+
+        if (it == keys.end())
+            return false;
+
+        NifOgre::TextKeyMap::const_reverse_iterator it2(keys.rbegin());
+        while (it2 != keys.rend())
+        {
+            if (it2->second == groupname+": "+stop)
+            {
+                state.mStopTime = it2->first;
+                state.mLoopStopTime = it2->first; // FIXME
+                break;
+            }
+            ++it2;
+        }
+
+        if (it2 == keys.rend())
+            return false;
+
+        state.mTime = state.mStartTime + ((state.mStopTime - state.mStartTime) * startpoint);
 
         return true;
     }
@@ -775,6 +813,7 @@ bool Animation::reset(AnimState &state, const NifOgre::TextKeyMap &keys, const s
     NifOgre::TextKeyMap::const_reverse_iterator startkey(groupend);
     while(startkey != keys.rend() && startkey->second != starttag)
         ++startkey;
+
     if(startkey == keys.rend() && start == "loop start")
     {
         // FIXME: temporary workaround during testing
@@ -871,6 +910,47 @@ void Animation::handleTextKey(AnimState &state, const std::string &groupname, co
         sndMgr->playSound3D(mPtr, evt.substr(7), 1.0f, 1.0f);
         return;
     }
+
+    if (Misc::StringUtils::lowerCase(evt).compare(groupname.size() + 2/*": "*/, 7, "sound: ") == 0)
+    {
+        MWBase::SoundManager* sndMgr = MWBase::Environment::get().getSoundManager();
+
+        const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
+        const MWWorld::ForeignStore<ESM4::Sound>& soundStore = store.getForeign<ESM4::Sound>();
+        if (const ESM4::Sound* sound = soundStore.searchLower(evt.substr(groupname.size() + 2 + 7/*"sound: "*/)))
+        {
+            // playSound3D() has been hacked to accept the string form of FormId
+            std::string soundId = ESM4::formIdToString(sound->mFormId);
+
+            NifOgre::TextKeyMap::const_iterator cit = textkeys.begin();
+            while (cit != textkeys.end())
+            {
+                if (Misc::StringUtils::lowerCase(cit->second).find("enum: stopsound") != std::string::npos)
+                {
+                    break;
+                }
+                ++cit;
+            }
+
+            if (cit == textkeys.end()) // no StopSound found, play once
+                sndMgr->playSound3D(mPtr, soundId, 1.0f, 1.0f);
+            else
+                sndMgr->playSound3D(mPtr, soundId, 1.0f, 1.0f,
+                        MWBase::SoundManager::Play_TypeSfx, MWBase::SoundManager::Play_Loop);
+        }
+    }
+
+    // BenirusDoor01.NIF uses "Enum: StopSound 0" while SewerSheel01.NIF uses "enum: StopSounds 4"
+    if (Misc::StringUtils::lowerCase(evt).compare(groupname.size() + 2/*": "*/, 15, "enum: stopsound") == 0)
+    {
+        MWBase::SoundManager* sndMgr = MWBase::Environment::get().getSoundManager();
+
+        // FIXME: stopping *all* sounds for this Ptr becasue the textkey doens't specify which sound
+        sndMgr->stopSound3D(mPtr);
+
+        return;
+    }
+
     if(evt.compare(0, 10, "soundgen: ") == 0)
     {
         std::string soundgen = evt.substr(10);
@@ -1081,11 +1161,6 @@ void Animation::play(const std::string &groupname, int priority, int groups, boo
                     handleTextKey(state, groupname, textkey, textkeys);
                     ++textkey;
                 }
-            }
-            //else if(mPtr.getTypeName() == typeid(ESM4::Npc).name())
-            else if(mPtr.getTypeName() == typeid(ESM4::Door).name())
-            {
-                std::cout << "anim textkey " << groupname << std::endl;
             }
 
             // count down the number of specified loops
@@ -1418,173 +1493,34 @@ Ogre::Vector3 Animation::runAnimation(float duration)
     return movement;
 }
 
-// this is a hack to get foreign animated doors to work
-bool Animation::addTime(const std::string& anim, float duration)
-{
-    if (mObjectRoot->mForeignObj && mObjectRoot->mForeignObj->mNodeAnimEntityMap.size() > 0)
-    {
-#if 0
-        std::map<std::string, Ogre::Entity*>::const_iterator it
-            = mObjectRoot->mNodeAnimEntityMap.begin();
-        for (; it != mObjectRoot->mNodeAnimEntityMap.end(); ++it)
-        {
-            Ogre::AnimationStateSet *aset = it->second->getAllAnimationStates();
-            Ogre::AnimationStateIterator asiter = aset->getAnimationStateIterator();
-            while(asiter.hasMoreElements())
-            {
-                Ogre::AnimationState *state = asiter.getNext();
-                //
-                if (state->getEnabled())
-                    state->addTime(duration);
-            }
-        }
-#else
-        // does the anim exist?
-        std::map<std::string, std::vector<Ogre::Entity*> >::iterator iter
-            = mObjectRoot->mForeignObj->mNodeAnimEntityMap.find(anim);
-        if (iter != mObjectRoot->mForeignObj->mNodeAnimEntityMap.end())
-        {
-            bool hasEnded = false;
-            // there can be more than one entity being animated, add time to all
-            for (unsigned int i = 0; i < iter->second.size(); ++i)
-            {
-                iter->second[i]->getAnimationState(anim)->addTime(duration);
-                // if any one of the entities has ended its anim then assume all ended
-                if (!hasEnded)
-                    hasEnded |= iter->second[i]->getAnimationState(anim)->hasEnded();
-            }
-
-            return hasEnded; // remove from mDoorStates, see processDoors()
-        }
-        else
-            return true; // set to anim ended state if it can't be found?
-#endif
-    }
-    else
-        return true;
-}
-
-std::vector<Ogre::Bone*> Animation::getBones(const std::string& animation) const
+// FIXME: inefficient to search each and every time, should keep them cached somewhere
+std::vector<Ogre::Bone*> Animation::getBones() const
 {
     std::vector<Ogre::Bone*> res;
 
-    std::map<std::string, std::vector<Ogre::Entity*> >::const_iterator cit
-        = mObjectRoot->mForeignObj->mNodeAnimEntityMap.find(animation);
-    if (cit != mObjectRoot->mForeignObj->mNodeAnimEntityMap.end())
+    const std::map<NiBtOgre::NiNodeRef, Ogre::Entity*>& entityMap
+        = mObjectRoot->mForeignObj->mEntities;
+
+    std::map<NiBtOgre::NiNodeRef, Ogre::Entity*>::const_iterator cit = entityMap.begin();
+    for (; cit != entityMap.end(); ++cit)
     {
-        std::vector<Ogre::Entity*> entityList = cit->second;
-        Ogre::SkeletonInstance *skel = entityList[0]->getSkeleton(); // any one will do
-        for (unsigned int i = 0; i < entityList.size(); ++i)
+        Ogre::SkeletonInstance* skelinst = mObjectRoot->mSkelBase->getSkeleton();
+
+        std::string meshName = cit->second->getMesh()->getName();
+        size_t pos = meshName.find_last_of('%');
+        meshName = meshName.substr(pos+1);
+        if (skelinst->hasBone(meshName))
         {
-            std::string meshName = entityList[i]->getMesh()->getName();
-            //size_t pos = meshName.find_first_of('#');
-            size_t pos = meshName.find_last_of('%');
-            meshName = meshName.substr(pos+1);
-            if (skel->hasBone(meshName))
-            {
-                res.push_back(skel->getBone(meshName));
-            }
+            res.push_back(skelinst->getBone(meshName));
         }
     }
 
     return res;
 }
 
-// FIXME: inefficient, refactor
-// FIXME: some doors have sound specified in the animation TextKey
 void Animation::activateAnimatedDoor(const std::string& animation, bool activate)
 {
-    if (mObjectRoot->mForeignObj && mObjectRoot->mForeignObj->mNodeAnimEntityMap.size() > 0)
-    {
-        std::map<std::string, std::vector<Ogre::Entity*> >::iterator it
-            = mObjectRoot->mForeignObj->mNodeAnimEntityMap.find(animation);
-        if (it != mObjectRoot->mForeignObj->mNodeAnimEntityMap.end())
-        {
-            for (unsigned int i = 0; i < it->second.size(); ++i)
-            {
-                if (!it->second[i]->hasAnimationState(animation))
-                    continue;
-
-                Ogre::AnimationState *anim = it->second[i]->getAnimationState(animation);
-
-                anim->setEnabled(activate ? true : false);
-                anim->setLoop(false);
-                anim->setTimePosition(0.f);
-
-                if (!activate)
-                {
-//                  std::string meshName = it->second[i]->getMesh()->getName();
-//                  size_t pos = meshName.find_last_of('%');
-//                  meshName = meshName.substr(pos+1);
-//                  if (it->second[i]->getSkeleton()->hasBone(meshName))
-//                      it->second[i]->getSkeleton()->getBone(meshName)->reset();
-                }
-            }
-            //mObjectRoot->mSkelBase->getSkeleton()->reset(true); // FIXME: hopefuly fixes disappearing doors (NO)
-        }
-    }
-}
-
-// assumes "Open" and/or "Close" animations exist (caller must ensure)
-int Animation::getAnimatedDoorState() const
-{
-    if (mObjectRoot->mForeignObj && mObjectRoot->mForeignObj->mNodeAnimEntityMap.size() > 0)
-    {
-        int openState = 0;
-        std::map<std::string, std::vector<Ogre::Entity*> >::iterator it
-            = mObjectRoot->mForeignObj->mNodeAnimEntityMap.find("open");
-        if (it != mObjectRoot->mForeignObj->mNodeAnimEntityMap.end())
-        {
-            if (it->second[0]->hasAnimationState("open") && it->second[0]->getAnimationState("open")->getEnabled())
-            {
-                bool hasEndedOpen = false;
-                for (unsigned int i = 0; i < it->second.size(); ++i)
-                {
-                    // check that all have ended
-                    hasEndedOpen &= it->second[i]->getAnimationState("open")->hasEnded();
-
-                    if (!hasEndedOpen) // only needs one to be unfinished
-                    {
-                        openState = 1; // "opening" state
-                        return 1;
-                    }
-                }
-                // fully opened, what state is it?
-                return 0;
-            }
-            // else if not enabled openState remains at 0
-        }
-
-        int closeState = 0;
-        std::map<std::string, std::vector<Ogre::Entity*> >::iterator it2
-            = mObjectRoot->mForeignObj->mNodeAnimEntityMap.find("close");
-        if (it2 != mObjectRoot->mForeignObj->mNodeAnimEntityMap.end())
-        {
-            if (it2->second[0]->hasAnimationState("close") && it2->second[0]->getAnimationState("close")->getEnabled())
-            {
-                bool hasEndedClose = false;
-                for (unsigned int i = 0; i < it2->second.size(); ++i)
-                {
-                    // check that all have ended
-                    hasEndedClose &= it2->second[i]->getAnimationState("close")->hasEnded();
-
-                    if (!hasEndedClose) // only needs one to be unfinished
-                    {
-                        closeState = 2; // "closing" state
-                        return 2;
-                    }
-                }
-                // fully closed, what state is it?
-                return 0;
-            }
-            // else if not enabled closeState remains at 0
-        }
-
-        //if (openState == 0 && closeState == 0)
-            return 0; // neither active
-    }
-
-    return 0; // shouldn't happen  FIXME: throw?
+    play(animation, 0, 1, true, 0.5f/*speedmult*/, "start", "end", 0.0f, 0); // FIXME: why half the speed necessary?
 }
 
 void Animation::showWeapons(bool showWeapon)

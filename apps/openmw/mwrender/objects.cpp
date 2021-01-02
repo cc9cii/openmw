@@ -126,6 +126,8 @@ const std::map<std::int32_t, Ogre::SceneNode*> *Objects::insertModel(const MWWor
     std::auto_ptr<ObjectAnimation> anim;
     if(ptr.getTypeName() == typeid(ESM4::Activator).name())
         anim = std::auto_ptr<ObjectAnimation>(new ForeignActivatorAnimation(ptr, mesh));
+    else if(ptr.getTypeName() == typeid(ESM4::Door).name())
+        anim = std::auto_ptr<ObjectAnimation>(new ForeignActivatorAnimation(ptr, mesh));
     else
         anim = std::auto_ptr<ObjectAnimation>(new ObjectAnimation(ptr, mesh));
 
