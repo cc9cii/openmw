@@ -888,12 +888,9 @@ namespace MWWorld
 
         if (OEngine::Physic::RigidBody* body = mEngine->getRigidBody(handle))
         {
-            // ignore static
-            if (body->getCollisionShape()->getUserIndex() == 4)
-                return;
-
             // move parent
-            if (body->mTargetName == boneName)
+            if (body->mTargetName == boneName &&
+                body->getCollisionShape()->getUserIndex() != 4) // ignore static
             {
                 // rotation is the local rotation of the bone
                 // position is the local translation of the bone
@@ -915,7 +912,8 @@ namespace MWWorld
                 = body->mChildren.begin();
             for (; iter != body->mChildren.end(); ++iter)
             {
-                if (iter->first == boneName)
+                if (iter->first == boneName &&
+                    iter->second->getCollisionShape()->getUserIndex() != 4) // ignore static
                 {
                     btQuaternion qb = iter->second->mBindingOrientation;
                     Ogre::Quaternion q(qb.w(), qb.x(), qb.y(), qb.z());
@@ -932,12 +930,9 @@ namespace MWWorld
 
         if (OEngine::Physic::RigidBody* body = mEngine->getRigidBody(handle, true/*raycasting*/))
         {
-            // ignore static
-            if (body->getCollisionShape()->getUserIndex() == 4)
-                return;
-
             // move parent
-            if (body->mTargetName == boneName)
+            if (body->mTargetName == boneName &&
+                body->getCollisionShape()->getUserIndex() != 4) // ignore static
             {
                 btQuaternion qb = body->mBindingOrientation;
                 Ogre::Quaternion q(qb.w(), qb.x(), qb.y(), qb.z());
@@ -953,11 +948,10 @@ namespace MWWorld
             // move children; there may be more than one rigidbody moved by the same bone
             std::multimap<std::string, OEngine::Physic::RigidBody*>::const_iterator iter
                 = body->mChildren.begin();
-
-            if (iter != body->mChildren.end())
             for (; iter != body->mChildren.end(); ++iter)
             {
-                if (iter->first == boneName)
+                if (iter->first == boneName &&
+                    iter->second->getCollisionShape()->getUserIndex() != 4) // ignore static
                 {
                     btQuaternion qb = iter->second->mBindingOrientation;
                     Ogre::Quaternion q(qb.w(), qb.x(), qb.y(), qb.z());
@@ -982,12 +976,9 @@ namespace MWWorld
         // dungeons\sewers\sewertunneldoor01.nif has static parent but its child "Gate" is not
         if (OEngine::Physic::RigidBody* body = mEngine->getRigidBody(handle))
         {
-            // ignore static
-            if (body->getCollisionShape()->getUserIndex() == 4)
-                return;
-
             // rotate parent
-            if (body->mTargetName == boneName)
+            if (body->mTargetName == boneName &&
+                body->getCollisionShape()->getUserIndex() != 4) // ignore static
             {
                 body-> getWorldTransform().setRotation(
                     body->mBindingOrientation
@@ -1001,10 +992,10 @@ namespace MWWorld
             // rotate children; there may be more than one rigidbody rotated by the same bone
             std::multimap<std::string, OEngine::Physic::RigidBody*>::const_iterator iter
                 = body->mChildren.begin();
-
             for (; iter != body->mChildren.end(); ++iter)
             {
-                if (iter->first == boneName)
+                if (iter->first == boneName &&
+                    iter->second->getCollisionShape()->getUserIndex() != 4) // ignore static
                 {
                     // FIXME: BenirusDoor01.NIF has 3 collision shapes that won't rotate
                     //        properly.  Don't know how to fix it, so just work around for now.
@@ -1033,7 +1024,8 @@ namespace MWWorld
         if (OEngine::Physic::RigidBody* body = mEngine->getRigidBody(handle, true/*raycasting*/))
         {
             // rotate parent
-            if (body->mTargetName == boneName)
+            if (body->mTargetName == boneName &&
+                body->getCollisionShape()->getUserIndex() != 4) // ignore static
             {
                 body-> getWorldTransform().setRotation(
                     body->mBindingOrientation
@@ -1050,7 +1042,8 @@ namespace MWWorld
 
             for (; iter != body->mChildren.end(); ++iter)
             {
-                if (iter->first == boneName)
+                if (iter->first == boneName &&
+                    iter->second->getCollisionShape()->getUserIndex() != 4) // ignore static
                 {
                     // FIXME: BenirusDoor01.NIF has 3 collision shapes that won't rotate
                     //        properly.  Don't know how to fix it, so just work around for now.
