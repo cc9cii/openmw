@@ -42,7 +42,10 @@ MWWorld::Ptr MWScript::ExplicitTes4Ref::operator() (Interpreter::Runtime& runtim
     unsigned int ref = runtime.getContext().getLocalRef(runtime[0].mInteger);
     runtime.pop();
 
-    return MWBase::Environment::get().getWorld()->searchPtrViaFormId(ref, activeOnly);
+    if (!ref)
+        return MWWorld::Ptr();
+    else
+        return MWBase::Environment::get().getWorld()->searchPtrViaFormId(ref, activeOnly);
 }
 
 MWWorld::Ptr MWScript::ImplicitRef::operator() (Interpreter::Runtime& runtime, bool required,

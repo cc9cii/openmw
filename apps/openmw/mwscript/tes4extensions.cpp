@@ -167,6 +167,9 @@ namespace MWScript
 
                     MWWorld::Ptr ptr = R()(runtime);
 
+                    if (ptr.isEmpty())
+                        return; // e.g. "myParent.activate mySelf 1" when myParent is 0
+
                     // handle the arguments
                     MWWorld::Ptr actor;
                     Interpreter::Type_Integer flag = 0;
@@ -225,7 +228,7 @@ namespace MWScript
                     if (flag)
                         context.executeActivationScript(ptr, actor);
                     else
-                        context.executeActivation(ptr, actor);
+                        context.executeActivation(ptr, actor); // WARNING: currently produces a NullAction
 
                     mCurrentActor = "";
                     mCurrentObject = "";
