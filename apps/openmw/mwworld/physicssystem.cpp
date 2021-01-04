@@ -747,7 +747,7 @@ namespace MWWorld
             {
                 body->getWorldTransform().setOrigin(btVector3(position.x,position.y,position.z));
             }
-            else
+            else if (body->getCollisionShape()->getUserIndex() == 4)
             {
                 Ogre::Vector3 pos = body->mLocalTransform * position;
                 body->getWorldTransform().setOrigin(btVector3(pos.x,pos.y,pos.z));
@@ -770,7 +770,7 @@ namespace MWWorld
             {
                 body->getWorldTransform().setOrigin(btVector3(position.x,position.y,position.z));
             }
-            else
+            else if (body->getCollisionShape()->getUserIndex() == 4)
             {
                 Ogre::Vector3 pos = body->mLocalTransform * position;
                 body->getWorldTransform().setOrigin(btVector3(pos.x,pos.y,pos.z));
@@ -812,7 +812,7 @@ namespace MWWorld
                 else
                     mEngine->boxAdjustExternal(handleToMesh[handle], body, node->getScale().x, node->getPosition(), rotation);
             }
-            else
+            else if (body->getCollisionShape()->getUserIndex() == 4)
             {
                 Ogre::Quaternion rot;
                 if (body->getCollisionShape()->getUserIndex() != 4)
@@ -852,7 +852,7 @@ namespace MWWorld
                 else
                     mEngine->boxAdjustExternal(handleToMesh[handle], body, node->getScale().x, node->getPosition(), rotation);
             }
-            else
+            else if (body->getCollisionShape()->getUserIndex() == 4)
             {
                 Ogre::Quaternion rot = body->mLocalTransform.extractQuaternion();
                 rot = rotation * rot;

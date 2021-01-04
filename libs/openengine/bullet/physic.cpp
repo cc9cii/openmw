@@ -568,6 +568,7 @@ namespace Physic
             Ogre::Vector3 nodeScale; // FIXME: apply scale?
             Ogre::Quaternion rot;
 #if 1
+            // iter->second.first is the world transform of the controller target NiNode
             iter->second.first.decomposition(pos, nodeScale, rot);
 #else
             Ogre::Matrix3 matQ;
@@ -578,6 +579,7 @@ namespace Physic
 #endif
 
             if (body->getCollisionShape()->getUserIndex() == 4) // useFullTransform
+                // NOTE: effectively does nothing since scaledBoxTranslation is ZERO and boxRotation is IDENTITY
                 adjustRigidBody(body, position, rotation, Ogre::Vector3(0.f) * scale, Ogre::Quaternion::IDENTITY);
             else
             {
@@ -686,6 +688,7 @@ namespace Physic
                 Ogre::Vector3 nodeScale; // FIXME: apply scale?
                 Ogre::Quaternion rot;
 #if 1
+                // iter->second.first is the world transform of the controller target NiNode
                 iter->second.first.decomposition(pos, nodeScale, rot);
 #else
                 Ogre::Matrix3 matQ;
@@ -698,13 +701,16 @@ namespace Physic
                 if (body->getCollisionShape()->getUserIndex() == 4) // useFullTransform
                 {
                     // see parent body of dungeons\sewers\sewertunneldoor01.nif
+                    // NOTE: effectively does nothing since scaledBoxTranslation is ZERO and boxRotation is IDENTITY
                     adjustRigidBody(body, position, rotation, Ogre::Vector3(0.f) * scale, Ogre::Quaternion::IDENTITY);
                 }
                 else
                 {
+                    // world transform of SceneNode
                     Ogre::Matrix4 t;
                     t.makeTransform(position, Ogre::Vector3(scale), rotation);
 
+                    // world transform of target NiNode
                     Ogre::Matrix4 l;
                     l.makeTransform(pos, Ogre::Vector3(scale), rot); // FIXME: scale
                     t = t * l;
