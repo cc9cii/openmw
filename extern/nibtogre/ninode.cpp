@@ -232,10 +232,10 @@ bool NiBtOgre::NiNode::isDynamicMesh(NiNodeRef *nodeRef) const
         //throw std::logic_error("Animated bones should have been found by now.");
         return false; // FIXME: don't throw since activator code is not ready yet
 
-    NiObjectNETRef targetRef = controller->mTargetRef;
+    NiObjectNETRef targetRef = controller->mTargetRef; // usually 0, i.e. root node of the model
     if (targetRef == selfRef())
     {
-        *nodeRef = targetRef; // starting point of transform
+        *nodeRef = targetRef; // update starting point of transform
         return true;
     }
     else
@@ -246,7 +246,7 @@ bool NiBtOgre::NiNode::isDynamicMesh(NiNodeRef *nodeRef) const
         {
             if (extraTargets[i] == selfRef())
             {
-                *nodeRef = extraTargets[i]; // starting point of transform
+                *nodeRef = extraTargets[i]; // update starting point of transform
                 return true;
             }
         }
@@ -262,7 +262,7 @@ bool NiBtOgre::NiNode::isDynamicMesh(NiNodeRef *nodeRef) const
             {
                 if (extraTargets[i] == node->selfRef())
                 {
-                    *nodeRef = extraTargets[i]; // starting point of transform
+                    *nodeRef = extraTargets[i]; // update starting point of transform
                     return true;
                 }
             }

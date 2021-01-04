@@ -123,8 +123,7 @@ void NiBtOgre::BtRigidBodyCI::loadImpl()
         //if (nimodel->indexToString(target->getNameIndex()) == "Chunk01")
             //std::cout << nimodel->getName() << std::endl;
 
-        // FIXME: move the functions to NiAVObject
-        // FIXME: should confirm that targetRef is indeed NiNode
+        // FIXME: should confirm that targetRef is indeed NiNode (throw?)
         NiNode *targetNode = nimodel->getRef<NiNode>(targetRef);
         NiNodeRef controlledNodeRef = 0;
         bool dynamic = targetNode->isDynamicMesh(&controlledNodeRef);
