@@ -1689,13 +1689,13 @@ namespace MWWorld
                     Ogre::Vector3 vb = bones[i]->_getBindingPoseInversePosition();
                     mWorldScene->moveSubObjectLocalPosition(it->first, bones[i]->getName(), v + vb);
 #else
-                    Ogre::Quaternion q = bones[i]->getOrientation();
+                    Ogre::Quaternion q = bones[i]->_getDerivedOrientation();
                     Ogre::Quaternion qb = bones[i]->_getBindingPoseInverseOrientation();
                     mWorldScene->rotateSubObjectLocalRotation(it->first, bones[i]->getName(), q * qb);
 
-                    Ogre::Vector3 v = bones[i]->getPosition();
+                    Ogre::Vector3 v = bones[i]->_getDerivedPosition();
                     Ogre::Vector3 vb = bones[i]->_getBindingPoseInversePosition();
-                    mWorldScene->moveSubObjectLocalPosition(it->first, bones[i]->getName(), v + vb);
+                    mWorldScene->moveSubObjectLocalPosition(it->first, bones[i]->getName(), v + vb, q * qb);
 #endif
                 }
 
@@ -1741,13 +1741,13 @@ namespace MWWorld
                     Ogre::Vector3 vb = bones[i]->_getBindingPoseInversePosition();
                     mWorldScene->moveSubObjectLocalPosition(it->first, bones[i]->getName(), v + vb);
 #else
-                    Ogre::Quaternion q = bones[i]->getOrientation();
+                    Ogre::Quaternion q = bones[i]->_getDerivedOrientation();
                     Ogre::Quaternion qb = bones[i]->_getBindingPoseInverseOrientation();
                     mWorldScene->rotateSubObjectLocalRotation(it->first, bones[i]->getName(), q * qb);
 
-                    Ogre::Vector3 v = bones[i]->getPosition();
+                    Ogre::Vector3 v = bones[i]->_getDerivedPosition();
                     Ogre::Vector3 vb = bones[i]->_getBindingPoseInversePosition();
-                    mWorldScene->moveSubObjectLocalPosition(it->first, bones[i]->getName(), v + vb);
+                    mWorldScene->moveSubObjectLocalPosition(it->first, bones[i]->getName(), v + vb, q * qb);
 #endif
                 }
 

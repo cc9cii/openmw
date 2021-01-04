@@ -880,8 +880,8 @@ namespace MWWorld
         }
     }
 
-    // FIXME: test code for doors only
-    void PhysicsSystem::moveSubObject (const MWWorld::Ptr& ptr, const std::string& boneName, const Ogre::Vector3& position)
+    // FIXME: test code for doors and activators only
+    void PhysicsSystem::moveSubObject (const MWWorld::Ptr& ptr, const std::string& boneName, const Ogre::Vector3& position, const Ogre::Quaternion& rotation)
     {
         Ogre::SceneNode* node = ptr.getRefData().getBaseNode();
         const std::string &handle = node->getName();
@@ -901,6 +901,7 @@ namespace MWWorld
                 // body->mBindingPosition is the world position of the body
                 btQuaternion qb = body->mBindingOrientation;
                 Ogre::Quaternion q(qb.w(), qb.x(), qb.y(), qb.z());
+                q = q * rotation;
                 Ogre::Vector3 pos = q * position;
 
                 body->getWorldTransform().setOrigin(
@@ -915,6 +916,7 @@ namespace MWWorld
             {
                 btQuaternion qb = iter->second->mBindingOrientation;
                 Ogre::Quaternion q(qb.w(), qb.x(), qb.y(), qb.z());
+                q = q * rotation;
                 Ogre::Vector3 pos = q * position;
 
                 iter->second->getWorldTransform().setOrigin(
@@ -935,6 +937,7 @@ namespace MWWorld
             {
                 btQuaternion qb = body->mBindingOrientation;
                 Ogre::Quaternion q(qb.w(), qb.x(), qb.y(), qb.z());
+                q = q * rotation;
                 Ogre::Vector3 pos = q * position;
 
                 body->getWorldTransform().setOrigin(
@@ -951,6 +954,7 @@ namespace MWWorld
             {
                 btQuaternion qb = iter->second->mBindingOrientation;
                 Ogre::Quaternion q(qb.w(), qb.x(), qb.y(), qb.z());
+                q = q * rotation;
                 Ogre::Vector3 pos = q * position;
 
                 iter->second->getWorldTransform().setOrigin(

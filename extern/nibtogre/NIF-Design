@@ -1,6 +1,6 @@
 /*
 
-  Copyright (C) 2018-2020 cc9cii
+  Copyright (C) 2018-2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -6411,7 +6411,7 @@ CTrigTripwire01 in Vilverin:
 
     end
 
-# [02/01/2021] Door animation
+# [02/01/2021 - 04/01/2021] Door animation
 
 Now that activator animations are working, time to try using the same for door animations.
 

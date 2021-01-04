@@ -131,7 +131,7 @@ namespace MWWorld
             void updateObjectLocalRotation (const Ptr& ptr);
 
             void moveSubObjectLocalPosition (const MWWorld::Ptr& ptr,
-                    const std::string& boneName, const Ogre::Vector3& position);
+                    const std::string& boneName, const Ogre::Vector3& position, const Ogre::Quaternion& rotation);
             void rotateSubObjectLocalRotation (const MWWorld::Ptr& ptr,
                     const std::string& boneName, const Ogre::Quaternion& rotation);
 
