@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2019, 2020 cc9cii
+  Copyright (C) 2019-2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -52,11 +52,13 @@ namespace NiBtOgre
         void unloadImpl();
 
     public:
+        // FIXME: shouldn't really be public
+        //
         //      target NiNode ref     NiNode world transform
         //              |                   |
         //              v                   v
         std::map<std::int32_t, std::pair<Ogre::Matrix4, btCollisionShape *> > mBtCollisionShapeMap; // used by RigidBody
-        std::map<std::int32_t, std::string> mTargetNames; // for doors
+        std::map<std::int32_t, std::string> mTargetNames; // for doors and activators
 
         BtRigidBodyCI(Ogre::ResourceManager *creator, const Ogre::String& name, Ogre::ResourceHandle handle,
                 const Ogre::String& group, bool isManual, Ogre::ManualResourceLoader* loader);

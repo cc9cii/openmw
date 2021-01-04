@@ -603,7 +603,7 @@ namespace Physic
             if (numBodies == 0)
                 parentBody = body;
             else
-                parentBody->mChildren[ci->mTargetNames[iter->first]] = body;
+                parentBody->mChildren.insert(std::make_pair(ci->mTargetNames[iter->first], body));
 
             if (!raycasting)
             {
@@ -731,7 +731,7 @@ namespace Physic
                 if (numBodies == 0)
                     parentBody = body;
                 else
-                    parentBody->mChildren[ci->mTargetNames[iter->first]] = body;
+                    parentBody->mChildren.insert(std::make_pair(ci->mTargetNames[iter->first], body));
 
                 if (!raycasting)
                 {

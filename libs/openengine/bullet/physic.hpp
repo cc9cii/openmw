@@ -67,11 +67,10 @@ namespace Physic
         //     FIXME: use block index instead?
         //              |
         //              v
-        std::map<std::string, RigidBody*> mChildren;
+        std::multimap<std::string, RigidBody*> mChildren;
         Ogre::Matrix4 mLocalTransform;
         btVector3 mBindingPosition;
         btQuaternion mBindingOrientation;
-        btQuaternion mStartingOrientation; // FIXME: experimental
         std::string mTargetName;
         bool mIsForeign;
 

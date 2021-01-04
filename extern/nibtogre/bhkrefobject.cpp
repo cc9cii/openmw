@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015-2020 cc9cii
+  Copyright (C) 2015-2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -65,7 +65,7 @@ NiBtOgre::bhkSerializable::bhkSerializable(uint32_t index, NiStream *stream, con
 }
 //#endif
 
-btCollisionShape *NiBtOgre::bhkSerializable::getShape(const NiAVObject& target, bool dynamic) const
+btCollisionShape *NiBtOgre::bhkSerializable::getShape(const NiAVObject& target, const NiNode *controlledNode) const
 {
     throw std::logic_error("bhkSerializable::getShape called from base class");
 }
@@ -1700,14 +1700,10 @@ NiBtOgre::bhkRigidBody::bhkRigidBody(uint32_t index, NiStream *stream, const NiM
 
 // NOTE: ownership of the btCollisionShape and any subshapes are passed to the caller
 //       remember to delete them!
-btCollisionShape *NiBtOgre::bhkRigidBody::getShape(const NiAVObject& target, bool dynamic) const
+btCollisionShape *NiBtOgre::bhkRigidBody::getShape(const NiAVObject& target, const NiNode *controlledNode) const
 {
     if (mShapeRef == -1) // nothing to build
         return nullptr;
-
-    // FIXME: physics shape incorrect
-    // (COC "OblivionMqKvatchCitadelHall01" or COW "MS13CheydinhalOblivionWorld" 1 -1)
-    // Oblivion\Architecture\Citadel\Interior\CitadelHall\CitadelHallDoor01Anim.NIF (000182E8)
 
     // For any animated shapes, it should be possible to have the btRigidBody to take the world
     // transform from the NiNode from which it is attached.
@@ -1721,9 +1717,9 @@ btCollisionShape *NiBtOgre::bhkRigidBody::getShape(const NiAVObject& target, boo
     // those with scaling.  Someone with a better understanding of the maths will need to
     // examine and re-write some of the code.
     //
-    // One workaround is due to some shapes not being able to take world transform rotations
-    // (e.g. btBvhTriangleMeshShape).  These (static) shapes need all the transforms from the
-    // root NiNode baked into the vertices.
+    // One workaround is required due to some shapes not being able to take world transform
+    // rotations (e.g. btBvhTriangleMeshShape).  These (static) shapes need all the transforms
+    // from the root NiNode baked into the vertices.
     //
     // Note that checking for the mass value does not guarantee that the shape is static.  Some
     // animated shapes have zero mass (e.g. impDunDoor02b).
@@ -1736,11 +1732,22 @@ btCollisionShape *NiBtOgre::bhkRigidBody::getShape(const NiAVObject& target, boo
     //   2. if there is a Skeleton, check if there is a bone at the parent NiNode (they should
     //      have the same name) - if there is no such bone, this shape is static
     //
+    //      Note: the target may be an ancestor of the the rigid body
+    //
     //   3. hope that there are no other strange exeptions to these rules
     //
+
     btTransform transform;
     bhkShape *shape = mModel.getRef<bhkShape>(mShapeRef);
-    std::string targetName = mModel.indexToString(target.getNameIndex());
+    std::string targetName;
+    // FIXME: can this fail?
+    const NiNode *targetNode = dynamic_cast<const NiNode*>(&target);
+
+    bool dynamic = controlledNode != nullptr;
+    if (dynamic)
+        targetName = controlledNode->getName();
+    else
+        targetName = mModel.indexToString(target.getNameIndex());
 
     bool useFullTransform
         =  (
@@ -1760,6 +1767,21 @@ btCollisionShape *NiBtOgre::bhkRigidBody::getShape(const NiAVObject& target, boo
         Ogre::Quaternion rot;
 
         target.getWorldTransform().decomposition(pos, scale, rot);
+        transform = btTransform(btQuaternion(rot.x, rot.y, rot.z, rot.w), btVector3(pos.x, pos.y, pos.z));
+
+        // apply rotation and translation only if the collision object's body is a bhkRigidBodyT type
+        if (mModel.blockType(mSelfRef) == "bhkRigidBodyT")
+            transform = transform * btTransform(mRotation, mTranslation * btScalar(mHavokScale)); // NOTE: havok scale
+    }
+    else if (dynamic)// && (controlledNode != targetNode))
+    {
+        Ogre::Vector3 pos;
+        Ogre::Vector3 scale;
+        Ogre::Quaternion rot;
+        Ogre::Matrix4 rootTrans = Ogre::Matrix4::IDENTITY;
+
+        targetNode->getTransform(controlledNode->selfRef(), rootTrans, false);
+        rootTrans.decomposition(pos, scale, rot);
         transform = btTransform(btQuaternion(rot.x, rot.y, rot.z, rot.w), btVector3(pos.x, pos.y, pos.z));
 
         // apply rotation and translation only if the collision object's body is a bhkRigidBodyT type
@@ -1811,7 +1833,8 @@ btCollisionShape *NiBtOgre::bhkRigidBody::getShape(const NiAVObject& target, boo
         if (!(dynamic && useFullTransform))
             btShape->setUserIndex(useFullTransform ? 4 : 0);
         //else
-            //std::cout << "dynamic and fullTransform " << mModel.getName() << " " << targetName << std::endl;
+            // btBvhTriangleMeshShape sewerTunnelDoor01 sewerTunnelDoor01 NonAccum (block 13)
+            // FIXME: mabye set to static since full transform was applied?
 
         return btShape; // nothing futher to do
     }
@@ -1954,7 +1977,7 @@ NiBtOgre::bhkSimpleShapePhantom::bhkSimpleShapePhantom(uint32_t index, NiStream 
 
 // Called from bhkSPCollisionObject
 // e.g. dungeons/misc/triggers/trigzone02.nif (coc "vilverin")
-btCollisionShape *NiBtOgre::bhkSimpleShapePhantom::getShape(const NiAVObject& target, bool dynamic) const
+btCollisionShape *NiBtOgre::bhkSimpleShapePhantom::getShape(const NiAVObject& target, const NiNode *controlledNode) const
 {
     std::cout << "phantom: " << mModel.getName() << std::endl;
     return 0;

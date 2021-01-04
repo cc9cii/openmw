@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2019, 2020 cc9cii
+  Copyright (C) 2019-2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -69,19 +69,9 @@ NiBtOgre::BtRigidBodyCI::~BtRigidBodyCI()
 // only called if this resource is not being loaded from a ManualResourceLoader
 void NiBtOgre::BtRigidBodyCI::loadImpl()
 {
-//  // mName looks like meshes\\architecture\\imperialcity\\icwalltower01.nif%ICWallTower01
-//  std::string modelName = getName();
-//  size_t modelNameSize = modelName.find_first_of('%');
+    std::string modelName = Ogre::Resource::getName(); // remove scale from the name (see -7 below)
 
-//  if (modelNameSize == std::string::npos)
-//      throw std::runtime_error(modelName + " is of unexpected format");
-
-//  NiModelPtr nimodel
-//      = NiBtOgre::NiModelManager::getSingleton().getByName(modelName.substr(0, modelNameSize), getGroup());
-
-    std::string modelName = getName(); // remove scale from the name (see -7 below)
-
-    //if (modelName.find("idgate") != std::string::npos)
+    //if (modelName.find("robeuc") != std::string::npos)
         //std::cout << modelName << std::endl;
 
     NiModelPtr nimodel
@@ -91,6 +81,27 @@ void NiBtOgre::BtRigidBodyCI::loadImpl()
         throw std::runtime_error("BtRigidBodyCI: NiModel not loaded");
 
     const std::vector<NiNodeRef>&  ctlrTargets = nimodel->buildData().getControllerTargets();
+
+
+    // bhkRigidBodyMap is populated by bhkNiCollisionObject ctor
+    // In most cases the target is an NiNode which is also the target of a controller.
+    // However, sometimes the target node may be a descendant of an animation controller
+    // target.  In such cases we need to build the collision shape using the transform from the
+    // root node of the animation (i.e. one with a controller).
+    //
+    // e.g. BenirusDoor01.NIF (COC AnvilBenirusManorBasement)
+    //
+    // block 241 is a rigid body that is associated with NiNode block 238 (chunk02),
+    // but the root of the animation is NiNode block 225 (gearA) which is controlled by an
+    // NiTransformInterpolator in block 35
+    //
+    // It may be possible to find the animation root node in the ctor of bhkNiCollisoinObject,
+    // but that will require making an assumption that all the required blocks have been
+    // loaded.  It will be safer to do that after the model has been built.
+    //
+    // For rendering NiNode::isDynamicMesh() is used for finding the root animation node.  It
+    // should be possile to use the same here.  Similarly, NiNode::getTransform() can be used
+    // to get the required transforms.
 
     //           target NiAVObject ref               bhkSerializable ref (e.g. bhkRigidBody)
     //                   |                                    |
@@ -108,20 +119,49 @@ void NiBtOgre::BtRigidBodyCI::loadImpl()
         std::int32_t targetRef = iter->first;
         NiAVObject *target = nimodel->getRef<NiAVObject>(targetRef);
 
-        bool dynamic = std::find(ctlrTargets.begin(), ctlrTargets.end(), targetRef) != ctlrTargets.end();
+        //if (nimodel->indexToString(target->getNameIndex()) == "sewerChannelGate01b")
+        //if (nimodel->indexToString(target->getNameIndex()) == "Chunk01")
+            //std::cout << nimodel->getName() << std::endl;
 
-        mTargetNames[targetRef] = nimodel->indexToString(target->getNameIndex());
+        // FIXME: move the functions to NiAVObject
+        // FIXME: should confirm that targetRef is indeed NiNode
+        NiNode *targetNode = nimodel->getRef<NiNode>(targetRef);
+        NiNodeRef controlledNodeRef = 0;
+        bool dynamic = targetNode->isDynamicMesh(&controlledNodeRef);
+
+        // the mTargetNames map value is the bone name - this allows different targetRef key to
+        // be used for the same anim bone
+        NiNode *controlledNode = nullptr;
+        if (dynamic)
+        {
+            controlledNode = nimodel->getRef<NiNode>(controlledNodeRef);
+            mTargetNames[targetRef] = controlledNode->getName();
+        }
+        else
+            mTargetNames[targetRef] = nimodel->indexToString(target->getNameIndex());
 
         // expectation is that each target has only one bhkRigidBody
         if (mBtCollisionShapeMap.find(targetRef) != mBtCollisionShapeMap.end())
-            throw std::logic_error("target name collision "+nimodel->indexToString(targetRef));
-
-        // FIXME: add a method in NiModel to get a list of NiMultiTargetTransformController
-        // target refs and if it matches then build a shape as non-static
+            throw std::logic_error("rigidbody target collision "+nimodel->indexToString(targetRef));
 
         // get the bullet shape with the target as a parameter
         // TODO: cloning pre-pade shape (e.g. bhkRigidBody via unique_ptr) may be faster?
-        mBtCollisionShapeMap[targetRef] = std::make_pair(target->getWorldTransform(), bhk->getShape(*target, dynamic));
+        // FIXME: there is an unused map of the same name in NiModel (confusing, should delete)
+        if (dynamic)
+        {
+            mBtCollisionShapeMap[targetRef]
+                = std::make_pair(controlledNode->getWorldTransform(), bhk->getShape(*target, controlledNode));
+            //                                    ^
+            //                                    |
+            //                 this should be the world transform of the
+            //                 animation root node since it is used by
+            //                 PhysicEngine::createAndAdjustRigidBody()
+        }
+        else
+        {
+            mBtCollisionShapeMap[targetRef]
+                = std::make_pair(targetNode->getWorldTransform(), bhk->getShape(*target, nullptr));
+        }
     }
 }
 

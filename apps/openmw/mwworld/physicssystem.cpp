@@ -699,7 +699,7 @@ namespace MWWorld
                 //body->setMassProps(0.0, btVector3(0.f, 0.f, 0.f)); // this does not work
                 static_cast<BtOgre::RigidBodyState*>(body->getMotionState())->mEnabled = false;
 
-                std::map<std::string, OEngine::Physic::RigidBody*>::iterator it;
+                std::multimap<std::string, OEngine::Physic::RigidBody*>::iterator it;
                 for (it = body->mChildren.begin(); it != body->mChildren.end(); ++it)
                 {
                     //it->second->setLinearFactor(btVector3(0, 0, 0));
@@ -752,7 +752,7 @@ namespace MWWorld
                 Ogre::Vector3 pos = body->mLocalTransform * position;
                 body->getWorldTransform().setOrigin(btVector3(pos.x,pos.y,pos.z));
 
-                std::map<std::string, OEngine::Physic::RigidBody*>::iterator it;
+                std::multimap<std::string, OEngine::Physic::RigidBody*>::iterator it;
                 for (it = body->mChildren.begin(); it != body->mChildren.end(); ++it)
                 {
                     pos = it->second->mLocalTransform * position;
@@ -775,7 +775,7 @@ namespace MWWorld
                 Ogre::Vector3 pos = body->mLocalTransform * position;
                 body->getWorldTransform().setOrigin(btVector3(pos.x,pos.y,pos.z));
 
-                std::map<std::string, OEngine::Physic::RigidBody*>::iterator it;
+                std::multimap<std::string, OEngine::Physic::RigidBody*>::iterator it;
                 for (it = body->mChildren.begin(); it != body->mChildren.end(); ++it)
                 {
                     pos = it->second->mLocalTransform * position;
@@ -825,7 +825,7 @@ namespace MWWorld
                 }
                 // FIXME: scale?
 
-                std::map<std::string, OEngine::Physic::RigidBody*>::iterator it;
+                std::multimap<std::string, OEngine::Physic::RigidBody*>::iterator it;
                 for (it = body->mChildren.begin(); it != body->mChildren.end(); ++it)
                 {
                     if (body->getCollisionShape()->getUserIndex() != 4)
@@ -862,7 +862,7 @@ namespace MWWorld
                     body->getWorldTransform().setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
                 // FIXME: scale?
 
-                std::map<std::string, OEngine::Physic::RigidBody*>::iterator it;
+                std::multimap<std::string, OEngine::Physic::RigidBody*>::iterator it;
                 for (it = body->mChildren.begin(); it != body->mChildren.end(); ++it)
                 {
                     rot = it->second->mLocalTransform.extractQuaternion();
@@ -910,19 +910,23 @@ namespace MWWorld
                 mEngine->mDynamicsWorld->updateSingleAabb(body);
             }
 
-            // move children
-            std::map<std::string, OEngine::Physic::RigidBody*>::const_iterator iter = body->mChildren.find(boneName);
-            if (iter != body->mChildren.end())
+            // move children; there may be more than one rigidbody moved by the same bone
+            std::multimap<std::string, OEngine::Physic::RigidBody*>::const_iterator iter
+                = body->mChildren.begin();
+            for (; iter != body->mChildren.end(); ++iter)
             {
-                btQuaternion qb = iter->second->mBindingOrientation;
-                Ogre::Quaternion q(qb.w(), qb.x(), qb.y(), qb.z());
-                q = q * rotation;
-                Ogre::Vector3 pos = q * position;
+                if (iter->first == boneName)
+                {
+                    btQuaternion qb = iter->second->mBindingOrientation;
+                    Ogre::Quaternion q(qb.w(), qb.x(), qb.y(), qb.z());
+                    q = q * rotation;
+                    Ogre::Vector3 pos = q * position;
 
-                iter->second->getWorldTransform().setOrigin(
-                    btVector3(pos.x, pos.y, pos.z) + iter->second->mBindingPosition);
+                    iter->second->getWorldTransform().setOrigin(
+                        btVector3(pos.x, pos.y, pos.z) + iter->second->mBindingPosition);
 
-                mEngine->mDynamicsWorld->updateSingleAabb(iter->second);
+                    mEngine->mDynamicsWorld->updateSingleAabb(iter->second);
+                }
             }
         }
 
@@ -946,21 +950,25 @@ namespace MWWorld
                 mEngine->mDynamicsWorld->updateSingleAabb(body);
             }
 
-            // move children
-            std::map<std::string, OEngine::Physic::RigidBody*>::const_iterator iter
-                = body->mChildren.find(boneName);
+            // move children; there may be more than one rigidbody moved by the same bone
+            std::multimap<std::string, OEngine::Physic::RigidBody*>::const_iterator iter
+                = body->mChildren.begin();
 
             if (iter != body->mChildren.end())
+            for (; iter != body->mChildren.end(); ++iter)
             {
-                btQuaternion qb = iter->second->mBindingOrientation;
-                Ogre::Quaternion q(qb.w(), qb.x(), qb.y(), qb.z());
-                q = q * rotation;
-                Ogre::Vector3 pos = q * position;
+                if (iter->first == boneName)
+                {
+                    btQuaternion qb = iter->second->mBindingOrientation;
+                    Ogre::Quaternion q(qb.w(), qb.x(), qb.y(), qb.z());
+                    q = q * rotation;
+                    Ogre::Vector3 pos = q * position;
 
-                iter->second->getWorldTransform().setOrigin(
-                    btVector3(pos.x, pos.y, pos.z) + iter->second->mBindingPosition);
+                    iter->second->getWorldTransform().setOrigin(
+                        btVector3(pos.x, pos.y, pos.z) + iter->second->mBindingPosition);
 
-                mEngine->mDynamicsWorld->updateSingleAabb(iter->second);
+                    mEngine->mDynamicsWorld->updateSingleAabb(iter->second);
+                }
             }
         }
     }
@@ -974,9 +982,12 @@ namespace MWWorld
         // dungeons\sewers\sewertunneldoor01.nif has static parent but its child "Gate" is not
         if (OEngine::Physic::RigidBody* body = mEngine->getRigidBody(handle))
         {
+            // ignore static
+            if (body->getCollisionShape()->getUserIndex() == 4)
+                return;
+
             // rotate parent
-            if (body->mTargetName == boneName
-                    && body->getCollisionShape()->getUserIndex() != 4) // ignore static shapes
+            if (body->mTargetName == boneName)
             {
                 body-> getWorldTransform().setRotation(
                     body->mBindingOrientation
@@ -987,28 +998,42 @@ namespace MWWorld
                 mEngine->mDynamicsWorld->updateSingleAabb(body);
             }
 
-            // rotate children
-            std::map<std::string, OEngine::Physic::RigidBody*>::const_iterator iter
-                = body->mChildren.find(boneName);
+            // rotate children; there may be more than one rigidbody rotated by the same bone
+            std::multimap<std::string, OEngine::Physic::RigidBody*>::const_iterator iter
+                = body->mChildren.begin();
 
-            if (iter != body->mChildren.end()
-                    && iter->second->getCollisionShape()->getUserIndex() != 4) // ignore static shapes
+            for (; iter != body->mChildren.end(); ++iter)
             {
-                iter->second->getWorldTransform().setRotation(
-                    iter->second->mBindingOrientation
-                    *
-                    btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w)
-                    );
+                if (iter->first == boneName)
+                {
+                    // FIXME: BenirusDoor01.NIF has 3 collision shapes that won't rotate
+                    //        properly.  Don't know how to fix it, so just work around for now.
+                    if (boneName == "gear 12" || boneName == "gear 13" || boneName == "gear 16")
+                    {
+                        iter->second->getWorldTransform().setRotation(
+                            btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w)
+                            *
+                            iter->second->mBindingOrientation
+                            );
+                    }
+                    else
+                    {
+                        iter->second->getWorldTransform().setRotation(
+                            iter->second->mBindingOrientation
+                            *
+                            btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w)
+                            );
+                    }
 
-                mEngine->mDynamicsWorld->updateSingleAabb(iter->second);
+                    mEngine->mDynamicsWorld->updateSingleAabb(iter->second);
+                }
             }
         }
 
         if (OEngine::Physic::RigidBody* body = mEngine->getRigidBody(handle, true/*raycasting*/))
         {
             // rotate parent
-            if (body->mTargetName == boneName
-                    && body->getCollisionShape()->getUserIndex() != 4) // ignore static shapes
+            if (body->mTargetName == boneName)
             {
                 body-> getWorldTransform().setRotation(
                     body->mBindingOrientation
@@ -1019,20 +1044,35 @@ namespace MWWorld
                 mEngine->mDynamicsWorld->updateSingleAabb(body);
             }
 
-            // rotate children
-            std::map<std::string, OEngine::Physic::RigidBody*>::const_iterator iter
-                = body->mChildren.find(boneName);
+            // rotate children; there may be more than one rigidbody rotated by the same bone
+            std::multimap<std::string, OEngine::Physic::RigidBody*>::const_iterator iter
+                = body->mChildren.begin();
 
-            if (iter != body->mChildren.end()
-                    && iter->second->getCollisionShape()->getUserIndex() != 4) // ignore static shapes
+            for (; iter != body->mChildren.end(); ++iter)
             {
-                iter->second->getWorldTransform().setRotation(
-                    iter->second->mBindingOrientation
-                    *
-                    btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w)
-                    );
+                if (iter->first == boneName)
+                {
+                    // FIXME: BenirusDoor01.NIF has 3 collision shapes that won't rotate
+                    //        properly.  Don't know how to fix it, so just work around for now.
+                    if (boneName == "gear 12" || boneName == "gear 13" || boneName == "gear16")
+                    {
+                        iter->second->getWorldTransform().setRotation(
+                            btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w)
+                            *
+                            iter->second->mBindingOrientation
+                            );
+                    }
+                    else
+                    {
+                        iter->second->getWorldTransform().setRotation(
+                            iter->second->mBindingOrientation
+                            *
+                            btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w)
+                            );
+                    }
 
-                mEngine->mDynamicsWorld->updateSingleAabb(iter->second);
+                    mEngine->mDynamicsWorld->updateSingleAabb(iter->second);
+                }
             }
         }
     }

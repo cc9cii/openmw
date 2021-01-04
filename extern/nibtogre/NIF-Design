@@ -6421,6 +6421,29 @@ Now that activator animations are working, time to try using the same for door a
   * Physics shapes for activators not updated
   * Physics shapes for animRoot not done
 
+## Testing doors
+
+First disable lock level check in `ForeignDoor::activate()`.  Also force activation in `World::activate()` in order to test `BenirusDoor01`.
+
+  * COC "OblivionMQKvatchCitadelHall01" or COW "MS13CheydinhalOblivionWorld" 1 -1
+    - Oblivion\Architecture\Citadel\Interior\CitadelHall\CitadelHallDoor01Anim.NIF (000182E8)
+  * COC "KvatchChapelHall" - Architecture\Cathedral\Crypt\CathedralCryptDoor01.NIF
+  * COC "Vilverin" - Dungeons\AyleidRuins\Interior\ARNHallGateDoor01.NIF
+  * COC "ImperialDungeon03" - Dungeons\Chargen\IDGate01.NIF, Dungeons\Chargen\IDPortcullis01.NIF
+  * COC "ICMarketDistrictRindirsStaffs" - Clutter\UpperClass\UpperClassDisplayCasePurple01.NIF
+  * COW "AnvilWorld" -46 -7 (then go to Benirus Manor) - Architecture\StoneWall\StoneWallGateDoor01.NIF
+  * COC "AnvilBenirusManorBasement" - Architecture\Anvil\BenirusDoor01.NIF
+
+Some activators:
+
+  * COC "Dark04Sewers02"
+  * COC "ImperialSewerSystemMarketDistrict" (or enter via ICMarketDistrictTheBestDefenseBasement)
+
+    // FIXME: physics shape incorrect
+    // (COC "OblivionMqKvatchCitadelHall01" or COW "MS13CheydinhalOblivionWorld" 1 -1)
+    // Oblivion\Architecture\Citadel\Interior\CitadelHall\CitadelHallDoor01Anim.NIF (000182E8)
+
+
 
 
 [//]: # (/* spell spelllang=en_au syntax=cpp */)

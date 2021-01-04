@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015-2020 cc9cii
+  Copyright (C) 2015-2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -101,7 +101,7 @@ namespace NiBtOgre
     {
         bhkSerializable(uint32_t index, NiStream *stream, const NiModel& model, BuildData& data);
 
-        virtual btCollisionShape *getShape(const NiAVObject& target, bool dynamic = false) const;
+        virtual btCollisionShape *getShape(const NiAVObject& target, const NiNode *controlledNode = nullptr) const;
     };
 //#endif
 
@@ -720,7 +720,7 @@ namespace NiBtOgre
 
         bhkRigidBody(uint32_t index, NiStream *stream, const NiModel& model, BuildData& data);
 
-        btCollisionShape *getShape(const NiAVObject& target, bool dynamic = false) const;
+        btCollisionShape *getShape(const NiAVObject& target, const NiNode *controlledNode = nullptr) const;
     };
 
     // NOTE: the rigidbody type can be differentiated by calling NiBtOgre::NiModel::blockType
@@ -737,7 +737,7 @@ namespace NiBtOgre
 
         bhkSimpleShapePhantom(uint32_t index, NiStream *stream, const NiModel& model, BuildData& data);
 
-        btCollisionShape *getShape(const NiAVObject& target, bool dynamic = false) const;
+        btCollisionShape *getShape(const NiAVObject& target, const NiNode *controlledNode = nullptr) const;
     };
 }
 
