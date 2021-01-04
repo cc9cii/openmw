@@ -652,6 +652,7 @@ namespace Tes4Compiler
         const int opcodePlaySound                           = 0x20005f3;
         const int opcodePlaySoundExplicit                   = 0x20005f4; // unexpected
         const int opcodePlaySound3D                         = 0x20005f5;
+        const int opcodePlaySound3DExplicit                 = 0x2000612; // unexpected (SEXidPuzButton3)
         const int opcodePurgeCellBuffers                    = 0x20005f6;
         const int opcodeReset3DState                        = 0x20005f7;
         const int opcodeResetFallDamageTimer                = 0x20005f8;
@@ -683,7 +684,7 @@ namespace Tes4Compiler
         const int opcodeGetCurrentTime                      = 0x200060e;
         const int opcodeGetDayOfWeek                        = 0x200060f;
         const int opcodeGetSecondsPassed                    = 0x2000610;
-        // last used value is 0x2000611
+        // last used value is 0x2000612
     }
 }
 

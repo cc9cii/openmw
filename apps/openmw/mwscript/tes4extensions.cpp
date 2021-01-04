@@ -502,6 +502,34 @@ namespace MWScript
                 }
         };
 
+        template<class R>
+        class OpDisableLinkedPathPoints : public Interpreter::Opcode0
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime)
+                {
+
+                    MWWorld::Ptr ptr = R()(runtime);
+
+                    std::cout << "DisableLinkedPathPoints: " << std::endl; // FIXME: temp testing
+                }
+        };
+
+        template<class R>
+        class OpEnableLinkedPathPoints : public Interpreter::Opcode0
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime)
+                {
+
+                    MWWorld::Ptr ptr = R()(runtime);
+
+                    std::cout << "EnableLinkedPathPoints: " << std::endl; // FIXME: temp testing
+                }
+        };
+
         void installOpcodes (Interpreter::Interpreter& interpreter)
         {
             // Actor
@@ -558,6 +586,14 @@ namespace MWScript
                 (Tes4Compiler::Tes4Quest::opcodeSetStage, new OpSetStage<ImplicitRef>);
 
             // Misc
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Misc::opcodeDisableLinkedPathPoints, new OpDisableLinkedPathPoints<ImplicitRef>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Misc::opcodeDisableLinkedPathPointsExplicit, new OpDisableLinkedPathPoints<ExplicitTes4Ref>);
+
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Misc::opcodeEnableLinkedPathPoints, new OpEnableLinkedPathPoints<ImplicitRef>);
+
             interpreter.installSegment5
                 (Tes4Compiler::Tes4Misc::opcodeSetDestroyed, new OpSetDestroyed<ImplicitRef>);
             interpreter.installSegment5
