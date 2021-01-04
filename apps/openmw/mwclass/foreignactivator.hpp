@@ -48,15 +48,11 @@ namespace MWClass
             /// This does not actually cause the door to move. Use World::activateDoor instead.
             virtual void setDoorState (const MWWorld::Ptr &ptr, int state) const;
 
-            virtual void readAdditionalState (const MWWorld::Ptr& ptr, const ESM::ObjectState& state)
-                const;
-            ///< Read additional state from \a state into \a ptr.
-
-            virtual void writeAdditionalState (const MWWorld::Ptr& ptr, ESM::ObjectState& state)
-                const;
-            ///< Write additional state from \a ptr into \a state.
-
             virtual void playgroup(const MWWorld::Ptr& ptr, const std::string& animation, int flag = 0);
+            ///< flag values:
+            ///  0 = wait till current animation completes before starting
+            ///  1 = immediate start
+            ///  2 = immediate start at the loop cycle
     };
 }
 

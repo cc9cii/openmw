@@ -125,6 +125,24 @@ namespace MWClass
     // FIXME: only some actions supported for now
     boost::shared_ptr<MWWorld::Action> ForeignActivator::activate(const MWWorld::Ptr &ptr, const MWWorld::Ptr &actor) const
     {
+        // OpActivate block or World::activate() may call InterpreterContext::executeActivation()
+        // directly which will result this method being called.  However, without any rendering
+        // animation, there is no point creating ActionDoor (note that rendering animation is
+        // called from the script i.e. playgroup forward 1)
+        //return boost::shared_ptr<MWWorld::Action>(new MWWorld::ActionDoor(ptr));
+
+// FIXME: temp code to demonstrate the activation of MS02LorgrenSkeletonRef
+#if 0
+        MWRender::Animation* anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
+        anim->play("forward", 0, 1, true, 1.0f, "start", "end", 0.0f, 0);
+#endif
+        // FIXME: there are activators that do not have attached scripts - they are probably
+        //        meant to do nothing?  e.g. TorchTall01NOSCRIPT
+        // FIXME: activate without a flag in a script will also result in this method being
+        //        called but we do nothing here?
+        MWWorld::LiveCellRef<ESM4::Activator> *ref = ptr.get<ESM4::Activator>();
+        std::cout << "WARNING: Activator " << ref->mBase->mEditorId << " - no action was taken" << std::endl;
+
         return boost::shared_ptr<MWWorld::Action>(new MWWorld::NullAction);
     }
 
@@ -167,24 +185,6 @@ namespace MWClass
         customData.mDoorState = state;
     }
 
-    void ForeignActivator::readAdditionalState (const MWWorld::Ptr& ptr, const ESM::ObjectState& state) const
-    {
-        ensureCustomData(ptr);
-        DoorCustomData& customData = dynamic_cast<DoorCustomData&>(*ptr.getRefData().getCustomData());
-
-        const ESM::DoorState& state2 = dynamic_cast<const ESM::DoorState&>(state);
-        customData.mDoorState = state2.mDoorState;
-    }
-
-    void ForeignActivator::writeAdditionalState (const MWWorld::Ptr& ptr, ESM::ObjectState& state) const
-    {
-        ensureCustomData(ptr);
-        const DoorCustomData& customData = dynamic_cast<const DoorCustomData&>(*ptr.getRefData().getCustomData());
-
-        ESM::DoorState& state2 = dynamic_cast<ESM::DoorState&>(state);
-        state2.mDoorState = customData.mDoorState;
-    }
-
     void ForeignActivator::playgroup(const MWWorld::Ptr& ptr, const std::string& animation, int flag)
     {
         MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
@@ -197,6 +197,11 @@ namespace MWClass
             //        1 = immediate start
             //        2 = immediate start at the loop cycle
             anim->play(animation, 0, 1, true, 1.0f, "start", "end", 0.0f, 0);
+
+            // NOTE: using ActivateDoor in order to register with World::mDoorStates which will then
+            // be used for moving collision shapes
+            // FIXME: maybe create a separate method?
+            MWBase::Environment::get().getWorld()->activateDoor(ptr);
         }
     }
 

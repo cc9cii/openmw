@@ -1651,7 +1651,8 @@ namespace MWWorld
         std::map<MWWorld::Ptr, int>::iterator it = mDoorStates.begin();
         while (it != mDoorStates.end())
         {
-            bool isForeignDoor = it->first.getBase()->mClass->getTypeName() == typeid (ESM4::Door).name();
+            bool isForeignDoor = it->first.getBase()->mClass->getTypeName() == typeid (ESM4::Door).name() ||
+                                 it->first.getBase()->mClass->getTypeName() == typeid (ESM4::Activator).name();
             MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(it->first);
 
             if (!mWorldScene->isCellActive(*it->first.getCell()) || !it->first.getRefData().getBaseNode())
@@ -1661,8 +1662,8 @@ namespace MWWorld
                 // Once we load the door's cell again (or re-enable the door), Door::insertObject will reinsert to mDoorStates.
                 mDoorStates.erase(it++);
             }
-            else if (isForeignDoor && anim->hasAnimation("open") && it->second == 1)            {
-                bool finished = !anim->isPlaying("open");
+            else if (isForeignDoor && (anim->hasAnimation("open") || anim->hasAnimation("forward"))&& it->second == 1)            {
+                bool finished = !anim->isPlaying("open") && !anim->isPlaying("forward");
                 // it->first is Ptr (i.e. the door)
                 //it->first.getClass().setDoorState(it->first, 0);
 
@@ -1712,9 +1713,9 @@ namespace MWWorld
                 else
                     it++;
             }
-            else if (isForeignDoor && anim->hasAnimation("close") && it->second == 2)
+            else if (isForeignDoor && (anim->hasAnimation("close") || anim->hasAnimation("backward")) && it->second == 2)
             {
-                bool finished = !anim->isPlaying("close");
+                bool finished = !anim->isPlaying("close") && !anim->isPlaying("backward");
                 // it->first is Ptr (i.e. the door)
                 //it->first.getClass().setDoorState(it->first, 2);
 
@@ -1758,9 +1759,9 @@ namespace MWWorld
                 else
                     it++;
             }
-            else if (isForeignDoor && anim->hasAnimation("open") && it->second == 0)
+            else if (isForeignDoor && it->second == 0)
             {
-                mDoorStates.erase(it++); // FIXME: hack to reset the doors (still not quite right, anyway)
+                mDoorStates.erase(it++);
             }
             else if (isForeignDoor)
             {
@@ -2515,15 +2516,19 @@ namespace MWWorld
         mRendering->screenshot(image, w, h);
     }
 
+    // called from ActionDoor
     void World::activateDoor(const MWWorld::Ptr& door)
     {
         int state = door.getClass().getDoorState(door);
 
-        bool isForeignDoor = door.getBase()->mClass->getTypeName() == typeid (ESM4::Door).name();
+        bool isForeignDoor = door.getBase()->mClass->getTypeName() == typeid (ESM4::Door).name() ||
+            door.getBase()->mClass->getTypeName() == typeid (ESM4::Activator).name();
         if (isForeignDoor)
         {
+            // FIXME: hard coded animation names
             MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(door);
-            if (anim->hasAnimation("open") || anim->hasAnimation("close"))
+            if (anim->hasAnimation("open") || anim->hasAnimation("close") ||
+                anim->hasAnimation("forward") || anim->hasAnimation("backward"))
             {
                 // can get lenth and time positon of the AnimationState for the Skeleton
                 // can get NodeAnimationTrack->getAssociatedNode
@@ -2534,6 +2539,7 @@ namespace MWWorld
                     if (1)//anim->getAnimatedDoorState() == 0) // FIXME: temp commented out
                     {
                         state = 1; // if closed, then open
+                        if (door.getBase()->mClass->getTypeName() == typeid (ESM4::Door).name())
                         anim->activateAnimatedDoor("open", true); // true = enable
                     }
                     else
@@ -2545,14 +2551,20 @@ namespace MWWorld
                     break;
                 case 2:
                     state = 1; // if closing, then open
-                    anim->activateAnimatedDoor("close", false);
-                    anim->activateAnimatedDoor("open", true);
+                    if (door.getBase()->mClass->getTypeName() == typeid (ESM4::Door).name())
+                    {
+                        anim->activateAnimatedDoor("close", false);
+                        anim->activateAnimatedDoor("open", true);
+                    }
                     break;
                 case 1:
                 default:
                     state = 2; // if opening, then close
-                    anim->activateAnimatedDoor("open", false);
-                    anim->activateAnimatedDoor("close", true);
+                    if (door.getBase()->mClass->getTypeName() == typeid (ESM4::Door).name())
+                    {
+                        anim->activateAnimatedDoor("open", false);
+                        anim->activateAnimatedDoor("close", true);
+                    }
                     break;
                 }
                 door.getClass().setDoorState(door, state);
@@ -3875,7 +3887,15 @@ namespace MWWorld
             }
 
             // sometimes a script is enabled for an object but does not have "OnActivate" block
-            if (!interpreterContext.hasActivationBeenHandled())
+
+            if (!interpreterContext.hasActivationBeenHandled()
+// FIXME: temp code to demonstrate the activation of various doors and activators
+#if 1
+                || object.getCellRef().getBaseObj() == 0x0001D375 // BenirusDoor01.NIF
+                || object.getCellRef().getFormId() == 0x0001760F // CGAmbushCBackGate
+                || object.getCellRef().getFormId() == 0x0003F1B5 // IDGateFinalRoom
+#endif
+                                                                 )
                 interpreterContext.executeActivation(object, actor);
         }
         else
