@@ -101,135 +101,21 @@ void RigidBodyState::setWorldTransform(const btTransform &centerOfMassWorldTrans
     if (mSceneNode == nullptr)
         return; // silently return before we set a node
 
-    btTransform old = mTransform;
-    mTransform = centerOfMassWorldTrans * mCenterOfMassOffset;
-    // mTransform at this point should be the new world transform for the physics shape
-    // However the visible mesh's node needs to be transformed, so we take away the position of
-    // the mesh relative to the node
+    mGraphicsWorldTrans = centerOfMassWorldTrans * mCenterOfMassOffset;
 
-#if 0
-
-
-    btQuaternion iq = in.getRotation();
-    btVector3 iv = in.getOrigin();
-
-    btQuaternion q = mCenterOfMassOffset.inverse().getRotation();
-    btVector3 v = mCenterOfMassOffset.inverse().getOrigin();
-
-    // first, take away parent node's position
-    Ogre::SceneNode *parent = mSceneNode->getParentSceneNode();
-    Ogre::Vector3 pv = parent->getPosition();
-    Ogre::Quaternion pq = parent->getOrientation();
-    Ogre::Vector3 ps = parent->getScale();
-
-    Ogre::Vector3 pos = Ogre::Vector3(iv.x(), iv.y(), iv.z()) - pv;
-    // at this point, pos is as if moved based on parent node's orientation and scale
-    // pos = pq * (ps * val)
-    // now, how to find val?
-
-
-
-
-
-    Ogre::Quaternion dq = Ogre::Quaternion(iq.w(), iq.x(), iq.y(), iq.z()) * Ogre::Quaternion(q.w(), q.x(), q.y(), q.z());
-    //const Ogre::Vector3& parentScale = mSceneNode->_getDerivedScale();
-
-    Ogre::Vector3 dv = Ogre::Quaternion(iq.w(), iq.x(), iq.y(), iq.z()) * (/*scale **/Ogre::Vector3(v.x(), v.y(), v.z()));
-    dv += Ogre::Vector3(iv.x(), iv.y(), iv.z());
-
-
-
-
-
-
-    mSceneNode->setOrientation(dq);
-    mSceneNode->setPosition(dv);
-
-#endif
-//    btTransform transform = mTransform *mCenterOfMassOffset;
-#if 1
-    //btTransform transform = in * mCenterOfMassOffset;
-    btTransform transform = mCenterOfMassOffset.inverse() * centerOfMassWorldTrans;
-    //btTransform transform = centerOfMassWorldTrans * mCenterOfMassOffset;
-    //btTransform transform = centerOfMassWorldTrans;// * mCenterOfMassOffset;
-
-    // find the parent SceneNode's transform
-    Ogre::SceneNode *parent = mSceneNode->getParentSceneNode();
-
-    Ogre::Vector3 pv = parent->getPosition();
-    Ogre::Quaternion pq = parent->getOrientation();
-    Ogre::Vector3 ps = parent->getScale();
-
-    Ogre::Matrix4 parentTransform;
-    parentTransform.makeTransform(pv, /*ps*/Ogre::Vector3(1.f), pq);
-
-    btQuaternion iq = transform.getRotation();
-    btVector3 iv = transform.getOrigin();
+    btQuaternion iq = mGraphicsWorldTrans.getRotation();
+    btVector3 iv = mGraphicsWorldTrans.getOrigin();
     Ogre::Matrix4 inputTransform;
-    inputTransform.makeTransform(Ogre::Vector3(iv.x(), iv.y(), iv.z()), /*ps*/ Ogre::Vector3(1.f),
+    inputTransform.makeTransform(Ogre::Vector3(iv.x(), iv.y(), iv.z()),
+                                 Ogre::Vector3(1.f),
                                  Ogre::Quaternion(iq.w(), iq.x(), iq.y(), iq.z()));
 
     // take away parent's transform from the input
-    inputTransform = parentTransform.inverse() * inputTransform;
-#else
-    btTransform transform = centerOfMassWorldTrans * mCenterOfMassOffset;
-    //btTransform transform = mTransform;//centerOfMassWorldTrans;
+    inputTransform = mParentTrans.inverse() * inputTransform;
 
-    btQuaternion iq = transform.getRotation();
-    btVector3 iv = transform.getOrigin();
-
-    Ogre::Matrix4 inputTransform;
-    inputTransform.makeTransform(Ogre::Vector3(iv.x(), iv.y(), iv.z()), /*ps*/ Ogre::Vector3(1.f),
-                                 Ogre::Quaternion(iq.w(), iq.x(), iq.y(), iq.z()));
-    mSceneNode->_setDerivedOrientation(Ogre::Quaternion(iq.w(), iq.x(), iq.y(), iq.z()));
-    mSceneNode->_setDerivedPosition(Ogre::Vector3(iv.x(), iv.y(), iv.z()));
-    return;
-#endif
-#if 0
-    // some debugging
-    btVector3 vold = old.getOrigin();
-    btVector3 vin = in.getOrigin();
-
-    Ogre::Vector3 pos = inputTransform.getTrans();
-    if ((vin.x() - vold.x()) > 3.f || (vin.y() - vold.y()) > 3.f || (vin.z() - vold.z()) > 3.f)
-    {
-        std::cout << "saved " << vold.x() << " " << vold.y() << " " << vold.z() << std::endl;
-        std::cout << "input " << vin.x() << " " << vin.y() << " " << vin.z() << std::endl;
-    }
-
-    Ogre::Vector3 vcurr = mSceneNode->getPosition();
-    if ((pos.x - vcurr.x) > 3.f || (pos.y - vcurr.y) > 3.f || (pos.z - vcurr.z) > 3.f)
-    {
-        std::cout << "current " << vcurr.x << " " << vcurr.y << " " << vcurr.z << std::endl;
-        std::cout << "new pos " << pos.x << " " << pos.y << " " << pos.z << std::endl;
-    }
-#endif
-#if 0
-    //btQuaternion rot = transform.getRotation();
-    //btVector3 pos = transform.getOrigin();
-
-    btVector3 vin = in.getOrigin();
-    btVector3 vold = old.getOrigin();
-    if ((vin.x() - vold.x()) > 5.f || (vin.y() - vold.y()) > 5.f || (vin.z() - vold.z()) > 5.f)
-        std::cout << "wild " << std::endl;
-
-    Ogre::Vector3 vcurr = mSceneNode->getPosition();
-    if ((pos.x() - vcurr.x) > 5.f || (pos.y() - vcurr.y) > 5.f || (pos.z() - vcurr.z) > 5.f)
-        std::cout << "wild 2 " << std::endl;
-
-    mSceneNode->setOrientation(rot.w(), rot.x(), rot.y(), rot.z());
-    mSceneNode->setPosition(pos.x(), pos.y(), pos.z());
-    //Ogre::Vector3 ps = parent->getScale();
-    //mSceneNode->setPosition(pos.x()*ps.x, pos.y()*ps.y, pos.z()*ps.z);
-#endif
     // apply the input to the SceneNode
     mSceneNode->setOrientation(inputTransform.extractQuaternion());
     mSceneNode->setPosition(inputTransform.getTrans());
-
-    //btVector3 v = transform.getOrigin();
-    //btQuaternion q = transform.getRotation();
-    //mSceneNode->_setDerivedOrientation(Ogre::Quaternion(q.w(), q.x(), q.y(), q.z()));
-    //mSceneNode->_setDerivedPosition(Ogre::Vector3(v.x(), v.y(), v.z()));
 }
 
 /*

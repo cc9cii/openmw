@@ -437,7 +437,7 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
     //std::string type = mModel.blockType(data->selfRef()); // FIXME: temp testing
 
     Ogre::Matrix4 transform = Ogre::Matrix4(Ogre::Matrix4::IDENTITY);
-    bool isDynamic = false;
+    bool isStatic = false;
 
     // ICDoor04, UpperChest02 - these have animation flag but are static. Therefore we can't
     // rely on that flag.  We have to confirm with an extra check by calling isDynamicMesh().
@@ -447,24 +447,27 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
     //       e.g. GateDoor03 of ARNHallGateDoor01.NIF (COC "Vilverin")
     if (mModel.buildData().animEnabled())
     {
-        NiNodeRef rootAnimNode = 0;
-        if (mParent->isDynamicMesh(&rootAnimNode))
+        NiNodeRef controlledNodeRef = 0;
+        if (mParent->isDynamicMesh(&controlledNodeRef))
         {
-            isDynamic = true;
-            mParent->getTransform(rootAnimNode, transform); // get transform to rootAnimNode
+            mParent->getTransform(controlledNodeRef, transform); // get transform to controlledNode
             transform = transform * mLocalTransform;
 
-            if (rootAnimNode != mParent->selfRef())
-                mParent->setAnimRoot(rootAnimNode);
+            if (controlledNodeRef != mParent->selfRef())
+                mParent->setAnimRoot(controlledNodeRef);
         }
     }
-    else if (mSkinInstanceRef != -1 || mModel.buildData().havokEnabled())
+    else if (mModel.buildData().havokEnabled())
     {
-        isDynamic = true;
+        transform = mLocalTransform;
+    }
+    else if (mSkinInstanceRef != -1)
+    {
         transform = mParent->getLocalTransform() * mLocalTransform;
     }
     else
     {
+        isStatic = true;
         // static, the entities will be attached to the root node
         transform = mParent->getWorldTransform() * mLocalTransform;
     }
@@ -511,7 +514,7 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
     bool vertShadowBuffer = false;
 
     // TODO: seems to make no difference to vertex anim
-    if (isDynamic || mModel.hasSkeleton())
+    if (!isStatic || mModel.hasSkeleton())
     {
         vertUsage = Ogre::HardwareBuffer::HBU_DYNAMIC_WRITE_ONLY;
         vertShadowBuffer = true;

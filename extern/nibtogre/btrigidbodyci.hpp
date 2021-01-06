@@ -52,13 +52,14 @@ namespace NiBtOgre
         void unloadImpl();
 
     public:
-        // FIXME: shouldn't really be public
+        // FIXME: shouldn't really be public, and we need to combine these into a struct or something
         //
         //      target NiNode ref     NiNode world transform
         //              |                   |
         //              v                   v
         std::map<std::int32_t, std::pair<Ogre::Matrix4, btCollisionShape *> > mBtCollisionShapeMap; // used by RigidBody
         std::map<std::int32_t, std::string> mTargetNames; // for doors and activators
+        std::map<std::int32_t, float> mMass;
 
         BtRigidBodyCI(Ogre::ResourceManager *creator, const Ogre::String& name, Ogre::ResourceHandle handle,
                 const Ogre::String& group, bool isManual, Ogre::ManualResourceLoader* loader);

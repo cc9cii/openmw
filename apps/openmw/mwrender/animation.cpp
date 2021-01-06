@@ -15,6 +15,7 @@
 #include <OgreSceneNode.h>
 #include <OgreTechnique.h>
 #include <OgreMesh.h>
+#include <OgreMeshManager.h>
 
 #include <components/esm/loadligh.hpp>
 #include <components/esm/loadweap.hpp>
@@ -27,6 +28,10 @@
 
 #include <extern/shiny/Main/Factory.hpp>
 #include <extern/esm4/ligh.hpp>
+#include <extern/nibtogre/bhkrefobject.hpp>
+#include <extern/nibtogre/nimeshloader.hpp>
+#include <extern/nibtogre/nimodelmanager.hpp>
+#include <extern/nibtogre/ninode.hpp>
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/soundmanager.hpp"
@@ -1931,52 +1936,153 @@ ObjectAnimation::ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &mod
         //if (model.find("RootHavok") != std::string::npos)
             //std::cout << "stop" << std::endl;
 
+        // FIXME: below needs to be made a function so that it can be called from elsewhere
+
+
+        // FIXME: Furniture\UpperClass\UpperBench01.NIF has havok enabled flag!
+        //        and its collsion shape is not in the right place
+
         // (COC "ImperialDungeon01") Dungeons\Chargen\IDGate01.NIF (0003665B)
-        // BSX flag reports both havok and animation enabled
+        // BSX flag reports both havok and animation enabled but doesn't have any constraints
         if (mObjectRoot->mForeignObj->havokEnabled() // Havok enabled objects
+
                 // this is only a temporary workaround since some will have both animation and
                 // havok (e.g. Clutter\MinotaurHead.NIF in Jensine's "Good as New" Merchandise)
-                && mObjectRoot->mForeignObj->mModel->buildData().hasBhkConstraint())
-                //&&mObjectRoot->mForeignObj->mModel->buildData().mMovingBoneNameMap.empty())
+                //
+                // FIXME: but that means things like steel longsword that doesn't have any
+                //        constraints won't be recognised
+                //&& mObjectRoot->mForeignObj->mModel->buildData().hasBhkConstraint()
+
+                // sewerTunnelDoor01.NIF workaround (collision shape of gate is incorrect)
+                && mObjectRoot->mForeignObj->mModel->getNiMultiTargetTransformController() == nullptr
+
+                // decide if havok should be enabled - check that the flag is off
+                && mPtr.getCellRef().getParentFormId() == 0
+
+                // it might be script controlled - check that there is no script
+                && mPtr.getClass().getScript(mPtr) == "" // formid converted to string
+
+                // even after all that, how do we keep some entities static?  e.g.
+                // CathedralCryptLight02.NIF should have its rectangular base static
+                // the touble is that it is not possible(?) to distinguish that from
+                // hood_gnd.nif
+           )
         {
             // NOTE:
             //
-            // There isn't necessarily one NIF per btRigidBody e.g.  Dungeons\Misc\RootHavok06.NIF
+            // There can be more than one btRigidBody per NIF model e.g.  Dungeons\Misc\RootHavok06.NIF
             // So we need one SceneNode per target node (target bone in this case, since the
             // mesh is skinned).
             //
             // mBhkRigidBodyMap already has the target NiNode refs; each of these should have a
             // child SceneNode as a parent.
-            std::map<int32_t/*NiNodeRef*/, int32_t>::const_iterator it =
-                mObjectRoot->mForeignObj->mModel->buildData().mBhkRigidBodyMap.begin();
-            for (; it != mObjectRoot->mForeignObj->mModel->buildData().mBhkRigidBodyMap.end(); ++it)
+
+            const std::map<int32_t/*NiAVObjectRef*/, int32_t/*bhkWorldObject*/>& rigidBodyMap =
+                mObjectRoot->mForeignObj->mModel->getBhkRigidBodyMap();
+
+            std::map<int32_t/*NiAVObjectRef*/, int32_t/*bhkWorldObject*/>::const_iterator cit;
+            for (cit = rigidBodyMap.begin(); cit != rigidBodyMap.end(); ++cit)
             {
-                Ogre::SceneNode *child = mInsert->createChildSceneNode();
-                mPhysicsNodeMap[it->first] = child;
-
-                std::map<NiBtOgre::NiNodeRef, Ogre::Entity*>::iterator eit
-                    = mObjectRoot->mForeignObj->mEntities.find(it->first);
-
-                if (eit != mObjectRoot->mForeignObj->mEntities.end())
+#if 0
+                // to decide if the entity needs to have its own scenenode, check that its
+                // rigidbody has a constraint
+                if (NiBtOgre::bhkRigidBody *rigidBody // FIXME: techically a bhkEntity
+                    = mObjectRoot->mForeignObj->mModel->getRef<NiBtOgre::bhkRigidBody>(cit->second))
                 {
-                    //if(eit->second->isAttached())
-                        //eit->second->detachFromParent();
-                    child->attachObject(eit->second);
-
-                    std::cout << "havok " << eit->second->getMesh()->getName() << std::endl; // FIXME
+                    if (rigidBody->mConstraints.empty())
+                        continue; // nope, must be static
                 }
-            }
-#if 1 // FIXME: for testing only
-            std::map<int32_t, Ogre::Entity*>::const_iterator cit(mObjectRoot->mForeignObj->mEntities.begin());
-            for (; cit != mObjectRoot->mForeignObj->mEntities.end(); ++cit)
-            {
-                if(!cit->second->isAttached())
-                {
-                    mInsert->attachObject(cit->second);
-                    //std::cout << "entity not attached" << cit->second->getMesh()->getName() << std::endl;
-                }
-            }
 #endif
+                std::map<NiBtOgre::NiNodeRef, Ogre::Entity*>::iterator eit
+                    = mObjectRoot->mForeignObj->mEntities.find(cit->first);
+
+                Ogre::SceneNode *childSceneNode = mInsert->createChildSceneNode();
+
+                // place childSceneNode at the right place
+                {
+                    Ogre::Matrix4 transform
+                        = mObjectRoot->mForeignObj->mModel->getRef<NiBtOgre::NiNode>(cit->first)->getWorldTransform();
+
+                    Ogre::Vector3 pos;
+                    Ogre::Vector3 nodeScale; // FIXME: apply scale?
+                    Ogre::Quaternion rot;
+                    transform.decomposition(pos, nodeScale, rot);
+
+                    childSceneNode->setPosition(pos);
+                    childSceneNode->setOrientation(rot);
+                }
+
+                mPhysicsNodeMap[cit->first] = childSceneNode; // for creating physics ragdoll
+
+                if (eit == mObjectRoot->mForeignObj->mEntities.end())
+                {
+                    // some NiNode targets of rigidbodies don't have any meshes/entities
+                    // e.g. Clothes\RobeLC02\hood_gnd.nif (COC "Vilverin")
+                    //      (the hood is skinned and has a skeleton)
+
+                    // create a dummy mesh and entity
+                    Ogre::MeshManager& meshManager = Ogre::MeshManager::getSingleton();
+                    NiBtOgre::NiMeshLoader& meshLoader = NiBtOgre::NiModelManager::getSingleton().meshLoader();
+
+                    NiModelPtr model = mObjectRoot->mForeignObj->mModel;
+                    std::string meshName
+                        = model->getName() + "#0%" + model->getRef<NiBtOgre::NiNode>(cit->first)->getName();
+
+                    Ogre::MeshPtr mesh = meshManager.getByName(meshName, "General");
+                    if (!mesh)
+                        mesh = meshLoader.createMesh(meshName, "General", model.get(), cit->first);
+
+                    Ogre::Entity *entity = mInsert->getCreator()->createEntity(mesh);
+                    entity->setVisible(true);
+
+                    childSceneNode->attachObject(entity);
+
+                    //std::cout << "dummy havok " << entity->getMesh()->getName() << std::endl; // FIXME
+                }
+                else
+                {
+                    if (eit->second->isAttached())
+                        eit->second->detachFromParent();
+
+                    childSceneNode->attachObject(eit->second);
+
+                    //std::cout << "havok " << eit->second->getMesh()->getName() << std::endl; // FIXME
+                }
+
+                // FIXME: attach lighting or flame nodes to the correct scene node
+            }
+
+            // FIXME: for some reason bows are not being identified as having havok
+            std::map<int32_t, Ogre::Entity*>::const_iterator cit2(mObjectRoot->mForeignObj->mEntities.begin());
+            for (; cit2 != mObjectRoot->mForeignObj->mEntities.end(); ++cit2)
+            {
+                if (!cit2->second->isAttached())
+                {
+                    // check if parent is one of the nodes with rigid body
+                    // FIXME: should create a method in NiNode to get the ancestor
+                    if (NiBtOgre::NiNode* node
+                        = mObjectRoot->mForeignObj->mModel->getRef<NiBtOgre::NiNode>(cit2->first))
+                    {
+                        if (cit2->first) // if 0 then the node has no parent
+                        {
+                            const std::map<std::int32_t, Ogre::SceneNode*>::const_iterator nit
+                                = mPhysicsNodeMap.find(node->getParentNiNode().selfRef());
+                            if (nit != mPhysicsNodeMap.end())
+                            {
+                                // e.g. scabbards of swords
+                                nit->second->attachObject(cit2->second);
+                            }
+                        }
+                    }
+                }
+
+                // any entities not attached from above loop is probably static, attach to the root SceneNode
+                if (!cit2->second->isAttached())
+                {
+                    mInsert->attachObject(cit2->second);
+                    std::cout << "entity not attached " << cit2->second->getMesh()->getName() << std::endl;
+                }
+            }
         }
         else
         {

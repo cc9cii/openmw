@@ -14,7 +14,7 @@
 
 #include <openengine/bullet/trace.h>
 #include <openengine/bullet/physic.hpp>
-//#include <openengine/bullet/BtOgrePG.h>
+#include <openengine/bullet/BtOgrePG.h>
 #include <openengine/bullet/BtOgreExtras.h>
 #include <openengine/ogre/renderer.hpp>
 #include <openengine/bullet/BulletShapeLoader.h>
@@ -688,10 +688,11 @@ namespace MWWorld
         if (objAnim && !objAnim->getPhysicsNodeMap().empty())  // FIXME: this is such a bad hack
         {
             OEngine::Physic::RigidBody * body = mEngine->createAndAdjustRagdollBody(
-                mesh, node->getName(), objAnim->getPhysicsNodeMap(), ptr.getCellRef().getScale(), node->getPosition(), node->getOrientation(), 0, 0, false, placeable);
+                mesh, node->getName(), objAnim->getPhysicsNodeMap(), ptr.getCellRef().getScale(),
+                node->getPosition(), node->getOrientation(), 0, 0, false, placeable);
 
 #if 0
-            if (objAnim->disableHavokAtStart())
+            //if (objAnim->disableHavokAtStart())
             {
                 //body->setLinearFactor(btVector3(0, 0, 0));
                 //body->setAngularFactor(btVector3(0, 0, 0));
@@ -710,15 +711,17 @@ namespace MWWorld
             }
 #endif
             // FIXME: really want to get rid of doing this twice
-            mEngine->createAndAdjustRagdollBody(
-                mesh, node->getName(), objAnim->getPhysicsNodeMap(), ptr.getCellRef().getScale(), node->getPosition(), node->getOrientation(), 0, 0, true, placeable);
+            //mEngine->createAndAdjustRagdollBody(
+                //mesh, node->getName(), objAnim->getPhysicsNodeMap(), ptr.getCellRef().getScale(),
+                //node->getPosition(), node->getOrientation(), 0, 0, true/*raycasting*/, placeable);
+
             return;
         }
 
         mEngine->createAndAdjustRigidBody(mesh, node->getName(), ptr.getCellRef().getScale(),
                 node->getPosition(), node->getOrientation(), 0, 0, false, placeable);
         mEngine->createAndAdjustRigidBody(mesh, node->getName(), ptr.getCellRef().getScale(),
-                node->getPosition(), node->getOrientation(), 0, 0, true, placeable);
+                node->getPosition(), node->getOrientation(), 0, 0, true/*raycasting*/, placeable);
     }
 
     void PhysicsSystem::addActor (const Ptr& ptr, const std::string& mesh)
@@ -760,6 +763,29 @@ namespace MWWorld
                     mEngine->mDynamicsWorld->updateSingleAabb(it->second);
                 }
             }
+#if 0
+            else
+            {
+                if (body->getCollisionShape()->getUserIndex() == 4)
+                {
+                    body->getWorldTransform().setOrigin(btVector3(position.x,position.y,position.z));
+                }
+                else
+                {
+                    Ogre::Vector3 pos = body->mLocalTransform * position;
+                    body->getWorldTransform().setOrigin(btVector3(pos.x,pos.y,pos.z));
+
+                    std::multimap<std::string, OEngine::Physic::RigidBody*>::iterator it;
+                    for (it = body->mChildren.begin(); it != body->mChildren.end(); ++it)
+                    {
+                        pos = it->second->mLocalTransform * position;
+                        it->second->getWorldTransform().setOrigin(btVector3(pos.x,pos.y,pos.z));
+
+                        mEngine->mDynamicsWorld->updateSingleAabb(it->second);
+                    }
+                }
+            }
+#endif
 
             mEngine->mDynamicsWorld->updateSingleAabb(body);
         }
@@ -783,6 +809,29 @@ namespace MWWorld
                     mEngine->mDynamicsWorld->updateSingleAabb(it->second);
                 }
             }
+#if 0
+            else
+            {
+                if (body->getCollisionShape()->getUserIndex() == 4)
+                {
+                    body->getWorldTransform().setOrigin(btVector3(position.x,position.y,position.z));
+                }
+                else
+                {
+                    Ogre::Vector3 pos = body->mLocalTransform * position;
+                    body->getWorldTransform().setOrigin(btVector3(pos.x,pos.y,pos.z));
+
+                    std::multimap<std::string, OEngine::Physic::RigidBody*>::iterator it;
+                    for (it = body->mChildren.begin(); it != body->mChildren.end(); ++it)
+                    {
+                        pos = it->second->mLocalTransform * position;
+                        it->second->getWorldTransform().setOrigin(btVector3(pos.x,pos.y,pos.z));
+
+                        mEngine->mDynamicsWorld->updateSingleAabb(it->second);
+                    }
+                }
+            }
+#endif
 
             mEngine->mDynamicsWorld->updateSingleAabb(body);
         }
@@ -860,7 +909,6 @@ namespace MWWorld
                     //body->getWorldTransform().setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
                 //else
                     body->getWorldTransform().setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
-                // FIXME: scale?
 
                 std::multimap<std::string, OEngine::Physic::RigidBody*>::iterator it;
                 for (it = body->mChildren.begin(); it != body->mChildren.end(); ++it)
@@ -973,7 +1021,7 @@ namespace MWWorld
         Ogre::SceneNode* node = ptr.getRefData().getBaseNode();
         const std::string &handle = node->getName();
 
-        // dungeons\sewers\sewertunneldoor01.nif has static parent but its child "Gate" is not
+        // Dungeons\Sewers\sewerTunnelDoor01.NIF has static parent but its child "Gate" is not
         if (OEngine::Physic::RigidBody* body = mEngine->getRigidBody(handle))
         {
             // rotate parent

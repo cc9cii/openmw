@@ -930,7 +930,7 @@ NiBtOgre::bhkListShape::bhkListShape(uint32_t index, NiStream *stream, const NiM
 
 bool NiBtOgre::bhkListShape::isStaticShape() const
 {
-    bool result;
+    bool result = false;
     for (unsigned int i = 0; i < mSubShapes.size(); ++i)
     {
         if (mSubShapes[i] == -1)
@@ -1744,6 +1744,11 @@ btCollisionShape *NiBtOgre::bhkRigidBody::getShape(const NiAVObject& target, con
     const NiNode *targetNode = dynamic_cast<const NiNode*>(&target);
 
     bool dynamic = controlledNode != nullptr;
+
+    // also check mass if havok without animation (see UpperBench01.NIF)
+    if (!mModel.buildData().animEnabled() && mModel.buildData().havokEnabled() && (mMass <= SIMD_EPSILON))
+        dynamic = false;
+
     if (dynamic)
         targetName = controlledNode->getName();
     else
@@ -1773,7 +1778,8 @@ btCollisionShape *NiBtOgre::bhkRigidBody::getShape(const NiAVObject& target, con
         if (mModel.blockType(mSelfRef) == "bhkRigidBodyT")
             transform = transform * btTransform(mRotation, mTranslation * btScalar(mHavokScale)); // NOTE: havok scale
     }
-    else if (dynamic)// && (controlledNode != targetNode))
+    else if (dynamic
+             && (controlledNode != targetNode)) // don't bother, rootTrans will stay as IDENTITY
     {
         Ogre::Vector3 pos;
         Ogre::Vector3 scale;

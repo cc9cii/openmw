@@ -116,6 +116,12 @@ void NiBtOgre::BtRigidBodyCI::loadImpl()
 
         std::int32_t bhkRef = iter->second/*.second*/;
         bhkSerializable *bhk = nimodel->getRef<bhkSerializable>(bhkRef);
+
+        if (bhkRigidBody* body = dynamic_cast<bhkRigidBody*>(bhk))
+            mMass[iter->first] = body->mMass;
+        else
+            mMass[iter->first] = 0.f;
+
         std::int32_t targetRef = iter->first;
         NiAVObject *target = nimodel->getRef<NiAVObject>(targetRef);
 
@@ -155,6 +161,11 @@ void NiBtOgre::BtRigidBodyCI::loadImpl()
             //                 this should be the world transform of the
             //                 animation root node since it is used by
             //                 PhysicEngine::createAndAdjustRigidBody()
+        }
+        else if (nimodel->buildData().havokEnabled())
+        {
+            mBtCollisionShapeMap[targetRef]
+                = std::make_pair(targetNode->getWorldTransform(), bhk->getShape(*target, targetNode));
         }
         else
         {

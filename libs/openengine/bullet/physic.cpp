@@ -458,6 +458,13 @@ namespace Physic
         adjustRigidBody(body, position, rotation, shape->mBoxTranslation * scale, shape->mBoxRotation);
     }
 
+    // FIXME: the only differences with createAndAdjustRigidBody() are:
+    //
+    //     mass is not forced to 0
+    //     nodeMap (for Ogre::SceneNode) is passed in
+    //     RigidBodystate is created using NodeMap
+    //
+    // It's probably possible to combine since there is so much code duplication?
     RigidBody* PhysicEngine::createAndAdjustRagdollBody(const std::string &mesh, const std::string &name,
         const std::map<std::int32_t, Ogre::SceneNode*>& nodeMap,
         float scale, const Ogre::Vector3 &position, const Ogre::Quaternion &rotation,
@@ -469,16 +476,12 @@ namespace Physic
         std::string lowerMesh = /*mesh*/outputstring;
         Misc::StringUtils::lowerCaseInPlace(lowerMesh);
 
-        if (lowerMesh.find("skeleton") != std::string::npos)// == "meshes\\characters\\_male\\skeleton.nif001.000")
-            std::cout << "skeleton" << std::endl;
-
+        //if (lowerMesh.find("skeleton") != std::string::npos)// == "meshes\\characters\\_male\\skeleton.nif001.000")
+            //std::cout << "skeleton" << std::endl;
 
         // FIXME
         if (0)//lowerMesh.find("traplog") == std::string::npos)
             return createAndAdjustRigidBody(mesh, name, scale, position, rotation, scaledBoxTranslation, boxRotation, raycasting, placeable);
-
-
-
 
         BtRigidBodyCIPtr ci
             = NiBtOgre::BtRigidBodyCIManager::getSingleton().getOrLoadByName(lowerMesh, "General");
@@ -492,10 +495,9 @@ namespace Physic
             if (!collisionShape)
                 continue; // phantom
 
-
             collisionShape->setLocalScaling(btVector3(scale, scale, scale));
             btRigidBody::btRigidBodyConstructionInfo CI
-                = btRigidBody::btRigidBodyConstructionInfo(7*20.f/*mass*/,
+                = btRigidBody::btRigidBodyConstructionInfo(ci->mMass[iter->first],
                     0/*btMotionState**/,
                     collisionShape,
                     btVector3(0.f, 0.f, 0.f)); // local inertia
@@ -504,96 +506,39 @@ namespace Physic
             //CI.m_collisionShape->calculateLocalInertia(CI.m_mass, CI.m_localInertia);
             //CI.m_localInertia /= 10;
 
+            // world transform of SceneNode
+            Ogre::Matrix4 sceneNodeTrans;
+            sceneNodeTrans.makeTransform(position, Ogre::Vector3(scale), rotation);
 
+            // world transform of target NiNode
+            const Ogre::Matrix4& targetTrans = iter->second.first;
 
+            // combine then convert to bt format
+            Ogre::Matrix4 m = sceneNodeTrans * targetTrans;
+            Ogre::Vector3 p = m.getTrans();
+            Ogre::Quaternion q = m.extractQuaternion();
+            btTransform startTrans(btQuaternion(q.x, q.y, q.z, q.w), btVector3(p.x, p.y, p.z));
 
-            Ogre::Vector3 pps(scale);
             Ogre::SceneNode *childNode = nodeMap.find(iter->first)->second;
-            Ogre::Vector3 cv = childNode->_getDerivedPosition();
-            Ogre::Quaternion cq = childNode->_getDerivedOrientation();
 
-#if 0
-            const Ogre::Matrix4& localTrans = iter->second.first;
-
-            Ogre::Quaternion dq = iter->second.first.extractQuaternion();
-            dq = cq * dq;
-
-            Ogre::Vector3 dv = pps * iter->second.first.getTrans();
-            dv = cq * dv;
-            dv += cv;
-
-            btTransform trans(btQuaternion(dq.x, dq.y, dq.z, dq.w), btVector3(dv.x, dv.y, dv.z));
-#else
-            btTransform orig(btQuaternion(cq.x, cq.y, cq.z, cq.w), btVector3(cv.x, cv.y, cv.z));
-            Ogre::Quaternion dq = iter->second.first.extractQuaternion();
-            Ogre::Vector3 dv = pps * iter->second.first.getTrans();
-            btTransform trans(btQuaternion(dq.x, dq.y, dq.z, dq.w), btVector3(dv.x, dv.y, dv.z));
-            //trans = orig * trans;
-#endif
-#if 0
-            // local transform of the object
-            btQuaternion stq = CI.m_startWorldTransform.getRotation();
-            btVector3 stv = CI.m_startWorldTransform.getOrigin();
-
-            stq = btQuaternion::getIdentity(); // FIXME
-            stv.setZero(); // FIXME
-            // derived rotation
-            Ogre::Quaternion dq = cq * Ogre::Quaternion(stq.w(), stq.x(), stq.y(), stq.z());
-            // derived position
-            Ogre::Vector3 dv = cq * (pps * Ogre::Vector3(stv.x(), stv.y(), stv.z()));
-
-            btTransform originalTransform(stq, btVector3(dv.x, dv.y, dv.z));
-            dv += cv;
-
-            // make transform
-            btTransform trans(btQuaternion(dq.x, dq.y, dq.z, dq.w), btVector3(dv.x, dv.y, dv.z));
-#endif
-
-            btTransform start;
-            start.setIdentity();
-            BtOgre::RigidBodyState *state = new BtOgre::RigidBodyState(childNode, start, trans);
-            CI.m_motionState = state; // NOTE: dtor of RigidBody deletes RigidBodyState
-
-
-
-
+            // NOTE: dtor of RigidBody deletes RigidBodyState
+            BtOgre::RigidBodyState *state
+                = new BtOgre::RigidBodyState(childNode, sceneNodeTrans, startTrans);
+            CI.m_motionState = state;
 
             // NOTE: 'name' should be the same for collision detection/raycast
             RigidBody *body = new RigidBody(CI, name);
             body->mPlaceable = placeable;
-            body->mLocalTransform = iter->second.first; // need to keep it around
+            body->mLocalTransform = iter->second.first; // needed for rotateObject() and moveObject()
             body->mIsForeign = true;
-
-            Ogre::Vector3 pos;
-            Ogre::Vector3 nodeScale; // FIXME: apply scale?
-            Ogre::Quaternion rot;
-#if 1
-            // iter->second.first is the world transform of the controller target NiNode
-            iter->second.first.decomposition(pos, nodeScale, rot);
-#else
-            Ogre::Matrix3 matQ;
-            Ogre::Vector3 vecU;
-            iter->second.first.linear().QDUDecomposition(matQ, nodeScale, vecU);
-            pos = iter->second.first.getTrans();
-            rot = Ogre::Quaternion(matQ);
-#endif
 
             if (body->getCollisionShape()->getUserIndex() == 4) // useFullTransform
                 // NOTE: effectively does nothing since scaledBoxTranslation is ZERO and boxRotation is IDENTITY
                 adjustRigidBody(body, position, rotation, Ogre::Vector3(0.f) * scale, Ogre::Quaternion::IDENTITY);
             else
             {
-                Ogre::Matrix4 t;
-                t.makeTransform(position, Ogre::Vector3(scale), rotation);
+                body->setWorldTransform(startTrans); // prob. unnecessary since using btMotionState
 
-                Ogre::Matrix4 l;
-                l.makeTransform(pos, Ogre::Vector3(scale), rot); // FIXME: scale
-                t = t * l;
-                Ogre::Vector3 p = t.getTrans();
-                Ogre::Quaternion q = t.extractQuaternion();
-                btTransform bt(btQuaternion(q.x, q.y, q.z, q.w), btVector3(p.x, p.y, p.z));
-
-                body->setWorldTransform(bt);
                 body->mBindingPosition = btVector3(p.x, p.y, p.z);
                 body->mBindingOrientation = btQuaternion(q.x, q.y, q.z, q.w);
                 body->mTargetName = ci->mTargetNames[iter->first];
@@ -616,6 +561,9 @@ namespace Physic
             }
             else
             {
+
+                // FIXME: how to move these rigid bodies along with the non-raycasting ones?
+
                 assert (mRaycastingObjectMap.find(name) == mRaycastingObjectMap.end());
                 mDynamicsWorld->addRigidBody(
                         body,CollisionType_Raycasting,CollisionType_Raycasting|CollisionType_Projectile);
@@ -627,6 +575,17 @@ namespace Physic
 
             ++numBodies;
         }
+
+
+
+
+
+
+        // FIXME: add constraints here?
+
+
+
+
 
         return parentBody;
     }
@@ -666,41 +625,12 @@ namespace Physic
                 // NOTE: 'name' should be the same for collision detection/raycast
                 RigidBody *body = new RigidBody(CI, name);
                 body->mPlaceable = placeable;
-                body->mLocalTransform = iter->second.first; // need to keep it around
+                body->mLocalTransform = iter->second.first; // needed for rotateObject() and moveObject()
                 body->mIsForeign = true;
-#if 0
-                if (!raycasting/* && !shape->mAnimatedShapes.empty()*/)
-                {
-                    AnimatedShapeInstance instance;
-                    instance.mAnimatedShapes = shape->mAnimatedShapes;
-                    instance.mCompound = collisionShape;
-                    mAnimatedShapes[body] = instance;
-                }
-                if (raycasting/* && !shape->mAnimatedRaycastingShapes.empty()*/)
-                {
-                    AnimatedShapeInstance instance;
-                    instance.mAnimatedShapes = shape->mAnimatedRaycastingShapes;
-                    instance.mCompound = collisionShape;
-                    mAnimatedRaycastingShapes[body] = instance;
-                }
-#endif
-                Ogre::Vector3 pos;
-                Ogre::Vector3 nodeScale; // FIXME: apply scale?
-                Ogre::Quaternion rot;
-#if 1
-                // iter->second.first is the world transform of the controller target NiNode
-                iter->second.first.decomposition(pos, nodeScale, rot);
-#else
-                Ogre::Matrix3 matQ;
-                Ogre::Vector3 vecU;
-                iter->second.first.linear().QDUDecomposition(matQ, nodeScale, vecU);
-                pos = iter->second.first.getTrans();
-                rot = Ogre::Quaternion(matQ);
-#endif
 
                 if (body->getCollisionShape()->getUserIndex() == 4) // useFullTransform
                 {
-                    // see parent body of dungeons\sewers\sewertunneldoor01.nif
+                    // see parent body of Dungeons\Sewers\sewerTunnelDoor01.NIF
                     // NOTE: effectively does nothing since scaledBoxTranslation is ZERO and boxRotation is IDENTITY
                     adjustRigidBody(body, position, rotation, Ogre::Vector3(0.f) * scale, Ogre::Quaternion::IDENTITY);
                 }
@@ -710,20 +640,18 @@ namespace Physic
                     Ogre::Matrix4 t;
                     t.makeTransform(position, Ogre::Vector3(scale), rotation);
 
-                    // world transform of target NiNode
-                    Ogre::Matrix4 l;
-                    l.makeTransform(pos, Ogre::Vector3(scale), rot); // FIXME: scale
-                    t = t * l;
+                    // iter->second.first is the world transform of target NiNode
+                    t = t * iter->second.first;
                     Ogre::Vector3 p = t.getTrans();
                     Ogre::Quaternion q = t.extractQuaternion();
                     btTransform bt(btQuaternion(q.x, q.y, q.z, q.w), btVector3(p.x, p.y, p.z));
 
                     body->setWorldTransform(bt);
 
-                    // keep binding pose for moving door collision shapes
+                    // keep binding pose for moving door/activator collision shapes
                     body->mBindingPosition = btVector3(p.x, p.y, p.z);
                     body->mBindingOrientation = btQuaternion(q.x, q.y, q.z, q.w);
-                    // keep target node names (which should be the same as bone names) for doors
+                    // keep target node names (which should be the same as bone names) for doors/activators
                     body->mTargetName = ci->mTargetNames[iter->first];
                 }
 

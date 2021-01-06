@@ -5037,8 +5037,8 @@ Many object classes can have scripts attached to them.  A simple `grep` for `mSc
     clot.hpp:        FormId mScriptId;
     cont.hpp:        FormId mScriptId; // TES4 only
     crea.hpp:        FormId mScriptId;
-
     door.hpp:        FormId mScriptId;
+
     flor.hpp:        FormId mScriptId;
     furn.hpp:        FormId mScriptId;
     ingr.hpp:        FormId mScriptId;
@@ -6418,8 +6418,8 @@ Now that activator animations are working, time to try using the same for door a
 ## Issues
 
   * BenirusDoor01.NIF either the animation plays too fast or the sound starts late - worked around by using "0.5f" speed multiplier when calling `play()` from `MWRender::Animation::activateAnimatedDoor()`
-  * Physics shapes for activators not updated
-  * Physics shapes for animRoot not done
+  * Physics shapes for activators not updated (fixed 04/01/2021)
+  * Physics shapes for descendants of animated bones not done (fixed 04/01/2021)
 
 ## Testing doors
 
@@ -6439,9 +6439,42 @@ Some activators:
   * COC "Dark04Sewers02"
   * COC "ImperialSewerSystemMarketDistrict" (or enter via ICMarketDistrictTheBestDefenseBasement)
 
-    // FIXME: physics shape incorrect
-    // (COC "OblivionMqKvatchCitadelHall01" or COW "MS13CheydinhalOblivionWorld" 1 -1)
-    // Oblivion\Architecture\Citadel\Interior\CitadelHall\CitadelHallDoor01Anim.NIF (000182E8)
+## More known Issues
+
+  * One of the display cases in Ridir's Staffs has slightly twisted collision shapes.
+  * Don't forget to add `getScript()` to the rest of the classes. (see  05/12/2020)
+
+# [05/01/2021 - 06/01/2021] Ragdoll
+
+See some notes from around 08/03/2020.
+
+Some experiments to do:
+
+Try adding a SceneNode if a node with a rigidbody has a constraint.  This would be done when the `Ogre::Entity` is created.  For TES4 we can use the BSX flags to see if a model has havok enabled.  We'll still need a map, probably populated when `bhkRigidBody`/`bhkRigidBodyT` are created.
+
+It is not really safe to assume that the required NIF blocks have been read by the time we encounter a `bhkCollisionObject` or a constraint.  This probably means we will be forced to do a couple of lookups.
+
+First, `mBhkRigidBodyMap` can provide the block number of the bhkEntity based on the NiNode block number.
+
+Next, we can check if the bhkEntity has any constraints.  If so, we will need to provide an `Ogre::SceneNode` to the entity created from the NiNode.
+
+## Combine ragdoll and animation
+
+How to do this? Do we need a separate animation code for entities tied to a scene node?  Or do we attach the entities to scene nodes at the time a ragdoll is enabled?  Maybe the animation "Unequip" has this magic to disable ragdoll?
+
+Related question is - how do we know when a ragdoll is enabled?  Those with an attached script may be easier to figure that out.  Maybe try using "Enable Parent" flag to decide?
+
+## Ragdoll activation
+
+If we decide that the `Ogre::SceneNode` for an `Ogre::Entity` with a rigidbody is assigned at the time of the ragdoll activation, then it would be somewhere in `MWRender::ObjectAnimation`.  Looking at Git blame, looks like simiar code has been there since February/March 2020.
+
+## Issues
+
+  * Doors with havok and animations ignore havok (see sewerTunnelDoor01.NIF)
+  * The raycasting shapes do not move with the non-raycasting shapes.
+
+
+
 
 
 

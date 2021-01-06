@@ -254,7 +254,7 @@ bool NiBtOgre::NiNode::isDynamicMesh(NiNodeRef *nodeRef) const
         // occasionally the node may be a descendant of a target
         // e.g. "Box02" is a descendant of "gear 12" in BenirusDoor01
         // (COC "AnvilBenirusManorBasement")
-        std::cout << mNodeName << " searching ancestor" << std::endl; // FIXME: temp testing
+        //std::cout << mNodeName << " searching ancestor" << std::endl; // FIXME: temp testing
         NiNode* node = mParent;
         while (node)
         {

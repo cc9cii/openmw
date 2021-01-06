@@ -28,21 +28,29 @@ namespace BtOgre {
 class RigidBodyState : public btMotionState
 {
     protected:
-        btTransform mTransform;
+        btTransform mGraphicsWorldTrans;
         btTransform mCenterOfMassOffset;
+        Ogre::Matrix4 mParentTrans;
 
         Ogre::SceneNode *mSceneNode;
 
     public:
-        RigidBodyState(Ogre::SceneNode *node, const btTransform &transform, const btTransform &offset = btTransform::getIdentity())
-            : mTransform(transform),
-              mCenterOfMassOffset(offset),
+        // NOTE: Made the constructor and variable names as per btDefaultMotionState
+        //       (makes following the code somewhat easier)
+        //       The key difference is that the "user pointer" is Ogre::SceneNode
+        //       and we don't keep startTrans around (doesn't seem to be ever used anyway?)
+        RigidBodyState(Ogre::SceneNode *node, const Ogre::Matrix4& parentTrans,
+                const btTransform& startTrans = btTransform::getIdentity(),
+                const btTransform& centerOfMassOffset = btTransform::getIdentity())
+            : mParentTrans(parentTrans),
+              mGraphicsWorldTrans(startTrans),
+              mCenterOfMassOffset(centerOfMassOffset),
               mSceneNode(node)
         {
         }
 #if 0
         RigidBodyState(Ogre::SceneNode *node)
-            : mTransform(((node != NULL) ? BtOgre::Convert::toBullet(node->getOrientation()) : btQuaternion(0,0,0,1)),
+            : mGraphicsWorldTrans(((node != NULL) ? BtOgre::Convert::toBullet(node->getOrientation()) : btQuaternion(0,0,0,1)),
                          ((node != NULL) ? BtOgre::Convert::toBullet(node->getPosition())    : btVector3(0,0,0))),
               mCenterOfMassOffset(btTransform::getIdentity()),
               mSceneNode(node)
@@ -50,48 +58,20 @@ class RigidBodyState : public btMotionState
         }
 #endif
         // called by btRigidBody::setupRigidBody during construction to set its m_worldTransform,
-        // ignoring btRigidBodyConstructionInfo::m_startWorldTransform
+        // making it ignore btRigidBodyConstructionInfo::m_startWorldTransform
         //
         // also called by btRigidBody::predictIntegratedTransform
         virtual void getWorldTransform(btTransform& centerOfMassWorldTrans) const
         {
-            // return the previously transform saved from setWorldTransform
-            centerOfMassWorldTrans = mTransform * mCenterOfMassOffset.inverse();
-            //centerOfMassWorldTrans = mTransform;  // FIXME: temp testing
+            // return the previously saved mGraphicsWorldTrans from setWorldTransform
+            centerOfMassWorldTrans = mGraphicsWorldTrans * mCenterOfMassOffset.inverse();
         }
 
         // called by btDiscreteDynamicsWorld::synchronizeSingleMotionState
         virtual void setWorldTransform(const btTransform& centerOfMassWorldTrans);
-#if 0
-        {
-            if (mSceneNode == nullptr)
-                return; // silently return before we set a node
-
-            mTransform = in;
-            btTransform transform = in * mCenterOfMassOffset;
-
-            // find the parent SceneNode's transform
-            Ogre::SceneNode *parent = mSceneNode->getParentSceneNode();
-            Ogre::Vector3 pv = parent->getPosition();
-            Ogre::Quaternion pq = parent->getOrientation();
-            //Ogre::Vector3 pv = parent->_getDerivedPosition();
-            //Ogre::Quaternion pq = parent->_getDerivedOrientation();
-            //Ogre::Vector3 ps = parent->getScale();
-            //btTransform parentTrans(btQuaternion(pq.x, pq.y, pq.z, pq.w), btVector3(pv.x*ps.x, pv.y*ps.y, pv.z*ps.z));
-            btTransform parentTrans(btQuaternion(pq.x, pq.y, pq.z, pq.w), btVector3(pv.x, pv.y, pv.z));
-
-            // take away parent's transform from the input
-            transform = parentTrans.inverse() * transform;
-
-            // apply the input to the SceneNode
-            btQuaternion rot = transform.getRotation();
-            btVector3 pos = transform.getOrigin();
-            mSceneNode->setOrientation(rot.w(), rot.x(), rot.y(), rot.z());
-            mSceneNode->setPosition(pos.x(), pos.y(), pos.z());
-            //Ogre::Vector3 ps = parent->getScale();
-            //mSceneNode->setPosition(pos.x()*ps.x, pos.y()*ps.y, pos.z()*ps.z);
-        }
-#endif
+        //{
+            //mGraphicsWorldTrans = centerOfMassWorldTrans * mCenterOfMassOffset;
+        //}
 
         void setNode(Ogre::SceneNode *node)
         {
