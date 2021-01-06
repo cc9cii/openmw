@@ -828,13 +828,13 @@ namespace MWWorld
                 std::multimap<std::string, OEngine::Physic::RigidBody*>::iterator it;
                 for (it = body->mChildren.begin(); it != body->mChildren.end(); ++it)
                 {
-                    if (body->getCollisionShape()->getUserIndex() != 4)
-                        //body->getWorldTransform().setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
+                    if (it->second->getCollisionShape()->getUserIndex() != 4)
+                        //it->second->getWorldTransform().setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
                     //else
                     {
                         rot = it->second->mLocalTransform.extractQuaternion();
                         rot = rotation * rot;
-                        body->getWorldTransform().setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
+                        it->second->getWorldTransform().setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
                     }
 
                     mEngine->mDynamicsWorld->updateSingleAabb(it->second);
@@ -867,10 +867,10 @@ namespace MWWorld
                 {
                     rot = it->second->mLocalTransform.extractQuaternion();
                     rot = rotation * rot;
-                    if (body->getCollisionShape()->getUserIndex() != 4)
-                        //body->getWorldTransform().setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
+                    if (it->second->getCollisionShape()->getUserIndex() != 4)
+                        //it->second->getWorldTransform().setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
                     //else
-                        body->getWorldTransform().setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
+                        it->second->getWorldTransform().setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
 
                     mEngine->mDynamicsWorld->updateSingleAabb(it->second);
                 }
