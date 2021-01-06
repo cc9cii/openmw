@@ -750,20 +750,6 @@ namespace MWWorld
             {
                 body->getWorldTransform().setOrigin(btVector3(position.x,position.y,position.z));
             }
-            else if (body->getCollisionShape()->getUserIndex() == 4)
-            {
-                Ogre::Vector3 pos = body->mLocalTransform * position;
-                body->getWorldTransform().setOrigin(btVector3(pos.x,pos.y,pos.z));
-
-                std::multimap<std::string, OEngine::Physic::RigidBody*>::iterator it;
-                for (it = body->mChildren.begin(); it != body->mChildren.end(); ++it)
-                {
-                    pos = it->second->mLocalTransform * position;
-                    it->second->getWorldTransform().setOrigin(btVector3(pos.x,pos.y,pos.z));
-                    mEngine->mDynamicsWorld->updateSingleAabb(it->second);
-                }
-            }
-#if 0
             else
             {
                 if (body->getCollisionShape()->getUserIndex() == 4)
@@ -785,7 +771,6 @@ namespace MWWorld
                     }
                 }
             }
-#endif
 
             mEngine->mDynamicsWorld->updateSingleAabb(body);
         }
@@ -796,20 +781,6 @@ namespace MWWorld
             {
                 body->getWorldTransform().setOrigin(btVector3(position.x,position.y,position.z));
             }
-            else if (body->getCollisionShape()->getUserIndex() == 4)
-            {
-                Ogre::Vector3 pos = body->mLocalTransform * position;
-                body->getWorldTransform().setOrigin(btVector3(pos.x,pos.y,pos.z));
-
-                std::multimap<std::string, OEngine::Physic::RigidBody*>::iterator it;
-                for (it = body->mChildren.begin(); it != body->mChildren.end(); ++it)
-                {
-                    pos = it->second->mLocalTransform * position;
-                    it->second->getWorldTransform().setOrigin(btVector3(pos.x,pos.y,pos.z));
-                    mEngine->mDynamicsWorld->updateSingleAabb(it->second);
-                }
-            }
-#if 0
             else
             {
                 if (body->getCollisionShape()->getUserIndex() == 4)
@@ -831,7 +802,6 @@ namespace MWWorld
                     }
                 }
             }
-#endif
 
             mEngine->mDynamicsWorld->updateSingleAabb(body);
         }
@@ -864,22 +834,21 @@ namespace MWWorld
             else
             {
                 Ogre::Quaternion rot;
-                if (body->getCollisionShape()->getUserIndex() != 4)
-                    //body->getWorldTransform().setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
-                //else
+                if (body->getCollisionShape()->getUserIndex() == 4)
+                    body->getWorldTransform().setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
+                else
                 {
                     rot = body->mLocalTransform.extractQuaternion();
                     rot = rotation * rot;
                     body->getWorldTransform().setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
                 }
-                // FIXME: scale?
 
                 std::multimap<std::string, OEngine::Physic::RigidBody*>::iterator it;
                 for (it = body->mChildren.begin(); it != body->mChildren.end(); ++it)
                 {
-                    if (it->second->getCollisionShape()->getUserIndex() != 4)
-                        //it->second->getWorldTransform().setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
-                    //else
+                    if (it->second->getCollisionShape()->getUserIndex() == 4)
+                        it->second->getWorldTransform().setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
+                    else
                     {
                         rot = it->second->mLocalTransform.extractQuaternion();
                         rot = rotation * rot;
@@ -905,9 +874,9 @@ namespace MWWorld
             {
                 Ogre::Quaternion rot = body->mLocalTransform.extractQuaternion();
                 rot = rotation * rot;
-                if (body->getCollisionShape()->getUserIndex() != 4)
-                    //body->getWorldTransform().setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
-                //else
+                if (body->getCollisionShape()->getUserIndex() == 4)
+                    body->getWorldTransform().setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
+                else
                     body->getWorldTransform().setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
 
                 std::multimap<std::string, OEngine::Physic::RigidBody*>::iterator it;
@@ -915,9 +884,9 @@ namespace MWWorld
                 {
                     rot = it->second->mLocalTransform.extractQuaternion();
                     rot = rotation * rot;
-                    if (it->second->getCollisionShape()->getUserIndex() != 4)
-                        //it->second->getWorldTransform().setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
-                    //else
+                    if (it->second->getCollisionShape()->getUserIndex() == 4)
+                        it->second->getWorldTransform().setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
+                    else
                         it->second->getWorldTransform().setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
 
                     mEngine->mDynamicsWorld->updateSingleAabb(it->second);
@@ -928,7 +897,7 @@ namespace MWWorld
         }
     }
 
-    // FIXME: test code for doors and activators only
+    // doors and activators
     void PhysicsSystem::moveSubObject (const MWWorld::Ptr& ptr, const std::string& boneName, const Ogre::Vector3& position, const Ogre::Quaternion& rotation)
     {
         Ogre::SceneNode* node = ptr.getRefData().getBaseNode();
@@ -1015,7 +984,7 @@ namespace MWWorld
         }
     }
 
-    // FIXME: test code for doors only
+    // for doors and activators
     void PhysicsSystem::rotateSubObject (const MWWorld::Ptr& ptr, const std::string& boneName, const Ogre::Quaternion& rotation)
     {
         Ogre::SceneNode* node = ptr.getRefData().getBaseNode();
