@@ -495,9 +495,10 @@ namespace Physic
             if (!collisionShape)
                 continue; // phantom
 
+            // FIXME: not sure what the correct havok scaling for mass might be
             collisionShape->setLocalScaling(btVector3(scale, scale, scale));
             btRigidBody::btRigidBodyConstructionInfo CI
-                = btRigidBody::btRigidBodyConstructionInfo(ci->mMass[iter->first],
+                = btRigidBody::btRigidBodyConstructionInfo(7*10*ci->mMass[iter->first],
                     0/*btMotionState**/,
                     collisionShape,
                     btVector3(0.f, 0.f, 0.f)); // local inertia
