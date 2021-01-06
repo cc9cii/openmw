@@ -555,16 +555,12 @@ namespace Physic
             {
                 assert (mCollisionObjectMap.find(name) == mCollisionObjectMap.end());
                 mDynamicsWorld->addRigidBody(
-                        //body,CollisionType_World,CollisionType_Actor|CollisionType_HeightMap);
-                        body,CollisionType_World,CollisionType_World|CollisionType_Actor|CollisionType_HeightMap);
+                        body,CollisionType_World|CollisionType_Raycasting,CollisionType_World|CollisionType_Raycasting|CollisionType_Actor|CollisionType_HeightMap);
                 if (numBodies == 0)
                     mCollisionObjectMap[name] = body; // register only the parent
             }
             else
             {
-
-                // FIXME: how to move these rigid bodies along with the non-raycasting ones?
-
                 assert (mRaycastingObjectMap.find(name) == mRaycastingObjectMap.end());
                 mDynamicsWorld->addRigidBody(
                         body,CollisionType_Raycasting,CollisionType_Raycasting|CollisionType_Projectile);
