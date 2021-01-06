@@ -812,7 +812,7 @@ namespace MWWorld
                 else
                     mEngine->boxAdjustExternal(handleToMesh[handle], body, node->getScale().x, node->getPosition(), rotation);
             }
-            else if (body->getCollisionShape()->getUserIndex() == 4)
+            else
             {
                 Ogre::Quaternion rot;
                 if (body->getCollisionShape()->getUserIndex() != 4)
@@ -852,7 +852,7 @@ namespace MWWorld
                 else
                     mEngine->boxAdjustExternal(handleToMesh[handle], body, node->getScale().x, node->getPosition(), rotation);
             }
-            else if (body->getCollisionShape()->getUserIndex() == 4)
+            else
             {
                 Ogre::Quaternion rot = body->mLocalTransform.extractQuaternion();
                 rot = rotation * rot;
