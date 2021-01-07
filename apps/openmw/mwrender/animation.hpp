@@ -361,7 +361,7 @@ public:
 };
 
 class ObjectAnimation : public Animation {
-    std::map<std::int32_t, Ogre::SceneNode*> mPhysicsNodeMap;
+    std::map<int32_t/*NiBtOgre::NiAVObjectRef*/, Ogre::SceneNode*> mPhysicsNodeMap;
     std::vector<NifOgre::ObjectScenePtr> mFlameNode; // FIXME: testing
 public:
     ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &model);

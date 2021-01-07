@@ -177,8 +177,8 @@ namespace NiBtOgre
         //        |                  name  = concatenation of model, "%" and parent NiNode name
         //        |                    |
         //        v                    v
-        std::map<NiNodeRef, /*std::pair<std::string,*/ int32_t/*>*/ > mBhkRigidBodyMap;
-        //std::vector<std::pair<bhkConstraint*, bhkEntity*> > mBhkConstraints;
+        std::map<NiAVObjectRef, /*std::pair<std::string,*/ int32_t/*>*/ > mBhkRigidBodyMap;
+
         bool mHasBhkConstraint;
         inline bool hasBhkConstraint() const { return mHasBhkConstraint; }
 
@@ -327,8 +327,7 @@ namespace NiBtOgre
         std::uint32_t getRootIndex() const; // WARN: will throw if there are more than one
         inline std::size_t getNumRootNodes() const { return mRoots.size(); }
 
-        typedef std::int32_t NiNodeRef;
-        const std::map<NiNodeRef, /*std::pair<std::string,*/ int32_t/*>*/ >&
+        const std::map<NiAVObjectRef, int32_t>&
             getBhkRigidBodyMap() const { return mBuildData.mBhkRigidBodyMap; }
 
         const std::multimap<float, std::string>& getTextKeys() const { return mBuildData.mTextKeys; }

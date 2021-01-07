@@ -106,23 +106,37 @@ void NiBtOgre::BtRigidBodyCI::loadImpl()
     //           target NiAVObject ref               bhkSerializable ref (e.g. bhkRigidBody)
     //                   |                                    |
     //                   v                                    v
-    const std::map<std::int32_t, /*std::pair<std::string,*/ int32_t/*>*/ >& rigidBodies = nimodel->getBhkRigidBodyMap();
-    std::map<std::int32_t, /*std::pair<std::string, */int32_t/*>*/ >::const_iterator iter(rigidBodies.begin());
+    const std::map<NiAVObjectRef, bhkSerializableRef>& rigidBodies = nimodel->getBhkRigidBodyMap();
+    std::map<NiAVObjectRef, bhkSerializableRef>::const_iterator iter(rigidBodies.begin());
     for (; iter != rigidBodies.end(); ++iter)
     {
-        //if (iter->second/*.second*/ == -1)
+        //if (iter->second == -1)
             //continue;  // e.g. fire/firetorchlargesmoke.nif%DamageSphere
         // FIXME: check for phantom
 
-        std::int32_t bhkRef = iter->second/*.second*/;
+        bhkSerializableRef bhkRef = iter->second/*.second*/;
         bhkSerializable *bhk = nimodel->getRef<bhkSerializable>(bhkRef);
 
         if (bhkRigidBody* body = dynamic_cast<bhkRigidBody*>(bhk))
+        {
             mMass[iter->first] = body->mMass;
+            mRigidBodies[iter->first] = iter->second;
+
+            // make note of any constraints
+            for (std::size_t i = 0; i < body->mConstraints.size(); ++i)
+            {
+                if (body->mConstraints[i] != -1)
+                {
+                    bhkSerializable *constraint
+                        = nimodel->getRef<bhkSerializable>(body->mConstraints[i]);
+                    mConstraints.push_back(constraint);
+                }
+            }
+        }
         else
             mMass[iter->first] = 0.f;
 
-        std::int32_t targetRef = iter->first;
+        NiAVObjectRef targetRef = iter->first;
         NiAVObject *target = nimodel->getRef<NiAVObject>(targetRef);
 
         //if (nimodel->indexToString(target->getNameIndex()) == "sewerChannelGate01b")

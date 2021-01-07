@@ -69,9 +69,6 @@ class RigidBodyState : public btMotionState
 
         // called by btDiscreteDynamicsWorld::synchronizeSingleMotionState
         virtual void setWorldTransform(const btTransform& centerOfMassWorldTrans);
-        //{
-            //mGraphicsWorldTrans = centerOfMassWorldTrans * mCenterOfMassOffset;
-        //}
 
         void setNode(Ogre::SceneNode *node)
         {

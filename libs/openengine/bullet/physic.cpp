@@ -9,6 +9,7 @@
 
 #include <OgreSceneManager.h>
 
+#include <extern/nibtogre/bhkrefobject.hpp>
 #include <extern/nibtogre/btrigidbodyci.hpp>
 #include <extern/nibtogre/btrigidbodycimanager.hpp>
 
@@ -483,6 +484,8 @@ namespace Physic
         if (0)//lowerMesh.find("traplog") == std::string::npos)
             return createAndAdjustRigidBody(mesh, name, scale, position, rotation, scaledBoxTranslation, boxRotation, raycasting, placeable);
 
+        std::map<std::int32_t, RigidBody*> rigidBodyMap;
+
         BtRigidBodyCIPtr ci
             = NiBtOgre::BtRigidBodyCIManager::getSingleton().getOrLoadByName(lowerMesh, "General");
 
@@ -498,7 +501,7 @@ namespace Physic
             // FIXME: not sure what the correct havok scaling for mass might be
             collisionShape->setLocalScaling(btVector3(scale, scale, scale));
             btRigidBody::btRigidBodyConstructionInfo CI
-                = btRigidBody::btRigidBodyConstructionInfo(7*10*ci->mMass[iter->first],
+                = btRigidBody::btRigidBodyConstructionInfo(7*ci->mMass[iter->first],
                     0/*btMotionState**/,
                     collisionShape,
                     btVector3(0.f, 0.f, 0.f)); // local inertia
@@ -551,6 +554,16 @@ namespace Physic
             else
                 parentBody->mChildren.insert(std::make_pair(ci->mTargetNames[iter->first], body));
 
+            // iter->first is NiNode, need to get the rigidbody
+            // FIXME: really shouldn't be doing all this lookup here
+            std::map<NiBtOgre::NiAVObjectRef, NiBtOgre::bhkSerializableRef>::const_iterator bit
+                = ci->mRigidBodies.find(iter->first);
+
+            if (bit == ci->mRigidBodies.end())
+                throw std::runtime_error("NiNode for a RigidBody not found");
+
+            rigidBodyMap[bit->second] = body; // for constraints below
+
             if (!raycasting)
             {
                 assert (mCollisionObjectMap.find(name) == mCollisionObjectMap.end());
@@ -573,16 +586,33 @@ namespace Physic
             ++numBodies;
         }
 
+        for (std::size_t i = 0; i < ci->mConstraints.size(); ++i)
+        {
+            if (NiBtOgre::bhkConstraint* bhkConst = dynamic_cast<NiBtOgre::bhkConstraint*>(ci->mConstraints[i]))
+            {
+                //if (bhkConst->selfRef() != 22) // FIXME: temp testing
+                    //continue;
 
+                // assumed that there are always exactly 2
+                if (bhkConst->mEntities.size() != 2)
+                    throw std::logic_error("Too many bhkEntities for a constraint");
 
+                std::map<NiBtOgre::bhkEntity*, btRigidBody*> bodies;
+                for (std::size_t j = 0; j < 2; ++j)
+                {
+                    int32_t aRef = bhkConst->mEntities[j]->selfRef();
+                    std::map<std::int32_t, RigidBody*>::const_iterator cit = rigidBodyMap.find(aRef);
+                    if (cit == rigidBodyMap.end())
+                        throw std::runtime_error("cannot find RigidBody for constraints");
 
+                    bodies[bhkConst->mEntities[j]] = cit->second;
+                }
 
-
-        // FIXME: add constraints here?
-
-
-
-
+                btTypedConstraint* constraint = ci->mConstraints[i]->buildConstraint(bodies);
+                if (constraint)
+                mDynamicsWorld->addConstraint(constraint, /*disable collision between linked bodies*/true);
+            }
+        }
 
         return parentBody;
     }

@@ -83,6 +83,8 @@
 // hkbStateMachineEventPropertyArray <--------- /* TODO */
 
 class btCollisionShape;
+class btTypedConstraint;
+class btRigidBody;
 
 namespace NiBtOgre
 {
@@ -92,18 +94,18 @@ namespace NiBtOgre
     class NiAVObject;
     class NiNode;
     struct BuildData;
+    struct bhkEntity;
 
     typedef NiObject bhkRefObject;
-    //typedef bhkRefObject bhkSerializable;
 
-//#if 0 // use typedef instead
     struct bhkSerializable : public bhkRefObject
     {
         bhkSerializable(uint32_t index, NiStream *stream, const NiModel& model, BuildData& data);
 
         virtual btCollisionShape *getShape(const NiAVObject& target, const NiNode *controlledNode = nullptr) const;
+
+        virtual btTypedConstraint *buildConstraint(const std::map<bhkEntity*, btRigidBody*>& bodies) const;
     };
-//#endif
 
     // Seen in NIF version 20.2.0.7
     struct bhkCompressedMeshShapeData : public bhkRefObject
@@ -190,8 +192,6 @@ namespace NiBtOgre
         bhkOrientHingedBodyAction(uint32_t index, NiStream *stream, const NiModel& model, BuildData& data);
     };
 
-    struct bhkEntity;
-
     struct bhkConstraint : public bhkSerializable
     {
         std::vector<bhkEntity*> mEntities; // Ptr
@@ -268,6 +268,8 @@ namespace NiBtOgre
         LimitedHingeDescriptor mLimitedHinge;
 
         bhkLimitedHingeConstraint(uint32_t index, NiStream *stream, const NiModel& model, BuildData& data);
+
+        virtual btTypedConstraint *buildConstraint(const std::map<bhkEntity*, btRigidBody*>& bodies) const;
     };
 
     struct RagdollDescriptor
@@ -335,8 +337,7 @@ namespace NiBtOgre
 
         bhkRagdollConstraint(uint32_t index, NiStream *stream, const NiModel& model, BuildData& data);
 
-        //FIXME: move to BtOgreInst
-        //void linkBodies(const bhkEntity *body) const;
+        virtual btTypedConstraint *buildConstraint(const std::map<bhkEntity*, btRigidBody*>& bodies) const;
     };
 
     // Seen in NIF ver 20.0.0.4, 20.0.0.5

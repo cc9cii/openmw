@@ -1962,6 +1962,12 @@ ObjectAnimation::ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &mod
                 // it might be script controlled - check that there is no script
                 && mPtr.getClass().getScript(mPtr) == "" // formid converted to string
 
+                // only allow Ingredients and MiscItems?
+                //
+                // FIXME: Dungeons\Misc\RicketyFence01.NIF as non-zero mass so the check similar
+                // to UpperBench01.NIF won't work (i.e. collision shape will be out of place)
+                && mPtr.getClass().getTypeName() != typeid(ESM4::Static).name()
+
                 // even after all that, how do we keep some entities static?  e.g.
                 // CathedralCryptLight02.NIF should have its rectangular base static
                 // the touble is that it is not possible(?) to distinguish that from
@@ -1977,10 +1983,10 @@ ObjectAnimation::ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &mod
             // mBhkRigidBodyMap already has the target NiNode refs; each of these should have a
             // child SceneNode as a parent.
 
-            const std::map<int32_t/*NiAVObjectRef*/, int32_t/*bhkWorldObject*/>& rigidBodyMap =
+            const std::map<NiBtOgre::NiAVObjectRef, int32_t/*bhkWorldObject*/>& rigidBodyMap =
                 mObjectRoot->mForeignObj->mModel->getBhkRigidBodyMap();
 
-            std::map<int32_t/*NiAVObjectRef*/, int32_t/*bhkWorldObject*/>::const_iterator cit;
+            std::map<NiBtOgre::NiAVObjectRef, int32_t/*bhkWorldObject*/>::const_iterator cit;
             for (cit = rigidBodyMap.begin(); cit != rigidBodyMap.end(); ++cit)
             {
 #if 0
@@ -2012,6 +2018,7 @@ ObjectAnimation::ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &mod
                     childSceneNode->setOrientation(rot);
                 }
 
+                // key is NiAVObjectRef (usually NiNodeRef)
                 mPhysicsNodeMap[cit->first] = childSceneNode; // for creating physics ragdoll
 
                 if (eit == mObjectRoot->mForeignObj->mEntities.end())
@@ -2081,6 +2088,58 @@ ObjectAnimation::ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &mod
                 {
                     mInsert->attachObject(cit2->second);
                     std::cout << "entity not attached " << cit2->second->getMesh()->getName() << std::endl;
+                }
+            }
+
+            // add any flame nodes
+            const std::vector<NiBtOgre::NiNode*>& flameNodes
+                = mObjectRoot->mForeignObj->mModel->buildData().mFlameNodes;
+
+            if (flameNodes.size() > 0)
+            {
+                //std::cout << "flame formid " << ESM4::formIdToString(mPtr.getCellRef().getFormId()) << std::endl;
+                for (size_t i = 0; i < flameNodes.size(); ++i)
+                {
+                    if (!&flameNodes[i]->getParentNiNode())
+                        continue; // FIXME: should never happen, throw
+
+                    // find the scene node
+                    std::map<NiBtOgre::NiAVObjectRef, Ogre::SceneNode*>::const_iterator fIter
+                        = mPhysicsNodeMap.find(flameNodes[i]->getParentNiNode().selfRef());
+
+                    if (fIter == mPhysicsNodeMap.end())
+                        continue; // FIXME: should throw?
+
+                    std::string flameNodeName = flameNodes[i]->getName();
+
+                    const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
+                    const MWWorld::ForeignStore<ESM4::Static>& statStore = store.getForeign<ESM4::Static>();
+                    const ESM4::Static *fire = statStore.search(flameNodeName); // FlameNode1 FormId = 0x0000001f
+                    if (!fire)
+                        continue;
+
+                    // build the flame object
+                    std::string fireModel = "meshes\\"+fire->mModel;
+                    NifOgre::ObjectScenePtr flameNode(new NifOgre::ObjectScene(mInsert->getCreator()));
+                    mFlameNode.push_back(flameNode);
+
+                    const Ogre::Matrix4& flameNodeMat = flameNodes[i]->getLocalTransform();
+
+                    Ogre::SceneNode* flameSceneNode
+                        = fIter->second->createChildSceneNode(flameNodeMat.getTrans(),
+                                                              flameNodeMat.extractQuaternion());
+                    flameNode->mForeignObj = std::make_shared<NiBtOgre::BtOgreInst>(
+                        NiBtOgre::BtOgreInst(flameSceneNode, fireModel, "General"));
+                    flameNode->mForeignObj->instantiate();
+
+                    // attach the flame to this object
+                    std::map<int32_t, Ogre::Entity*>::const_iterator it(flameNode->mForeignObj->mEntities.begin());
+                    for (; it != flameNode->mForeignObj->mEntities.end(); ++it)
+                    {
+                        flameSceneNode->attachObject(it->second);
+                        //mObjectRoot->mBillboardNodes.push_back(bone); // FIXME: should check if billboard node
+                    }
+
                 }
             }
         }

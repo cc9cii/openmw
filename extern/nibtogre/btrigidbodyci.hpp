@@ -24,14 +24,16 @@
 #define NIBTOGRE_BTRIGIDBODYCI_H
 
 #include <memory>
+#include <vector>
+#include <map>
 
 #include <btBulletCollisionCommon.h>
 #include <btBulletDynamicsCommon.h>
 
-#include <map>
-
 #include <OgreResource.h>
 #include <OgreMatrix4.h>
+
+#include "niobject.hpp" // NiAVObjectRef
 
 namespace Ogre
 {
@@ -41,6 +43,8 @@ namespace Ogre
 
 namespace NiBtOgre
 {
+    class bhkSerializable;
+
     class BtRigidBodyCI: public Ogre::Resource
     {
         BtRigidBodyCI();
@@ -57,9 +61,11 @@ namespace NiBtOgre
         //      target NiNode ref     NiNode world transform
         //              |                   |
         //              v                   v
-        std::map<std::int32_t, std::pair<Ogre::Matrix4, btCollisionShape *> > mBtCollisionShapeMap; // used by RigidBody
-        std::map<std::int32_t, std::string> mTargetNames; // for doors and activators
-        std::map<std::int32_t, float> mMass;
+        std::map<NiAVObjectRef, std::pair<Ogre::Matrix4, btCollisionShape *> > mBtCollisionShapeMap; // used by RigidBody
+        std::map<NiAVObjectRef, std::string> mTargetNames; // for doors and activators
+        std::map<NiAVObjectRef, float> mMass;
+        std::vector<bhkSerializable*> mConstraints;
+        std::map<NiAVObjectRef, bhkSerializableRef> mRigidBodies;
 
         BtRigidBodyCI(Ogre::ResourceManager *creator, const Ogre::String& name, Ogre::ResourceHandle handle,
                 const Ogre::String& group, bool isManual, Ogre::ManualResourceLoader* loader);
