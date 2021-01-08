@@ -456,6 +456,8 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
             if (controlledNodeRef != mParent->selfRef())
                 mParent->setAnimRoot(controlledNodeRef);
         }
+        else
+            transform = mLocalTransform; // UpperScales.01.NIF
     }
     else if (mModel.buildData().havokEnabled())
     {
