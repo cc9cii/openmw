@@ -31,6 +31,10 @@
 #include <cassert>
 #include <stdexcept>
 #include <memory>
+#if defined (_MSC_VER)
+#define _USE_MATH_DEFINES
+#endif
+#include <cmath> // M_PI
 #include <iostream> // FIXME: debugging only
 
 #include <OgreSceneNode.h>
@@ -233,8 +237,59 @@ NiBtOgre::bhkConstraint::bhkConstraint(uint32_t index, NiStream *stream, const N
 
     stream->read(mPriority);
 
+    if (stream->nifVer() >= 0x14020005 && stream->userVer() >= 12) // from 20.2.0.7
+        mHavokScale = 70;
+    else
+        mHavokScale = 7;
+
     if (!data.mHasBhkConstraint)
         data.mHasBhkConstraint = true;
+}
+
+// adjust the pivot if the collision shape had transform applied then
+// update the local transform with the pivot as the origin
+void NiBtOgre::bhkConstraint::getBodyTransform(const bhkEntity& bhkEntity,
+        const btRigidBody& btBody, const btVector3& pivot, btTransform& transform) const
+{
+    btTransform targetBtTrans;
+    targetBtTrans.setIdentity();
+
+    // first check if local rigidbody transform should be applied
+    if (mModel.blockType(bhkEntity.selfRef()) == "bhkRigidBodyT")
+    {
+        Ogre::Matrix4 targetTransform = Ogre::Matrix4::IDENTITY;
+        if (btBody.getCollisionShape()->getUserIndex() == 4)
+        {
+            // find the NiNode target of the bhkRigidBodyT
+            // FIXME: do we have to loop each time? maybe have another map prepared?
+            const std::map<NiNodeRef, bhkSerializableRef>& bodyMap = mModel.getBhkRigidBodyMap();
+            std::map<NiNodeRef, bhkSerializableRef>::const_iterator bodyIt = bodyMap.begin();
+            for (; bodyIt != bodyMap.end(); ++bodyIt)
+            {
+                if (bodyIt->second == bhkEntity.selfRef())
+                {
+                    targetTransform = mModel.getRef<NiNode>(bodyIt->first)->getWorldTransform();
+                    break;
+                }
+            }
+        }
+
+        const bhkRigidBody& bhkBody = static_cast<const bhkRigidBody&>(bhkEntity);
+
+        Ogre::Vector3 p;
+        Ogre::Quaternion q;
+        Ogre::Vector3 s;
+        targetTransform.decomposition(p, s, q);
+        targetBtTrans = btTransform(btQuaternion(q.x, q.y, q.z, q.w), btVector3(p.x, p.y, p.z));
+
+        targetBtTrans
+            = targetBtTrans * btTransform(bhkBody.mRotation, bhkBody.mTranslation * btScalar(mHavokScale));
+    }
+
+    // update the supplied transform
+    transform.setOrigin(targetBtTrans * pivot);
+
+    // FIXME: orientation?
 }
 
 // Seen in NIF version 20.2.0.7
@@ -383,45 +438,16 @@ btTypedConstraint *NiBtOgre::bhkLimitedHingeConstraint::buildConstraint(const st
     localA.setIdentity();
     btTransform localB;
     localB.setIdentity();
-    Ogre::Vector3 scale = Ogre::Vector3(1.f/*inst->mScale*/); // FIXME
+    Ogre::Vector3 scale = Ogre::Vector3(1.f); // FIXME: assume uniform scaling for now (get from shape?)
 
     std::map<bhkEntity*, btRigidBody*>::const_iterator rbIter = bodies.find(mEntities[0]);
     if (rbIter == bodies.end())
         throw std::runtime_error ("bhkRagdollContraint: cannot find the bhkEntity A");
 
-    btRigidBody * bodyA = rbIter->second;
-
-    // note havok scaling factor of 7
-    btVector3 pivotA = pivotA * scale.x * 7; // FIXME: assume uniform scaling for now
-    if (mModel.blockType(rbIter->first->selfRef()) == "bhkRigidBodyT")
-    {
-        Ogre::Matrix4 targetTransform = Ogre::Matrix4::IDENTITY;
-        if (bodyA->getCollisionShape()->getUserIndex() == 4)
-        {
-            //std::cout << "static body A" << std::endl;
-
-            const std::map<NiNodeRef, bhkSerializableRef>& bodyMap = mModel.getBhkRigidBodyMap();
-            std::map<NiNodeRef, bhkSerializableRef>::const_iterator bodyIt = bodyMap.begin();
-            for (; bodyIt != bodyMap.end(); ++bodyIt)
-            {
-                if (bodyIt->second == rbIter->first->selfRef())
-                    targetTransform = mModel.getRef<NiNode>(bodyIt->first)->getWorldTransform();
-            }
-        }
-
-        bhkRigidBody* bhkBodyA = static_cast<bhkRigidBody*>(rbIter->first);
-
-        Ogre::Vector3 p;
-        Ogre::Quaternion q;
-        Ogre::Vector3 s;
-        targetTransform.decomposition(p, s, q);
-        btTransform fullTrans(btQuaternion(q.x, q.y, q.z, q.w), btVector3(p.x, p.y, p.z));
-
-        fullTrans = fullTrans * btTransform(bhkBodyA->mRotation, bhkBodyA->mTranslation * btScalar(7));
-        pivotA = fullTrans * pivotA;
-    }
-    localA.setOrigin(pivotA); // FIXME: assume uniform scaling for now
-    // FIXME: orientation?
+    btRigidBody *bodyA = rbIter->second;
+    btVector3 pivotA(mLimitedHinge.pivotA.x, mLimitedHinge.pivotA.y, mLimitedHinge.pivotA.z);
+    pivotA = pivotA *scale.x* mHavokScale;
+    getBodyTransform(*(rbIter->first), *bodyA, pivotA, localA);
 
     // NOTE: new value of rbIter
     rbIter = bodies.find(mEntities[1]);
@@ -429,52 +455,43 @@ btTypedConstraint *NiBtOgre::bhkLimitedHingeConstraint::buildConstraint(const st
         throw std::runtime_error ("bhkRagdollContraint: cannot find the bhkEntity B");
 
     btRigidBody * bodyB = rbIter->second;
+    btVector3 pivotB(mLimitedHinge.pivotB.x, mLimitedHinge.pivotB.y, mLimitedHinge.pivotB.z);
+    pivotB = pivotB * scale.x * mHavokScale;
+    getBodyTransform(*(rbIter->first), *bodyB, pivotB, localB);
 
-    // note havok scaling factor of 7
-    btVector3 pivotB = pivotB * scale.x * 7; // FIXME: assume uniform scaling for now
-    if (mModel.blockType(rbIter->first->selfRef()) == "bhkRigidBodyT")
-    {
-        Ogre::Matrix4 targetTransform = Ogre::Matrix4::IDENTITY;
-        if (bodyB->getCollisionShape()->getUserIndex() == 4)
-        {
-            //std::cout << "static body B" << std::endl;
+    btHingeConstraint *constraint
+        = new btHingeConstraint(*bodyA, *bodyB, localA, localB);
 
-            const std::map<NiNodeRef, bhkSerializableRef>& bodyMap = mModel.getBhkRigidBodyMap();
-            std::map<NiNodeRef, bhkSerializableRef>::const_iterator bodyIt = bodyMap.begin();
-            for (; bodyIt != bodyMap.end(); ++bodyIt)
-            {
-                if (bodyIt->second == rbIter->first->selfRef())
-                    targetTransform = mModel.getRef<NiNode>(bodyIt->first)->getWorldTransform();
-            }
-        }
+    constraint->setLimit(btScalar(-M_PI_4), btScalar(M_PI_2));
+#if 0
+    btHingeConstraint* hingeC;
+    btConeTwistConstraint* coneC;
 
-        bhkRigidBody *bhkBodyB = static_cast<bhkRigidBody*>(rbIter->first);
+    btTransform localA, localB;
 
-        Ogre::Vector3 p;
-        Ogre::Quaternion q;
-        Ogre::Vector3 s;
-        targetTransform.decomposition(p, s, q);
-        btTransform fullTrans(btQuaternion(q.x, q.y, q.z, q.w), btVector3(p.x, p.y, p.z));
+    localA.setIdentity(); localB.setIdentity();
+    localA.getBasis().setEulerZYX(0,M_PI_2,0);
+    localA.setOrigin(scale*btVector3(btScalar(0.), btScalar(0.15), btScalar(0.)));
 
-        fullTrans = fullTrans * btTransform(bhkBodyB->mRotation, bhkBodyB->mTranslation * btScalar(7));
-        pivotB = fullTrans * pivotB;
-    }
-    localB.setOrigin(pivotB);
-    // FIXME: orientation?
+    localB.getBasis().setEulerZYX(0,M_PI_2,0);
+    localB.setOrigin(scale*btVector3(btScalar(0.), btScalar(-0.15), btScalar(0.)));
 
-    //std::cout << pivotA.z() << " " << pivotB.z() << std::endl;
+    hingeC =  new btHingeConstraint(*m_bodies[BODYPART_PELVIS], *m_bodies[BODYPART_SPINE], localA, localB);
+
+    hingeC->setLimit(btScalar(-M_PI_4), btScalar(M_PI_2));
 
 
-    //btCollisionShape *shapeA = bodies[0]->getCollisionShape();
+    localA.setIdentity(); localB.setIdentity();
+    localA.getBasis().setEulerZYX(0,M_PI_2,0);
+    localA.setOrigin(scale*btVector3(btScalar(0.0658497), btScalar(6.72815), btScalar(0.0395605)));
 
+    localB.getBasis().setEulerZYX(0,M_PI_2,0);
+    localB.setOrigin(scale*btVector3(btScalar(0.511301), btScalar(-42.1899), btScalar(0.372982)));
 
-    // FIXME: who deletes the constraints?
-    btGeneric6DofConstraint *constraint
-        = new btGeneric6DofConstraint(*bodyA,
-                                      *bodyB,
-                                      localA,
-                                      localB,
-                                      /*useLinearReferenceFrameA*/false);
+    coneC = new btConeTwistConstraint(*m_bodies[TargetchainBottom01], *m_bodies[TargetHeavyTarget], localA, localB);
+
+    coneC->setLimit(0.7854*2, 0.4226*2, 0.);
+#endif
 
 #if 0
     // FIXME: need to tune these values
@@ -486,7 +503,8 @@ btTypedConstraint *NiBtOgre::bhkLimitedHingeConstraint::buildConstraint(const st
     constraint->setParam(BT_CONSTRAINT_STOP_CFM,0.f,2);
 #endif
 
-    return nullptr;//constraint;
+    // FIXME:
+    return  constraint;
 }
 
 void NiBtOgre::RagdollDescriptor::read(NiStream *stream)
@@ -656,45 +674,15 @@ btTypedConstraint *NiBtOgre::bhkRagdollConstraint::buildConstraint(const std::ma
     localA.setIdentity();
     btTransform localB;
     localB.setIdentity();
-    Ogre::Vector3 scale = Ogre::Vector3(1.f/*inst->mScale*/); // FIXME
+    Ogre::Vector3 scale = Ogre::Vector3(1.f); // FIXME: assume uniform scaling for now (get from shape?)
 
     std::map<bhkEntity*, btRigidBody*>::const_iterator rbIter = bodies.find(mEntities[0]);
     if (rbIter == bodies.end())
         throw std::runtime_error ("bhkRagdollContraint: cannot find the bhkEntity A");
 
-    btRigidBody * bodyA = rbIter->second;
-
-    // note havok scaling factor of 7
-    btVector3 pivotA = mRagdoll.pivotA * scale.x * 7; // FIXME: assume uniform scaling for now
-    if (mModel.blockType(rbIter->first->selfRef()) == "bhkRigidBodyT")
-    {
-        Ogre::Matrix4 targetTransform = Ogre::Matrix4::IDENTITY;
-        if (bodyA->getCollisionShape()->getUserIndex() == 4)
-        {
-            //std::cout << "static body A" << std::endl;
-
-            const std::map<NiNodeRef, bhkSerializableRef>& bodyMap = mModel.getBhkRigidBodyMap();
-            std::map<NiNodeRef, bhkSerializableRef>::const_iterator bodyIt = bodyMap.begin();
-            for (; bodyIt != bodyMap.end(); ++bodyIt)
-            {
-                if (bodyIt->second == rbIter->first->selfRef())
-                    targetTransform = mModel.getRef<NiNode>(bodyIt->first)->getWorldTransform();
-            }
-        }
-
-        bhkRigidBody* bhkBodyA = static_cast<bhkRigidBody*>(rbIter->first);
-
-        Ogre::Vector3 p;
-        Ogre::Quaternion q;
-        Ogre::Vector3 s;
-        targetTransform.decomposition(p, s, q);
-        btTransform fullTrans(btQuaternion(q.x, q.y, q.z, q.w), btVector3(p.x, p.y, p.z));
-
-        fullTrans = fullTrans * btTransform(bhkBodyA->mRotation, bhkBodyA->mTranslation * btScalar(7));
-        pivotA = fullTrans * pivotA;
-    }
-    localA.setOrigin(pivotA); // FIXME: assume uniform scaling for now
-    // FIXME: orientation?
+    btRigidBody *bodyA = rbIter->second;
+    btVector3 pivotA = mRagdoll.pivotA * scale.x * mHavokScale;
+    getBodyTransform(*(rbIter->first), *bodyA, pivotA, localA);
 
     // NOTE: new value of rbIter
     rbIter = bodies.find(mEntities[1]);
@@ -702,51 +690,12 @@ btTypedConstraint *NiBtOgre::bhkRagdollConstraint::buildConstraint(const std::ma
         throw std::runtime_error ("bhkRagdollContraint: cannot find the bhkEntity B");
 
     btRigidBody * bodyB = rbIter->second;
-
-    // note havok scaling factor of 7
-    btVector3 pivotB = mRagdoll.pivotB * scale.x * 7; // FIXME: assume uniform scaling for now
-    if (mModel.blockType(rbIter->first->selfRef()) == "bhkRigidBodyT")
-    {
-        Ogre::Matrix4 targetTransform = Ogre::Matrix4::IDENTITY;
-        if (bodyB->getCollisionShape()->getUserIndex() == 4)
-        {
-            //std::cout << "static body B" << std::endl;
-
-            const std::map<NiNodeRef, bhkSerializableRef>& bodyMap = mModel.getBhkRigidBodyMap();
-            std::map<NiNodeRef, bhkSerializableRef>::const_iterator bodyIt = bodyMap.begin();
-            for (; bodyIt != bodyMap.end(); ++bodyIt)
-            {
-                if (bodyIt->second == rbIter->first->selfRef())
-                    targetTransform = mModel.getRef<NiNode>(bodyIt->first)->getWorldTransform();
-            }
-        }
-
-        bhkRigidBody *bhkBodyB = static_cast<bhkRigidBody*>(rbIter->first);
-
-        Ogre::Vector3 p;
-        Ogre::Quaternion q;
-        Ogre::Vector3 s;
-        targetTransform.decomposition(p, s, q);
-        btTransform fullTrans(btQuaternion(q.x, q.y, q.z, q.w), btVector3(p.x, p.y, p.z));
-
-        fullTrans = fullTrans * btTransform(bhkBodyB->mRotation, bhkBodyB->mTranslation * btScalar(7));
-        pivotB = fullTrans * pivotB;
-    }
-    localB.setOrigin(pivotB);
-    // FIXME: orientation?
-
-    //std::cout << pivotA.z() << " " << pivotB.z() << std::endl;
-
-
-    //btCollisionShape *shapeA = bodies[0]->getCollisionShape();
-
+    btVector3 pivotB = mRagdoll.pivotB * scale.x * mHavokScale;
+    getBodyTransform(*(rbIter->first), *bodyB, pivotB, localB);
 
     btGeneric6DofConstraint *constraint
-        = new btGeneric6DofConstraint(*bodyA,
-                                      *bodyB,
-                                      localA,
-                                      localB,
-                                      /*useLinearReferenceFrameA*/false);
+        = new btGeneric6DofConstraint(*bodyA, *bodyB, localA, localB,
+                                     /*useLinearReferenceFrameA*/false);
 
 #if 0
     // FIXME: need to tune these values
@@ -768,182 +717,6 @@ btTypedConstraint *NiBtOgre::bhkRagdollConstraint::buildConstraint(const std::ma
     return constraint;
 }
 
-// FIXME: move to BtOgreInst
-#if 0
-void NiBtOgre::bhkRagdollConstraint::linkBodies(BtOgreInst *inst, const bhkEntity *body) const
-{
-#if 0
-if (node->name == "TargetchainRight02" /*|| node->name == "TargetchainRight02"*/)
-//if (node->name == "TargetHeavyTarget")
-    return;
-#endif
-
-    // FIXME: need to call bhkRigiBody to get the right position of the pivots
-
-    btTransform localA;
-    btTransform localB;
-    Ogre::Vector3 scale = Ogre::Vector3(1.f/*inst->mScale*/); // FIXME
-
-    localA.setIdentity();
-    localB.setIdentity();
-    localA.setOrigin(mRagdoll.pivotA * scale.x); // FIXME: assume uniform scaling for now
-    localB.setOrigin(mRagdoll.pivotB * scale.x); // FIXME: assume uniform scaling for now
-
-    assert(mEntities[0] == body && "the first entry is not self");
-    assert(mEntities.size() == 2 && "unexpected number of entities");
-    // FIXME: what to do if there are more than 2 rigid bodies?
-
-    btGeneric6DofConstraint *constraint
-        = new btGeneric6DofConstraint(*(inst->mRigidBodies[mEntities[0]->selfRef()].get()),
-                                      *(inst->mRigidBodies[mEntities[1]->selfRef()].get()),
-                                      localA,
-                                      localB,
-                                      /*useLinearReferenceFrameA*/false);
-
-    // FIXME: need to tune these values
-    constraint->setParam(BT_CONSTRAINT_STOP_ERP,0.8f,0);
-    constraint->setParam(BT_CONSTRAINT_STOP_ERP,0.8f,1);
-    constraint->setParam(BT_CONSTRAINT_STOP_ERP,0.8f,2);
-    constraint->setParam(BT_CONSTRAINT_STOP_CFM,0.f,0);
-    constraint->setParam(BT_CONSTRAINT_STOP_CFM,0.f,1);
-    constraint->setParam(BT_CONSTRAINT_STOP_CFM,0.f,2);
-
-    // defer this to later
-    //mDynamicsWorld->addConstraint(constraint, /*disable collision between linked bodies*/true);
-
-
-
-
-
-
-
-
-
-
-
-
-#if 0
-
-    mShape->mJoints[rigidBody->recIndex].push_back(
-            std::make_pair(rigidBody->constraints[i]->entities[0]->recIndex,
-                           rigidBody->constraints[i]->entities[1]->recIndex));
-
-    Nif::RagdollDescriptor ragdollDesc;
-    const Nif::bhkRagdollConstraint *ragdoll
-        = static_cast<const Nif::bhkRagdollConstraint*>(rigidBody->constraints[i].getPtr());
-
-    // FIXME: try to get the NIF frame of reference so that pivotA and pivotB
-    // can be "fixed" with correct frames of references
-    const Nif::bhkConstraint *constraint = rigidBody->constraints[i].getPtr();
-    // rbA is not needed since this we already have node, translation and rotation
-    //const Nif::bhkRigidBody *rbA
-        //= static_cast<const Nif::bhkRigidBody*>(constraint->entities[0].getPtr()); // 0 HACK
-    // however it doesn't seem possible to get the node info from the rigid body
-    // maybe the shape's mbox translation needs to be used? (but how to get the
-    // second shape from the entity?)
-    const Nif::bhkRigidBody *rbB
-        = static_cast<const Nif::bhkRigidBody*>(constraint->entities[1].getPtr()); // 1 HACK
-
-    Ogre::Matrix4 rbT = Ogre::Matrix4::IDENTITY;
-    typedef std::map<size_t, btRigidBody::btRigidBodyConstructionInfo>::iterator ConstructionInfoIter;
-    ConstructionInfoIter itCIA(mShape->mRigidBodyCI.find(rigidBody->recIndex));
-    if (itCIA == mShape->mRigidBodyCI.end())
-        continue; // FIXME: shouldn't happen, so probably best to throw here
-    btQuaternion qa = itCIA->second.m_startWorldTransform.getRotation();
-
-    if (rigidBody->recType == Nif::RC_bhkRigidBodyT)
-    {
-        rbT.makeTransform(translation*mHavokScale, Ogre::Vector3(1.f), rotation);
-    }
-
-    if (rigidBody->shape->recType == Nif::RC_bhkCapsuleShape)
-    {
-            //ragdollDesc.pivotA = mShape->mShapeTrans * ragdoll->ragdoll.pivotA *mHavokScale; // FIXME
-            Ogre::Vector3 t = mShape->mShapeTrans; // t is the midpoint vector
-            Ogre::Vector4 p = ragdoll->ragdoll.pivotA * mHavokScale;
-            ragdollDesc.pivotA = Ogre::Vector4(p.x-t.x, p.y-t.y, p.z-t.z, p.w);
-            ragdollDesc.planeA = ragdoll->ragdoll.planeA * mHavokScale;
-            ragdollDesc.twistA = ragdoll->ragdoll.twistA * mHavokScale;
-    }
-    else
-    {
-#if 0
-            Ogre::Vector4 p = ragdoll->ragdoll.pivotA * mHavokScale;
-            Ogre::Vector3 v(p.x, p.y, p.z);
-        v = Ogre::Quaternion(qa.w(), qa.x(), qa.y(), qa.z()) * v; // rotate as per m_startWorldTransform
-            ragdollDesc.pivotA = Ogre::Vector4(v.x, v.y, v.z, p.w);
-#endif
-
-
-            //ragdollDesc.pivotA = rbT.inverse() * ragdoll->ragdoll.pivotA * mHavokScale;
-            ragdollDesc.pivotA = ragdoll->ragdoll.pivotA * mHavokScale;
-            ragdollDesc.planeA = ragdoll->ragdoll.planeA * mHavokScale;
-            ragdollDesc.twistA = ragdoll->ragdoll.twistA * mHavokScale;
-    }
-
-
-
-        Ogre::Matrix4 rbTB = Ogre::Matrix4::IDENTITY;
-        typedef std::map<size_t, btRigidBody::btRigidBodyConstructionInfo>::iterator ConstructionInfoIter;
-        ConstructionInfoIter itCI(mShape->mRigidBodyCI.find(rbB->recIndex));
-        if (itCI == mShape->mRigidBodyCI.end())
-            continue; // FIXME: shouldn't happen, so probably best to throw here
-        btQuaternion q = itCI->second.m_startWorldTransform.getRotation();
-        //btTransform qt(q, btVector3(0.f, 0.f, 0.f)); // rotate only
-
-
-
-
-    if (rbB->recType == Nif::RC_bhkRigidBodyT)
-    {
-        Ogre::Vector3 rbBtrans = Ogre::Vector3::ZERO;
-        Ogre::Quaternion rbBrot = Ogre::Quaternion::IDENTITY;
-
-            rbBrot = Ogre::Quaternion(rbB->rotation.w,
-                    rbB->rotation.x, rbB->rotation.y, rbB->rotation.z);
-            rbBtrans = Ogre::Vector3(rbB->translation.x,
-                    rbB->translation.y, rbB->translation.z);
-        rbTB.makeTransform(rbBtrans*mHavokScale, Ogre::Vector3(1.f), rbBrot);
-    }
-    if (rbB->shape->recType == Nif::RC_bhkCapsuleShape)
-    {
-            Ogre::Vector3 trans = mShape->mShapeTransMap[rbB->recIndex]; // FIXME: just assume one exists!
-            //ragdollDesc.pivotB = trans * ragdoll->ragdoll.pivotB *mHavokScale; // FIXME
-            Ogre::Vector3 t = trans;
-            Ogre::Vector4 p = ragdoll->ragdoll.pivotB * mHavokScale;
-            Ogre::Vector3 v(p.x, p.y, p.z);
-        v = Ogre::Quaternion(q.w(), q.x(), q.y(), q.z()) * v; // rotate as per m_startWorldTransform
-            ragdollDesc.pivotB = Ogre::Vector4(v.x-t.x, v.y-t.y, v.z-t.z, p.w);
-            ragdollDesc.planeB = ragdoll->ragdoll.planeB * mHavokScale;
-            ragdollDesc.twistB = ragdoll->ragdoll.twistB * mHavokScale;
-    }
-    else
-    {
-#if 0
-            Ogre::Vector4 p = ragdoll->ragdoll.pivotB * mHavokScale;
-            Ogre::Vector3 v(p.x, p.y, p.z);
-        v = Ogre::Quaternion(q.w(), q.x(), q.y(), q.z()) * v; // rotate as per m_startWorldTransform
-            ragdollDesc.pivotB = Ogre::Vector4(v.x, v.y, v.z, p.w);
-
-#endif
-
-
-            //ragdollDesc.pivotB = rbTB.inverse() * ragdoll->ragdoll.pivotB * mHavokScale;
-            ragdollDesc.pivotB = ragdoll->ragdoll.pivotB * mHavokScale;
-            ragdollDesc.planeB = ragdoll->ragdoll.planeB * mHavokScale;
-            ragdollDesc.twistB = ragdoll->ragdoll.twistB * mHavokScale;
-    }
-        ragdollDesc.coneMaxAngle = ragdoll->ragdoll.coneMaxAngle;
-        ragdollDesc.planeMinAngle = ragdoll->ragdoll.planeMinAngle;
-        ragdollDesc.planeMaxAngle = ragdoll->ragdoll.planeMaxAngle;
-        ragdollDesc.twistMinAngle = ragdoll->ragdoll.twistMinAngle;
-        ragdollDesc.twistMaxAngle = ragdoll->ragdoll.twistMaxAngle;
-        ragdollDesc.maxFriction = ragdoll->ragdoll.maxFriction;
-
-        mShape->mNifRagdollDesc[std::make_pair(rigidBody->recIndex, rbB->recIndex)] = ragdollDesc; // cast away compiler warning
-#endif
-}
-#endif
 NiBtOgre::bhkShape::bhkShape(uint32_t index, NiStream *stream, const NiModel& model, BuildData& data)
     : bhkSerializable(index, stream, model, data)
 {

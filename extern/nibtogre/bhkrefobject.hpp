@@ -199,8 +199,11 @@ namespace NiBtOgre
 
         bhkConstraint(uint32_t index, NiStream *stream, const NiModel& model, BuildData& data);
 
-        // FIXME: move to BtOgreInst
-        //virtual void linkBodies(const bhkEntity *body) const {} // FIXME
+    protected:
+        int mHavokScale;
+
+        void getBodyTransform(const bhkEntity& bhkEntity, const btRigidBody& btBody,
+                const btVector3& pivot, btTransform& transform) const;
     };
 
     // Seen in NIF version 20.2.0.7
