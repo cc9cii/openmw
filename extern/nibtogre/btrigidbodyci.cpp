@@ -59,10 +59,16 @@ NiBtOgre::BtRigidBodyCI::BtRigidBodyCI(Ogre::ResourceManager *creator, const Ogr
 
 NiBtOgre::BtRigidBodyCI::~BtRigidBodyCI()
 {
+    for (std::size_t i = 0; i < mConstraints.size(); ++i)
+    {
+        if (mConstraints[i])
+            delete (mConstraints[i]);
+    }
+
     std::map<std::int32_t, std::pair<Ogre::Matrix4, btCollisionShape*> >::iterator iter;
     for (iter = mBtCollisionShapeMap.begin(); iter != mBtCollisionShapeMap.end(); ++iter)
     {
-        delete iter->second.second;
+        deleteShape(iter->second.second);
     }
 }
 

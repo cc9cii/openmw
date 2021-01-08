@@ -6417,7 +6417,7 @@ Now that activator animations are working, time to try using the same for door a
 
 ## Issues
 
-  * BenirusDoor01.NIF either the animation plays too fast or the sound starts late - worked around by using "0.5f" speed multiplier when calling `play()` from `MWRender::Animation::activateAnimatedDoor()`
+  * **FIXME:** BenirusDoor01.NIF either the animation plays too fast or the sound starts late - worked around by using "0.5f" speed multiplier when calling `play()` from `MWRender::Animation::activateAnimatedDoor()`
   * Physics shapes for activators not updated (fixed 04/01/2021)
   * Physics shapes for descendants of animated bones not done (fixed 04/01/2021)
 
@@ -6444,7 +6444,7 @@ Some activators:
   * One of the display cases in Ridir's Staffs has slightly twisted collision shapes.
   * Don't forget to add `getScript()` to the rest of the classes. (see  05/12/2020)
 
-# [05/01/2021 - 06/01/2021] Ragdoll
+# [05/01/2021 - 07/01/2021] Ragdoll
 
 See some notes from around 08/03/2020.
 
@@ -6471,7 +6471,12 @@ If we decide that the `Ogre::SceneNode` for an `Ogre::Entity` with a rigidbody i
 ## Issues
 
   * Doors with havok and animations ignore havok (see sewerTunnelDoor01.NIF)
-  * The raycasting shapes do not move with the non-raycasting shapes.
+  * The raycasting shapes do not move with the non-raycasting shapes. (worked around 07/01/21)
+  * UpperScales01.NIF - the strays are not being rendered correctly (the collision shapes are fine)
+    - probably because the model has animation enabled - see `buildSubMesh()` (worked around 08/01/21)
+  * static objects with havok ignores havok (RicketyFence01.NIF) - if they clip through to the ground then they'll fall down
+  * either the rendering and/or collision shape placement for root havok models are wrong
+  * Ragdoll with skinned meshes are not yet implemented
 
 
 

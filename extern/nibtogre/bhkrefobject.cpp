@@ -741,7 +741,6 @@ btTypedConstraint *NiBtOgre::bhkRagdollConstraint::buildConstraint(const std::ma
     //btCollisionShape *shapeA = bodies[0]->getCollisionShape();
 
 
-    // FIXME: who deletes the constraints?
     btGeneric6DofConstraint *constraint
         = new btGeneric6DofConstraint(*bodyA,
                                       *bodyB,
