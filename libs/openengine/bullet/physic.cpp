@@ -817,6 +817,7 @@ namespace Physic
     }
 
     // some rigid bodies have children, so ensure that they are all deleted
+    // NOTE: BtRigidBodyCI deletes the collision shapes and constraints
     void PhysicEngine::deleteRigidBody(const std::string &name)
     {
         RigidBodyContainer::iterator it = mCollisionObjectMap.find(name);
