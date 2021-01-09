@@ -680,7 +680,7 @@ namespace MWWorld
     void PhysicsSystem::addObject (const Ptr& ptr, const std::string& mesh, bool placeable)
     {
         Ogre::SceneNode* node = ptr.getRefData().getBaseNode();
-        handleToMesh[node->getName()] = mesh;
+        handleToMesh[node->getName()] = mesh; // FIXME: ever growing...
 
         // FIXME: this part is a horrid hack
         MWRender::Animation* anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
@@ -688,8 +688,9 @@ namespace MWWorld
         if (objAnim && !objAnim->getPhysicsNodeMap().empty())  // FIXME: this is such a bad hack
         {
             OEngine::Physic::RigidBody * body = mEngine->createAndAdjustRagdollBody(
-                mesh, node->getName(), objAnim->getPhysicsNodeMap(), ptr.getCellRef().getScale(),
-                node->getPosition(), node->getOrientation(), 0, 0, false, placeable);
+                mesh, node->getName(), objAnim->getPhysicsNodeMap(), *objAnim->getSkelBase(),
+                ptr.getCellRef().getScale(), node->getPosition(), node->getOrientation(),
+                0, 0, false, placeable);
 
 #if 0
             //if (objAnim->disableHavokAtStart())

@@ -351,6 +351,8 @@ namespace NiBtOgre
         float         mLength;
 
         bhkStiffSpringConstraint(uint32_t index, NiStream *stream, const NiModel& model, BuildData& data);
+
+        virtual btTypedConstraint *buildConstraint(const std::map<bhkEntity*, btRigidBody*>& bodies) const;
     };
 
     struct bhkShape : public bhkSerializable

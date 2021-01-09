@@ -20,6 +20,7 @@
 #include <OgreEntity.h>
 #include <OgreSubMesh.h>
 #include <OgreSubEntity.h>
+#include <OgreBone.h>
 
 using namespace Ogre;
 
@@ -110,12 +111,20 @@ void RigidBodyState::setWorldTransform(const btTransform &centerOfMassWorldTrans
                                  Ogre::Vector3(1.f),
                                  Ogre::Quaternion(iq.w(), iq.x(), iq.y(), iq.z()));
 
-    // take away parent's transform from the input
+    // take away parent's transform (should be that of the SceneNode) from the input
     inputTransform = mParentTrans.inverse() * inputTransform;
 
-    // apply the input to the SceneNode
-    mSceneNode->setOrientation(inputTransform.extractQuaternion());
-    mSceneNode->setPosition(inputTransform.getTrans());
+    // apply the input to the SceneNode/Bone
+    if (mBone)
+    {
+        mBone->_setDerivedOrientation(inputTransform.extractQuaternion());
+        mBone->_setDerivedPosition(inputTransform.getTrans());
+    }
+    else
+    {
+        mSceneNode->setOrientation(inputTransform.extractQuaternion());
+        mSceneNode->setPosition(inputTransform.getTrans());
+    }
 }
 
 /*

@@ -462,7 +462,7 @@ btTypedConstraint *NiBtOgre::bhkLimitedHingeConstraint::buildConstraint(const st
     btHingeConstraint *constraint
         = new btHingeConstraint(*bodyA, *bodyB, localA, localB);
 
-    constraint->setLimit(btScalar(-M_PI_4), btScalar(M_PI_2));
+    constraint->setLimit(btScalar(-M_PI_2), btScalar(M_PI_2));
 #if 0
     btHingeConstraint* hingeC;
     btConeTwistConstraint* coneC;
@@ -503,7 +503,7 @@ btTypedConstraint *NiBtOgre::bhkLimitedHingeConstraint::buildConstraint(const st
     constraint->setParam(BT_CONSTRAINT_STOP_CFM,0.f,2);
 #endif
 
-    // FIXME:
+    //return nullptr; // FIXME: temp testing
     return  constraint;
 }
 
@@ -739,6 +739,11 @@ NiBtOgre::bhkStiffSpringConstraint::bhkStiffSpringConstraint(uint32_t index, NiS
     stream->read(mPivotA);
     stream->read(mPivotB);
     stream->read(mLength);
+}
+
+btTypedConstraint *NiBtOgre::bhkStiffSpringConstraint::buildConstraint(const std::map<bhkEntity*, btRigidBody*>& bodies) const
+{
+    return nullptr; // FIXME
 }
 
 // seen in nif ver 20.0.0.4, 20.0.0.5

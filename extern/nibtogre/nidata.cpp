@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015-2020 cc9cii
+  Copyright (C) 2015-2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -992,6 +992,7 @@ NiBtOgre::NiSkinInstance::NiSkinInstance(uint32_t index, NiStream *stream, const
         data.addBoneTreeLeafIndex(mBoneRefs[i]); // register for building a skeleton
     }
 
+    // NOTE: SkeletonRoot is *not* added to mBoneTreeLeafIndices.  This is intentional.
     if (hasValidBoneRef && rIndex != -1)
         data.setSkeletonRoot(rIndex);
 }

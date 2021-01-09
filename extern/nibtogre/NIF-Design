@@ -6441,7 +6441,7 @@ Some activators:
 
 ## More known Issues
 
-  * One of the display cases in Ridir's Staffs has slightly twisted collision shapes.
+  * One of the display cases in Ridir's Staffs has slightly twisted collision shapes after activation.
   * Don't forget to add `getScript()` to the rest of the classes. (see  05/12/2020)
 
 # [05/01/2021 - 07/01/2021] Ragdoll
@@ -6475,10 +6475,21 @@ If we decide that the `Ogre::SceneNode` for an `Ogre::Entity` with a rigidbody i
   * UpperScales01.NIF - the strays are not being rendered correctly (the collision shapes are fine)
     - probably because the model has animation enabled - see `buildSubMesh()` (worked around 08/01/21)
   * static objects with havok ignores havok (RicketyFence01.NIF) - if they clip through to the ground then they'll fall down
-  * either the rendering and/or collision shape placement for root havok models are wrong
-  * Ragdoll with skinned meshes are not yet implemented
+  * either the rendering and/or collision shape placement for root havok models are wrong (fixed 08/01/21)
+  * Ragdoll with skinned meshes are not yet implemented (fixed 08/01/21)
 
+# [08/01/2021 - 09/01/2021] Ragdoll with skinned mesh
 
+  * `Dungeons\Misc\RicketyFence01.NIF` has wrong collision shape position
+  * `Dungeons\Caves\RopeRock01.NIF` has animation as well as havok; also seems to have wrong collision shape positions
+  * bhkStiffSpringConstraint not implemented
+  * Occasional glitches and crashes in `stepSimulation()`
+
+## Testing sites
+
+  * COC "WellspringCave"
+  * COC "ImperialDungeon05"
+  * COC "DarkFissure"
 
 
 

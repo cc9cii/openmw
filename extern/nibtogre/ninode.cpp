@@ -314,11 +314,23 @@ void NiBtOgre::NiNode::buildMesh(Ogre::Mesh *mesh)
     BoundsFinder bounds;
     bool needTangents = true;
 
+    // Ogre wants all sub-meshes to be skinned if one is skinned.  See Ogre::Entity::updateAnimation()
+    // e.g. Dungeons\Misc\NecroTapestrySkinned01.NIF (COC "DarkFissure")
+    bool hasSkinnedSubMesh = false;
+    for (size_t i = 0; i < mSubMeshChildren.size(); ++i)
+    {
+        if (mSubMeshChildren[i]->mSkinInstanceRef != -1)
+        {
+            hasSkinnedSubMesh = true;
+            break;
+        }
+    }
+
     // create and update (i.e. apply materials, properties and controllers)
     // an Ogre::SubMesh for each in mSubMeshGeometry
     for (size_t i = 0; i < mSubMeshChildren.size(); ++i)
     {
-        needTangents &= mSubMeshChildren[i]->buildSubMesh(mesh, bounds);
+        needTangents &= mSubMeshChildren[i]->buildSubMesh(mesh, bounds, hasSkinnedSubMesh);
     }
 
     // build tangents if at least one of the sub-mesh's material needs them

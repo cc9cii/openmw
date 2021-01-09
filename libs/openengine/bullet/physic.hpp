@@ -26,6 +26,7 @@ namespace BtOgre
 
 namespace Ogre
 {
+    class Entity;
     class SceneManager;
 }
 
@@ -33,7 +34,6 @@ namespace MWWorld
 {
     class World;
 }
-
 
 namespace OEngine {
 namespace Physic
@@ -226,7 +226,7 @@ namespace Physic
             Ogre::Vector3* scaledBoxTranslation = 0, Ogre::Quaternion* boxRotation = 0, bool raycasting=false, bool placeable=false);
 
         RigidBody* createAndAdjustRagdollBody(const std::string &mesh, const std::string &name,
-            const std::map<std::int32_t, Ogre::SceneNode*>&,
+            const std::map<std::int32_t, Ogre::SceneNode*>&, const Ogre::Entity& skelBase,
             float scale, const Ogre::Vector3 &position, const Ogre::Quaternion &rotation,
             Ogre::Vector3* scaledBoxTranslation = 0, Ogre::Quaternion* boxRotation = 0, bool raycasting=false, bool placeable=false);
 

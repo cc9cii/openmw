@@ -8,6 +8,8 @@
 #include <boost/format.hpp>
 
 #include <OgreSceneManager.h>
+#include <OgreEntity.h>
+#include <OgreSkeletonInstance.h>
 
 #include <extern/nibtogre/bhkrefobject.hpp>
 #include <extern/nibtogre/btrigidbodyci.hpp>
@@ -467,7 +469,7 @@ namespace Physic
     //
     // It's probably possible to combine since there is so much code duplication?
     RigidBody* PhysicEngine::createAndAdjustRagdollBody(const std::string &mesh, const std::string &name,
-        const std::map<std::int32_t, Ogre::SceneNode*>& nodeMap,
+        const std::map<std::int32_t, Ogre::SceneNode*>& nodeMap, const Ogre::Entity& skelBase,
         float scale, const Ogre::Vector3 &position, const Ogre::Quaternion &rotation,
         Ogre::Vector3* scaledBoxTranslation, Ogre::Quaternion* boxRotation, bool raycasting, bool placeable)
     {
@@ -477,12 +479,16 @@ namespace Physic
         std::string lowerMesh = /*mesh*/outputstring;
         Misc::StringUtils::lowerCaseInPlace(lowerMesh);
 
-        //if (lowerMesh.find("skeleton") != std::string::npos)// == "meshes\\characters\\_male\\skeleton.nif001.000")
+        //if (lowerMesh.find("roothavok02") != std::string::npos)// == "meshes\\characters\\_male\\skeleton.nif001.000")
             //std::cout << "skeleton" << std::endl;
 
         // FIXME
         if (0)//lowerMesh.find("traplog") == std::string::npos)
             return createAndAdjustRigidBody(mesh, name, scale, position, rotation, scaledBoxTranslation, boxRotation, raycasting, placeable);
+
+        Ogre::SkeletonInstance *skelInst = nullptr;
+        if (&skelBase)
+            skelInst = skelBase.getSkeleton();
 
         std::map<std::int32_t, RigidBody*> rigidBodyMap;
 
@@ -525,9 +531,13 @@ namespace Physic
 
             Ogre::SceneNode *childNode = nodeMap.find(iter->first)->second;
 
+            Ogre::Bone* bone = nullptr;
+            if (skelInst && skelInst->hasBone(ci->mTargetNames[iter->first]))
+                bone = skelInst->getBone(ci->mTargetNames[iter->first]);
+
             // NOTE: dtor of RigidBody deletes RigidBodyState
             BtOgre::RigidBodyState *state
-                = new BtOgre::RigidBodyState(childNode, sceneNodeTrans, startTrans);
+                = new BtOgre::RigidBodyState(childNode, bone, sceneNodeTrans, startTrans);
             CI.m_motionState = state;
 
             // NOTE: 'name' should be the same for collision detection/raycast

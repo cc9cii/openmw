@@ -1933,7 +1933,8 @@ ObjectAnimation::ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &mod
         if (!mObjectRoot->mForeignObj)
             return;
 
-        //if (model.find("RootHavok") != std::string::npos)
+        //if (model.find("RootHavok02") != std::string::npos)
+        //if (model.find("RopeSkull") != std::string::npos)
             //std::cout << "stop" << std::endl;
 
         // FIXME: below needs to be made a function so that it can be called from elsewhere
@@ -1946,33 +1947,44 @@ ObjectAnimation::ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &mod
         // BSX flag reports both havok and animation enabled but doesn't have any constraints
         if (mObjectRoot->mForeignObj->havokEnabled() // Havok enabled objects
 
-                // this is only a temporary workaround since some will have both animation and
-                // havok (e.g. Clutter\MinotaurHead.NIF in Jensine's "Good as New" Merchandise)
-                //
-                // FIXME: but that means things like steel longsword that doesn't have any
-                //        constraints won't be recognised
-                //&& mObjectRoot->mForeignObj->mModel->buildData().hasBhkConstraint()
+            // this is only a temporary workaround since some will have both animation and
+            // havok (e.g. Clutter\MinotaurHead.NIF in Jensine's "Good as New" Merchandise)
+            //
+            // FIXME: but that means things like steel longsword that doesn't have any
+            //        constraints won't be recognised
+            //&& mObjectRoot->mForeignObj->mModel->buildData().hasBhkConstraint()
 
-                // sewerTunnelDoor01.NIF workaround (collision shape of gate is incorrect)
-                && mObjectRoot->mForeignObj->mModel->getNiMultiTargetTransformController() == nullptr
+            // sewerTunnelDoor01.NIF workaround (collision shape of gate is incorrect)
+            //
+            // FIXME: but this check stops Dungeons\Caves\RopeRock01.NIF from workding
+            && mObjectRoot->mForeignObj->mModel->getNiMultiTargetTransformController() == nullptr
 
-                // decide if havok should be enabled - check that the flag is off
-                && mPtr.getCellRef().getParentFormId() == 0
+            // decide if havok should be enabled - check that the flag is off
+            && mPtr.getCellRef().getParentFormId() == 0
 
-                // it might be script controlled - check that there is no script
-                && mPtr.getClass().getScript(mPtr) == "" // formid converted to string
+            // it might be script controlled - check that there is no script
+            && mPtr.getClass().getScript(mPtr) == "" // formid converted to string
 
-                // only allow Ingredients and MiscItems?
-                //
-                // FIXME: Dungeons\Misc\RicketyFence01.NIF as non-zero mass so the check similar
-                // to UpperBench01.NIF won't work (i.e. collision shape will be out of place)
-                && mPtr.getClass().getTypeName() != typeid(ESM4::Static).name()
+            // only allow Ingredients and MiscItems?
+            //
+            // RootHavok06.NIF is an ESM4::Static and also sometimes an entity is skinned
+            // and the movement is via bone weights
+            //
+            // Also see Dungeons\Misc\NecroTapestrySkinned01.NIF (COC "DarkFissure")
+            //
+            // FIXME: Dungeons\Misc\RicketyFence01.NIF has non-zero mass so the check similar
+            // to UpperBench01.NIF won't work (i.e. collision shape will be out of place)
+            && (
+                mPtr.getClass().getTypeName() != typeid(ESM4::Static).name()
+                ||
+                mObjectRoot->mForeignObj->mModel->hasSkeleton()
+                )
 
-                // even after all that, how do we keep some entities static?  e.g.
-                // CathedralCryptLight02.NIF should have its rectangular base static
-                // the touble is that it is not possible(?) to distinguish that from
-                // hood_gnd.nif
-           )
+            // even after all that, how do we keep some entities static?  e.g.
+            // CathedralCryptLight02.NIF should have its rectangular base static
+            // the touble is that it is not possible(?) to distinguish that from
+            // hood_gnd.nif
+            )
         {
             // NOTE:
             //
@@ -1989,20 +2001,7 @@ ObjectAnimation::ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &mod
             std::map<NiBtOgre::NiAVObjectRef, int32_t/*bhkWorldObject*/>::const_iterator cit;
             for (cit = rigidBodyMap.begin(); cit != rigidBodyMap.end(); ++cit)
             {
-#if 0
-                // to decide if the entity needs to have its own scenenode, check that its
-                // rigidbody has a constraint
-                if (NiBtOgre::bhkRigidBody *rigidBody // FIXME: techically a bhkEntity
-                    = mObjectRoot->mForeignObj->mModel->getRef<NiBtOgre::bhkRigidBody>(cit->second))
-                {
-                    if (rigidBody->mConstraints.empty())
-                        continue; // nope, must be static
-                }
-#endif
-                std::map<NiBtOgre::NiNodeRef, Ogre::Entity*>::iterator eit
-                    = mObjectRoot->mForeignObj->mEntities.find(cit->first);
-
-                Ogre::SceneNode *childSceneNode = mInsert->createChildSceneNode();
+                Ogre::SceneNode* childSceneNode = mInsert->createChildSceneNode();
 
                 // place childSceneNode at the right place
                 {
@@ -2020,6 +2019,10 @@ ObjectAnimation::ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &mod
 
                 // key is NiAVObjectRef (usually NiNodeRef)
                 mPhysicsNodeMap[cit->first] = childSceneNode; // for creating physics ragdoll
+
+                // find the Ogre::Entity for this rigid body
+                std::map<NiBtOgre::NiNodeRef, Ogre::Entity*>::iterator eit
+                    = mObjectRoot->mForeignObj->mEntities.find(cit->first);
 
                 if (eit == mObjectRoot->mForeignObj->mEntities.end())
                 {
@@ -2039,7 +2042,7 @@ ObjectAnimation::ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &mod
                     if (!mesh)
                         mesh = meshLoader.createMesh(meshName, "General", model.get(), cit->first);
 
-                    Ogre::Entity *entity = mInsert->getCreator()->createEntity(mesh);
+                    Ogre::Entity* entity = mInsert->getCreator()->createEntity(mesh);
                     entity->setVisible(true);
 
                     childSceneNode->attachObject(entity);
@@ -2060,6 +2063,8 @@ ObjectAnimation::ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &mod
             }
 
             // FIXME: for some reason bows are not being identified as having havok
+
+            bool hasSkeleton = mObjectRoot->mSkelBase && mObjectRoot->mSkelBase->getSkeleton();
             std::map<int32_t, Ogre::Entity*>::const_iterator cit2(mObjectRoot->mForeignObj->mEntities.begin());
             for (; cit2 != mObjectRoot->mForeignObj->mEntities.end(); ++cit2)
             {
@@ -2089,7 +2094,36 @@ ObjectAnimation::ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &mod
                     mInsert->attachObject(cit2->second);
                     std::cout << "entity not attached " << cit2->second->getMesh()->getName() << std::endl;
                 }
+
+                if (hasSkeleton)
+                {
+                    if (cit2->second != mObjectRoot->mSkelBase)
+                        cit2->second->shareSkeletonInstanceWith(mObjectRoot->mSkelBase);
+                }
             }
+// FIXME: for testing only
+#if 0
+        if (mObjectRoot && mObjectRoot->mSkelBase)
+        {
+            std::string boneName = "c_link04";
+            Ogre::SkeletonInstance* skelinst = mObjectRoot->mSkelBase->getSkeleton();
+            if (skelinst && skelinst->hasBone(boneName))
+            {
+
+                apple = NifOgre::ObjectScenePtr(new NifOgre::ObjectScene(mInsert->getCreator()));
+
+                NiBtOgre::NiModelManager& modelManager = NiBtOgre::NiModelManager::getSingleton();
+                std::string meshName = "meshes\\clutter\\apple01.nif";
+                NiModelPtr object = modelManager.getOrLoadByName(meshName, "General");
+                apple->mForeignObj
+                    = std::make_unique<NiBtOgre::BtOgreInst>(NiBtOgre::BtOgreInst(object, mInsert->createChildSceneNode()));
+                apple->mForeignObj->instantiate();
+                apple->mForeignObj->mEntities[0]->detachFromParent();
+                mSkelBase->attachObjectToBone(boneName, apple->mForeignObj->mEntities[0]);
+
+            }
+        }
+#endif
 
             // add any flame nodes
             const std::vector<NiBtOgre::NiNode*>& flameNodes
@@ -2147,9 +2181,12 @@ ObjectAnimation::ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &mod
         {
             std::map<int32_t, Ogre::Entity*>::const_iterator cit(mObjectRoot->mForeignObj->mEntities.begin());
             for (; cit != mObjectRoot->mForeignObj->mEntities.end(); ++cit)
-                if(!cit->second->isAttached())
+            {
+                if (!cit->second->isAttached())
                     mInsert->attachObject(cit->second);
+            }
         }
+
         mObjectRoot->_notifyAttached(); // for particles
 
         // add any flame nodes

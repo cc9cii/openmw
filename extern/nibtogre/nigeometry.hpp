@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015-2020 cc9cii
+  Copyright (C) 2015-2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -88,7 +88,8 @@ namespace NiBtOgre
         NiTriBasedGeom(uint32_t index, NiStream *stream, const NiModel& model, BuildData& data);
 
         // NiTriStrips builds differently to NiTriShapes only in that the data are different
-        bool buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& bounds); // returns true if tangents needed
+        // returns true if tangents needed
+        bool buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& bounds, bool hasSkinnedSubMesh);
 
         void buildFgPoses(Ogre::Mesh *mesh, const FgLib::FgTri *tri, bool rotate = false);
 

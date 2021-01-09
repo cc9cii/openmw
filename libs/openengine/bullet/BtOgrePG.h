@@ -18,7 +18,13 @@
 #define BtOgreGP_H_
 
 #include "btBulletDynamicsCommon.h"
-#include "OgreSceneNode.h"
+
+#include <OgreMatrix4.h>
+#include <OgreVector3.h>
+#include <OgreQuaternion.h>
+#include <OgreBone.h>
+#include <OgreSceneNode.h>
+
 #include "BtOgreExtras.h"
 
 namespace BtOgre {
@@ -33,19 +39,21 @@ class RigidBodyState : public btMotionState
         Ogre::Matrix4 mParentTrans;
 
         Ogre::SceneNode *mSceneNode;
+        Ogre::Bone *mBone;
 
     public:
         // NOTE: Made the constructor and variable names as per btDefaultMotionState
         //       (makes following the code somewhat easier)
         //       The key difference is that the "user pointer" is Ogre::SceneNode
         //       and we don't keep startTrans around (doesn't seem to be ever used anyway?)
-        RigidBodyState(Ogre::SceneNode *node, const Ogre::Matrix4& parentTrans,
+        RigidBodyState(Ogre::SceneNode *node, Ogre::Bone *bone, const Ogre::Matrix4& parentTrans,
                 const btTransform& startTrans = btTransform::getIdentity(),
                 const btTransform& centerOfMassOffset = btTransform::getIdentity())
             : mParentTrans(parentTrans),
               mGraphicsWorldTrans(startTrans),
               mCenterOfMassOffset(centerOfMassOffset),
-              mSceneNode(node)
+              mSceneNode(node),
+              mBone(bone)
         {
         }
 #if 0

@@ -363,6 +363,10 @@ public:
 class ObjectAnimation : public Animation {
     std::map<int32_t/*NiBtOgre::NiAVObjectRef*/, Ogre::SceneNode*> mPhysicsNodeMap;
     std::vector<NifOgre::ObjectScenePtr> mFlameNode; // FIXME: testing
+// FIXME: for temp testing
+#if 0
+        NifOgre::ObjectScenePtr apple;
+#endif
 public:
     ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &model);
 
@@ -371,6 +375,7 @@ public:
     bool canBatch() const;
     void fillBatch(Ogre::StaticGeometry *sg);
     const std::map<std::int32_t, Ogre::SceneNode*>& getPhysicsNodeMap() const { return mPhysicsNodeMap; }
+    Ogre::Entity *getSkelBase() const { return mSkelBase; }
 };
 
 }

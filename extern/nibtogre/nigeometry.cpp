@@ -401,7 +401,7 @@ const std::vector<Ogre::Vector3>& NiBtOgre::NiTriBasedGeom::getVertices(bool mor
 // Should check if animated, has skeleton and/or has skin (static objects do not have these)
 //
 // Some NiTriStrips have NiBinaryExtraData (tangent space) - not sure what to do with them
-bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& bounds)
+bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& bounds, bool hasSkinnedSubMesh)
 {
     // If BuildData::mBuildFlags says no animation, no havok then most likely static.  Also check
     // if there is a skin instance (and maybe also see if Oblivion layer is OL_STATIC even though
@@ -762,7 +762,7 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
     // which are used for animation of characters with skeletons
     //
     // If there is a skin, a skeleton is needed (skeleton is at the NIF level, but skin is at a
-    // sub mesh level?)
+    // sub mesh level)
     if (mSkinInstanceRef != -1)
         //&& mData.hasSkeleton()) // FIXME: Vvardenfellarmormod\cephalopod\helmet.nif
     {
@@ -774,9 +774,7 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
         // In case of a Mesh, a list of NiGeometry for that NiNode is required.
 
         // FIXME: move this to NiModel?
-        // FIXME: commented out to stop skinned but havok animated entities triggering Ogre animation
-        //        see dungeons\misc\necrotapestryskinned01.nif
-        //mesh->setSkeletonName(mModel.getSkeleton()->getName());
+        mesh->setSkeletonName(mModel.getSkeleton()->getName());
 
         // build skeleton on demand; need to check for each mSkinInstanceRef
         //
@@ -825,6 +823,32 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
             }
         }
     } // mSkinInstanceRef != -1
+    else if (mSkinInstanceRef == -1 && hasSkinnedSubMesh) // Dungeons\Misc\NecroTapestrySkinned01.NIF
+    {
+        std::string boneName = mParent->getName();
+
+        Ogre::SkeletonPtr skeleton = mModel.getSkeleton();
+        if (!skeleton)
+            throw std::runtime_error("NiTriBasedGeom: no skeleton in a skinned mesh"); // shouldn't happen
+
+        // RopeSkull01.NIF doesn't want an existing bone to be used like this?
+        // And NecroTapestrySkinned01.NIF doesn't like a dummy name, either.
+        // FIXME: Don't understand why though
+        if (!skeleton->hasBone(boneName))
+        {
+            skeleton->createBone(boneName); // create a dummy bone
+
+            Ogre::VertexBoneAssignment boneInf;
+            boneInf.boneIndex = skeleton->getBone(boneName)->getHandle();
+
+            for (std::size_t j = 0; j < vertices.size(); ++j)
+            {
+                boneInf.vertexIndex = j;
+                boneInf.weight = 1.f;
+                sub->addBoneAssignment(boneInf);
+            }
+        }
+    }
     else if (mModel.hasSkeleton()
         && mModel.getSkeleton()->getName() == mModel.getName() // hack to avoid body parts
         && mModel.getSkeleton()->hasBone(mParent->getName())
