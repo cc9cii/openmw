@@ -823,8 +823,11 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
             }
         }
     } // mSkinInstanceRef != -1
-    else if (mSkinInstanceRef == -1 && hasSkinnedSubMesh) // Dungeons\Misc\NecroTapestrySkinned01.NIF
+    else if (mSkinInstanceRef == -1 && hasSkinnedSubMesh)
     {
+        // Ogre wants all sub-meshes to be skinned if one is skinned.  See Ogre::Entity::updateAnimation()
+        // e.g. Dungeons\Misc\NecroTapestrySkinned01.NIF (COC "DarkFissure")
+
         std::string boneName = mParent->getName();
 
         Ogre::SkeletonPtr skeleton = mModel.getSkeleton();

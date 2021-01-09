@@ -1933,10 +1933,6 @@ ObjectAnimation::ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &mod
         if (!mObjectRoot->mForeignObj)
             return;
 
-        //if (model.find("RootHavok02") != std::string::npos)
-        //if (model.find("RopeSkull") != std::string::npos)
-            //std::cout << "stop" << std::endl;
-
         // FIXME: below needs to be made a function so that it can be called from elsewhere
 
 
@@ -2101,29 +2097,6 @@ ObjectAnimation::ObjectAnimation(const MWWorld::Ptr& ptr, const std::string &mod
                         cit2->second->shareSkeletonInstanceWith(mObjectRoot->mSkelBase);
                 }
             }
-// FIXME: for testing only
-#if 0
-        if (mObjectRoot && mObjectRoot->mSkelBase)
-        {
-            std::string boneName = "c_link04";
-            Ogre::SkeletonInstance* skelinst = mObjectRoot->mSkelBase->getSkeleton();
-            if (skelinst && skelinst->hasBone(boneName))
-            {
-
-                apple = NifOgre::ObjectScenePtr(new NifOgre::ObjectScene(mInsert->getCreator()));
-
-                NiBtOgre::NiModelManager& modelManager = NiBtOgre::NiModelManager::getSingleton();
-                std::string meshName = "meshes\\clutter\\apple01.nif";
-                NiModelPtr object = modelManager.getOrLoadByName(meshName, "General");
-                apple->mForeignObj
-                    = std::make_unique<NiBtOgre::BtOgreInst>(NiBtOgre::BtOgreInst(object, mInsert->createChildSceneNode()));
-                apple->mForeignObj->instantiate();
-                apple->mForeignObj->mEntities[0]->detachFromParent();
-                mSkelBase->attachObjectToBone(boneName, apple->mForeignObj->mEntities[0]);
-
-            }
-        }
-#endif
 
             // add any flame nodes
             const std::vector<NiBtOgre::NiNode*>& flameNodes
