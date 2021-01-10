@@ -35,11 +35,19 @@ namespace MWClass
 
             virtual MWGui::ToolTipInfo getToolTipInfo (const MWWorld::Ptr& ptr) const;
 
+            virtual MWWorld::ContainerStore& getContainerStore (const MWWorld::Ptr& ptr) const;
+
             virtual MWWorld::InventoryStore& getInventoryStore (const MWWorld::Ptr& ptr) const;
             MWWorld::InventoryStoreTES4& getInventoryStoreTES4 (const MWWorld::Ptr& ptr) const;
             MWMechanics::CreatureStats& getCreatureStats (const MWWorld::Ptr& ptr) const;
 
             virtual std::string getScript (const MWWorld::Ptr& ptr) const;
+
+            virtual float getCapacity (const MWWorld::Ptr& ptr) const;
+
+            virtual float getEncumbrance (const MWWorld::Ptr& ptr) const;
+
+            virtual int getSkill(const MWWorld::Ptr &ptr, int skill) const;
 
             virtual MWMechanics::Movement& getMovementSettings (const MWWorld::Ptr& ptr) const;
 
@@ -47,9 +55,9 @@ namespace MWClass
 
             virtual std::string getModel(const MWWorld::Ptr &ptr) const;
 
-            //virtual bool isActor() const {
-            //    return true; // FIXME: FO3 treats turrets as "creatures"
-            //}
+            virtual bool isActor() const {
+                return true; // FIXME: FO3 treats turrets as "creatures"
+            }
 
             //virtual bool isNpc() const {
             //    return false;

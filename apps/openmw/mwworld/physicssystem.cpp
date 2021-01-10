@@ -40,6 +40,7 @@
 
 #include "../mwrender/animation.hpp"
 #include "../mwrender/foreignnpcanimation.hpp"
+#include "../mwrender/foreigncreatureanimation.hpp"
 
 
 #include "ptr.hpp"
@@ -1122,9 +1123,7 @@ namespace MWWorld
             Ogre::Matrix4 sceneNodeTrans;
             sceneNodeTrans.makeTransform(node->getPosition(), node->getScale(), node->getOrientation());
 
-            Ogre::Entity *skelBase =
-                static_cast<MWRender::ForeignNpcAnimation*>(anim)->getSkelBase();
-
+            Ogre::Entity *skelBase = anim->getSkelBase();
             Ogre::SkeletonInstance* skelInst = skelBase->getSkeleton();
 
             const Ogre::Skeleton::BoneList& bones = skelInst->getBones();

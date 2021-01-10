@@ -24,6 +24,9 @@ namespace MWRender
     public:
         ForeignCreatureAnimation(const MWWorld::Ptr& ptr, const std::string &model);
         virtual ~ForeignCreatureAnimation() {}
+
+        NiModelPtr getSkeletonModel() const;
+
         Ogre::Vector3 runAnimation(float timepassed);
         void addAnimSource(const std::string &skeletonModel);
 

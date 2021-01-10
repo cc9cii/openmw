@@ -16,6 +16,7 @@
 
 #include "../mwrender/actors.hpp"
 #include "../mwrender/renderinginterface.hpp"
+#include "../mwrender/foreigncreatureanimation.hpp"
 
 #include "../mwmechanics/creaturestats.hpp"
 #include "../mwmechanics/movement.hpp"
@@ -28,6 +29,7 @@ namespace
         MWMechanics::CreatureStats mCreatureStats;
         MWMechanics::Movement mMovement;
         MWWorld::InventoryStoreTES4 mInventoryStore;
+        MWWorld::ContainerStore *mContainerStore; // FIXME: is it possible to have both?
 
         MWWorld::Ptr mPlaced;
 
@@ -111,10 +113,16 @@ namespace MWClass
         }
         else
         {
-            physics.addActor(ptr, model);
-            //if (getCreatureStats(ptr).isDead())
-                //MWBase::Environment::get().getWorld()->enableActorCollision(ptr, false);
-            MWBase::Environment::get().getMechanicsManager()->add(ptr);
+            // we ignore `model` and retrieve the skeleton already built
+            MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
+            if (MWRender::ForeignCreatureAnimation *foreignAnim = dynamic_cast<MWRender::ForeignCreatureAnimation*>(anim))
+            {
+                NiModelPtr skelModel = foreignAnim->getSkeletonModel();
+                Ogre::Entity* skelBase = foreignAnim->getSkelBase();
+
+                physics.addForeignActor(ptr, skelModel->getName(), *skelBase);
+                MWBase::Environment::get().getMechanicsManager()->add(ptr);
+            }
         }
     }
 
@@ -142,7 +150,7 @@ namespace MWClass
 
     std::string ForeignCreature::getName (const MWWorld::Ptr& ptr) const
     {
-        MWWorld::LiveCellRef<ESM4::Npc> *ref = ptr.get<ESM4::Npc>();
+        MWWorld::LiveCellRef<ESM4::Creature> *ref = ptr.get<ESM4::Creature>();
         return ref->mBase->mFullName;
     }
 
@@ -223,6 +231,14 @@ namespace MWClass
         }
     }
 
+    // FIXME: copied from Creature
+    MWWorld::ContainerStore& ForeignCreature::getContainerStore (const MWWorld::Ptr& ptr) const
+    {
+        ensureCustomData (ptr);
+
+        return *dynamic_cast<ForeignCreatureCustomData&> (*ptr.getRefData().getCustomData()).mContainerStore;
+    }
+
     MWWorld::InventoryStore& ForeignCreature::getInventoryStore (const MWWorld::Ptr& ptr) const
     {
         ensureCustomData (ptr);
@@ -252,6 +268,53 @@ namespace MWClass
         ensureCustomData (ptr);
 
         return dynamic_cast<ForeignCreatureCustomData&> (*ptr.getRefData().getCustomData()).mCreatureStats;
+    }
+
+    // FIXME: copied from Creature
+    float ForeignCreature::getCapacity (const MWWorld::Ptr& ptr) const
+    {
+        const MWMechanics::CreatureStats& stats = getCreatureStats (ptr);
+        return static_cast<float>(stats.getAttribute(0).getModified() * 5);
+    }
+
+    // FIXME: copied from Creature
+    float ForeignCreature::getEncumbrance (const MWWorld::Ptr& ptr) const
+    {
+        //float weight = getContainerStore (ptr).getWeight();
+        float weight = getInventoryStore (ptr).getWeight();
+
+        const MWMechanics::CreatureStats& stats = getCreatureStats (ptr);
+
+        weight -= stats.getMagicEffects().get (MWMechanics::EffectKey (ESM::MagicEffect::Feather)).getMagnitude();
+
+        weight += stats.getMagicEffects().get (MWMechanics::EffectKey (ESM::MagicEffect::Burden)).getMagnitude();
+
+        if (weight<0)
+            weight = 0;
+
+        return weight;
+    }
+
+    // FIXME: copied from Creature
+    int ForeignCreature::getSkill(const MWWorld::Ptr &ptr, int skill) const
+    {
+        MWWorld::LiveCellRef<ESM4::Creature> *ref = ptr.get<ESM4::Creature>();
+#if 0
+        const ESM::Skill* skillRecord = MWBase::Environment::get().getWorld()->getStore().get<ESM::Skill>().find(skill);
+
+        switch (skillRecord->mData.mSpecialization)
+        {
+        case ESM::Class::Combat:
+            return ref->mBase->mData.mCombat;
+        case ESM::Class::Magic:
+            return ref->mBase->mData.mMagic;
+        case ESM::Class::Stealth:
+            return ref->mBase->mData.mStealth;
+        default:
+            throw std::runtime_error("invalid specialisation");
+        }
+#endif
+        return 15; // FIXME
     }
 
     MWMechanics::Movement& ForeignCreature::getMovementSettings (const MWWorld::Ptr& ptr) const

@@ -221,6 +221,8 @@ public:
     Animation(const MWWorld::Ptr &ptr, Ogre::SceneNode *node);
     virtual ~Animation();
 
+    Ogre::Entity *getSkelBase() const { return mSkelBase; }
+
     /**
      * @brief Add an effect mesh attached to a bone or the insert scene node
      * @param model

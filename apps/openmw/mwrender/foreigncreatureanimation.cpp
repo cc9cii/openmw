@@ -211,6 +211,14 @@ ForeignCreatureAnimation::ForeignCreatureAnimation(const MWWorld::Ptr &ptr, cons
     mSkelBase->getSkeleton()->reset(true);
 }
 
+NiModelPtr ForeignCreatureAnimation::getSkeletonModel() const
+{
+    if (mObjectRoot && mObjectRoot->mForeignObj)
+        return mObjectRoot->mForeignObj->mModel;
+
+    throw std::runtime_error("skeleton model not found");
+}
+
 // FIXME: duplicated with ForeignNpcAnimation
 void ForeignCreatureAnimation::hideDismember(NifOgre::ObjectScenePtr scene)
 {
