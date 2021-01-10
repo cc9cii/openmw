@@ -313,30 +313,6 @@ ForeignNpcAnimation::ForeignNpcAnimation(const MWWorld::Ptr& ptr, Ogre::SceneNod
 
     if (!disableListener)
         mPtr.getClass().getInventoryStore(mPtr).setListener(this, mPtr);
-
-    // FIXME: for testing only
-#if 0
-        if (mObjectRoot && mObjectRoot->mSkelBase)
-        {
-            std::string boneName = "Bip01 NonAccum";
-            Ogre::SkeletonInstance* skelinst = mObjectRoot->mSkelBase->getSkeleton();
-            if (skelinst && skelinst->hasBone(boneName))
-            {
-
-                apple = NifOgre::ObjectScenePtr(new NifOgre::ObjectScene(mInsert->getCreator()));
-
-                NiBtOgre::NiModelManager& modelManager = NiBtOgre::NiModelManager::getSingleton();
-                std::string meshName = "meshes\\clutter\\apple01.nif";
-                NiModelPtr object = modelManager.getOrLoadByName(meshName, "General");
-                apple->mForeignObj
-                    = std::make_unique<NiBtOgre::BtOgreInst>(NiBtOgre::BtOgreInst(object, mInsert->createChildSceneNode()));
-                apple->mForeignObj->instantiate();
-                apple->mForeignObj->mEntities[0]->detachFromParent();
-                mSkelBase->attachObjectToBone(boneName, apple->mForeignObj->mEntities[0]);
-
-            }
-        }
-#endif
 }
 
 void ForeignNpcAnimation::setViewMode(ForeignNpcAnimation::ViewMode viewMode)
