@@ -9,6 +9,9 @@
 #include <OgreCamera.h>
 #include <OgreTextureManager.h>
 #include <OgreSceneNode.h>
+#include <OgreSkeleton.h>
+#include <OgreEntity.h>
+#include <OgreSkeletonInstance.h>
 
 #include <extern/nibtogre/btrigidbodycimanager.hpp>
 
@@ -18,6 +21,7 @@
 #include <openengine/bullet/BtOgreExtras.h>
 #include <openengine/ogre/renderer.hpp>
 #include <openengine/bullet/BulletShapeLoader.h>
+#include <openengine/bullet/foreignactor.hpp>
 
 #include <components/nifbullet/bulletnifloader.hpp>
 #include <components/nifogre/skeleton.hpp>
@@ -34,9 +38,9 @@
 #include "../mwworld/esmstore.hpp"
 #include "../mwworld/cellstore.hpp"
 
-#include "../apps/openmw/mwrender/animation.hpp"
-#include "../apps/openmw/mwbase/world.hpp"
-#include "../apps/openmw/mwbase/environment.hpp"
+#include "../mwrender/animation.hpp"
+#include "../mwrender/foreignnpcanimation.hpp"
+
 
 #include "ptr.hpp"
 #include "class.hpp"
@@ -302,7 +306,7 @@ namespace MWWorld
                                 * movement * time;
             }
 
-            btCollisionObject *colobj = physicActor->getCollisionBody();
+            btCollisionObject *colobj = physicActor->getCollisionBody(); // FIXME: TES4
             Ogre::Vector3 halfExtents = physicActor->getHalfExtents();
             position.z += halfExtents.z;
 
@@ -732,6 +736,15 @@ namespace MWWorld
         mEngine->addCharacter(node->getName(), mesh, node->getPosition(), node->getScale().x, node->getOrientation());
     }
 
+    void PhysicsSystem::addForeignActor (const Ptr& ptr, const std::string& model, const Ogre::Entity& skelBase)
+    {
+        Ogre::SceneNode* node = ptr.getRefData().getBaseNode();
+
+        // FIXME: we're gonna need different parameters
+        mEngine->addForeignCharacter(node->getName(), model, skelBase,
+            node->getPosition(), node->getScale().x, node->getOrientation());
+    }
+
     void PhysicsSystem::removeObject (const std::string& handle)
     {
         mEngine->removeCharacter(handle);
@@ -809,7 +822,13 @@ namespace MWWorld
 
         // Actors update their AABBs every frame (DISABLE_DEACTIVATION), so no need to do it manually
         if(OEngine::Physic::PhysicActor *physact = mEngine->getCharacter(handle))
+        {
             physact->setPosition(position);
+
+            // HACK: piggy back on setPosition() to update collision shapes
+            if (physact->isForeign())
+                updateForeignActor(ptr, physact);
+        }
     }
 
     void PhysicsSystem::rotateObject (const Ptr& ptr)
@@ -1083,6 +1102,62 @@ namespace MWWorld
                     }
 
                     mEngine->mDynamicsWorld->updateSingleAabb(iter->second);
+                }
+            }
+        }
+    }
+
+    // update the NPC skeleton's rigid bodies according to the bone transforms of the current animation
+    void PhysicsSystem::updateForeignActor (const MWWorld::Ptr& ptr, OEngine::Physic::PhysicActor *physact)
+    {
+        OEngine::Physic::ForeignActor *actor = static_cast<OEngine::Physic::ForeignActor*>(physact);
+        OEngine::Physic::RigidBody *body
+                = static_cast<OEngine::Physic::RigidBody*>(actor->getRigidBody());
+        if (!body)
+            return;
+
+        if (MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr))
+        {
+            Ogre::SceneNode* node = ptr.getRefData().getBaseNode();
+            Ogre::Matrix4 sceneNodeTrans;
+            sceneNodeTrans.makeTransform(node->getPosition(), node->getScale(), node->getOrientation());
+
+            Ogre::Entity *skelBase =
+                static_cast<MWRender::ForeignNpcAnimation*>(anim)->getSkelBase();
+
+            Ogre::SkeletonInstance* skelInst = skelBase->getSkeleton();
+
+            const Ogre::Skeleton::BoneList& bones = skelInst->getBones();
+            for (std::size_t i = 0; i < bones.size(); ++i)
+            {
+
+                std::string boneName = bones[i]->getName();
+
+                Ogre::Matrix4 boneTrans;
+                boneTrans.makeTransform(bones[i]->_getDerivedPosition(),
+                    node->getScale(), bones[i]->_getDerivedOrientation()); // NOTE: using node scales
+
+                Ogre::Matrix4 m = sceneNodeTrans * boneTrans;
+                Ogre::Vector3 p = m.getTrans();
+                Ogre::Quaternion q = m.extractQuaternion();
+                btTransform bt(btQuaternion(q.x, q.y, q.z, q.w), btVector3(p.x, p.y, p.z));
+
+                if (body->mTargetName == boneName) // parent
+                {
+                    body->setWorldTransform(bt);
+                    mEngine->mDynamicsWorld->updateSingleAabb(body);
+                }
+                else // children
+                {
+                    // here we make an assumption that for skeleton's rigid bodies one bone
+                    // moves only one rigid body (unlike objects)
+                    std::multimap<std::string, OEngine::Physic::RigidBody*>::const_iterator cit
+                        = body->mChildren.find(boneName);
+                    if (cit != body->mChildren.end())
+                    {
+                        cit->second->setWorldTransform(bt);
+                        mEngine->mDynamicsWorld->updateSingleAabb(body);
+                    }
                 }
             }
         }

@@ -85,9 +85,12 @@ namespace Physic
     public:
         PhysicActor(const std::string &name, const std::string &mesh, PhysicEngine *engine, const Ogre::Vector3 &position, const Ogre::Quaternion &rotation, float scale);
 
-        ~PhysicActor();
+        virtual ~PhysicActor();
 
-        void setPosition(const Ogre::Vector3 &pos);
+        bool isForeign () const { return mForeign; }
+        void setForeign () { mForeign = true; }
+
+        virtual void setPosition(const Ogre::Vector3 &pos);
 
         /**
          * Sets the collisionMode for this actor. If disabled, the actor can fly and clip geometry.
@@ -109,7 +112,7 @@ namespace Physic
          */
         void setScale(float scale);
 
-        void setRotation (const Ogre::Quaternion& rotation);
+        virtual void setRotation (const Ogre::Quaternion& rotation);
 
         const Ogre::Vector3& getPosition() const;
 
@@ -138,7 +141,7 @@ namespace Physic
             return mInternalCollisionMode && mOnGround;
         }
 
-        btCollisionObject *getCollisionBody() const
+        virtual btCollisionObject *getCollisionBody() const
         {
             return mBody;
         }
@@ -151,13 +154,14 @@ namespace Physic
         void setWalkingOnWater(bool walkingOnWater);
         bool isWalkingOnWater() const;
 
-        //FIXME: temporary compile testing ForeignActor
-    //private:
+    private:
         /// Removes then re-adds the collision body to the dynamics world
         void updateCollisionMask();
 
         bool mCanWaterWalk;
         bool mWalkingOnWater;
+
+        bool mForeign;
 
         boost::shared_ptr<btCollisionShape> mShape;
 
@@ -177,10 +181,12 @@ namespace Physic
 
         std::string mMesh;
         std::string mName;
-        PhysicEngine *mEngine;
 
         PhysicActor(const PhysicActor&);
         PhysicActor& operator=(const PhysicActor&);
+
+    protected:
+        PhysicEngine *mEngine;
     };
 
 
@@ -273,8 +279,9 @@ namespace Physic
          */
         void addCharacter(const std::string &name, const std::string &mesh,
             const Ogre::Vector3 &position, float scale, const Ogre::Quaternion &rotation);
-        void addForeignCharacter(const std::string &name, const std::string &mesh,
-            const Ogre::Vector3 &position, float scale, const Ogre::Quaternion &rotation);
+        void addForeignCharacter(const std::string& name, const std::string& model,
+            const Ogre::Entity& skelBase,
+            const Ogre::Vector3& position, float scale, const Ogre::Quaternion& rotation);
 
         /**
          * Remove a character from the scene.

@@ -14,6 +14,7 @@
 #include <extern/nibtogre/bhkrefobject.hpp>
 #include <extern/nibtogre/btrigidbodyci.hpp>
 #include <extern/nibtogre/btrigidbodycimanager.hpp>
+#include <extern/nibtogre/nimodel.hpp>
 
 #include <components/nifbullet/bulletnifloader.hpp>
 #include <components/nif/niffile.hpp>
@@ -23,6 +24,7 @@
 #include "BtOgrePG.h"
 #include "BtOgreGP.h"
 #include "BtOgreExtras.h"
+#include "foreignactor.hpp"
 
 namespace
 {
@@ -82,7 +84,7 @@ namespace Physic
 {
 
     PhysicActor::PhysicActor(const std::string &name, const std::string &mesh, PhysicEngine *engine, const Ogre::Vector3 &position, const Ogre::Quaternion &rotation, float scale)
-      : mCanWaterWalk(false), mWalkingOnWater(false)
+      : mCanWaterWalk(false), mWalkingOnWater(false), mForeign(false)
       , mBody(0), mScale(scale), mForce(0.0f), mOnGround(false)
       , mInternalCollisionMode(true)
       , mExternalCollisionMode(true)
@@ -490,7 +492,7 @@ namespace Physic
         if (&skelBase)
             skelInst = skelBase.getSkeleton();
 
-        std::map<std::int32_t, RigidBody*> rigidBodyMap;
+        std::map<std::int32_t, RigidBody*> rigidBodyMap; // lookup for constraints
 
         BtRigidBodyCIPtr ci
             = NiBtOgre::BtRigidBodyCIManager::getSingleton().getOrLoadByName(lowerMesh, "General");
@@ -1018,6 +1020,19 @@ namespace Physic
         removeCharacter(name);
 
         PhysicActor* newActor = new PhysicActor(name, mesh, this, position, rotation, scale);
+
+        mActorMap[name] = newActor;
+    }
+
+    void PhysicEngine::addForeignCharacter(const std::string& name, const std::string& model,
+        const Ogre::Entity& skelBase,
+        const Ogre::Vector3& position, float scale, const Ogre::Quaternion& rotation)
+    {
+        // Remove character with given name, so we don't make memory
+        // leak when character would be added twice
+        removeCharacter(name);
+
+        PhysicActor* newActor = new ForeignActor(name, model, skelBase, this, position, rotation, scale);
 
         mActorMap[name] = newActor;
     }

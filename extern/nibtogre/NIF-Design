@@ -6491,6 +6491,8 @@ If we decide that the `Ogre::SceneNode` for an `Ogre::Entity` with a rigidbody i
   * COC "ImperialDungeon05"
   * COC "DarkFissure"
 
+# [10/01/2021] Collision shapes for NPC skeletons
+
 
 
 

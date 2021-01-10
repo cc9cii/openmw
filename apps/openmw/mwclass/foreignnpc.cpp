@@ -24,6 +24,7 @@
 
 #include "../mwrender/actors.hpp"
 #include "../mwrender/renderinginterface.hpp"
+#include "../mwrender/foreignnpcanimation.hpp"
 
 #include "../mwgui/tooltips.hpp"
 
@@ -136,6 +137,7 @@ namespace MWClass
 
     void ForeignNpc::insertObject(const MWWorld::Ptr& ptr, const std::string& model, MWWorld::PhysicsSystem& physics) const
     {
+#if 0
         // FIXME: in TES5 the skeletal model is in Race
         if (model == "")
         {
@@ -153,6 +155,7 @@ namespace MWClass
 
             return;
         }
+#endif
 
 #if 0 // FIXME: doesn't work for FO3
             const MWWorld::ESMStore &store = MWBase::Environment::get().getWorld()->getStore();
@@ -169,6 +172,7 @@ namespace MWClass
             }
 
 #endif
+#if 0
         const ESM4::Npc *npc = ptr.get<ESM4::Npc>()->mBase;
         if (npc && npc->mBaseTemplate != 0
                 && (npc->mModel.empty() || npc->mModel == "marker_creature.nif"))
@@ -180,6 +184,18 @@ namespace MWClass
             physics.addActor(ptr, /*skelModel*/model);
             MWBase::Environment::get().getMechanicsManager()->add(ptr);
         }
+#else
+        // we ignore `model` and retrieve the skeleton already built
+        MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
+        if (MWRender::ForeignNpcAnimation *foreignAnim = dynamic_cast<MWRender::ForeignNpcAnimation*>(anim))
+        {
+            NiModelPtr skelModel = foreignAnim->getSkeletonModel();
+            Ogre::Entity* skelBase = foreignAnim->getSkelBase();
+
+            physics.addForeignActor(ptr, skelModel->getName(), *skelBase);
+            MWBase::Environment::get().getMechanicsManager()->add(ptr);
+        }
+#endif
     }
 
     std::string ForeignNpc::getModel(const MWWorld::Ptr &ptr) const

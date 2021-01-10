@@ -189,6 +189,12 @@ public:
     // TES4 kf files are derived differently
     virtual void addAnimSource(const std::string &model);
     void addForeignAnimSource(const std::string& model, const std::string &anim);
+    NiModelPtr getSkeletonModel() const;
+    Ogre::Entity *getSkelBase() const { return mSkelBase; }
+    // FIXME: for temp testing
+#if 1
+        NifOgre::ObjectScenePtr apple;
+#endif
 
     /** Plays an animation.
      * \param groupname Name of the animation group to play.

@@ -19,6 +19,7 @@ namespace OEngine
     namespace Physic
     {
         class PhysicEngine;
+        class PhysicActor;
     }
 }
 
@@ -41,6 +42,7 @@ namespace MWWorld
             void addObject (const MWWorld::Ptr& ptr, const std::string& mesh, bool placeable=false);
 
             void addActor (const MWWorld::Ptr& ptr, const std::string& mesh);
+            void addForeignActor (const Ptr& ptr, const std::string& model, const Ogre::Entity& skelBase);
 
             void addHeightField (const float* heights,
                 int x, int y, float yoffset,
@@ -59,6 +61,8 @@ namespace MWWorld
                     const std::string& boneName, const Ogre::Vector3& position, const Ogre::Quaternion& rotation);
             void rotateSubObject (const MWWorld::Ptr& ptr,
                     const std::string& boneName, const Ogre::Quaternion& rotation);
+
+            void updateForeignActor (const MWWorld::Ptr& ptr, OEngine::Physic::PhysicActor *physact);
 
             void scaleObject (const MWWorld::Ptr& ptr);
 

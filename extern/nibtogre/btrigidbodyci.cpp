@@ -77,6 +77,7 @@ void NiBtOgre::BtRigidBodyCI::loadImpl()
 {
     std::string modelName = Ogre::Resource::getName(); // remove scale from the name (see -7 below)
 
+    //if (modelName.find("keleton") != std::string::npos)
     //if (modelName.find("robeuc") != std::string::npos)
         //std::cout << modelName << std::endl;
 
@@ -182,10 +183,15 @@ void NiBtOgre::BtRigidBodyCI::loadImpl()
             //                 animation root node since it is used by
             //                 PhysicEngine::createAndAdjustRigidBody()
         }
-        else if (nimodel->buildData().havokEnabled())
+        else if (nimodel->buildData().havokEnabled()) // WARN: only reliable in TES4
         {
             mBtCollisionShapeMap[targetRef]
                 = std::make_pair(targetNode->getWorldTransform(), bhk->getShape(*target, targetNode));
+        }
+        else if (nimodel->buildData().isSkeletonTES4()) // prob. not necessary since skeletons have havok
+        {
+            mBtCollisionShapeMap[targetRef]
+                = std::make_pair(targetNode->getLocalTransform(), bhk->getShape(*target, targetNode));
         }
         else
         {
