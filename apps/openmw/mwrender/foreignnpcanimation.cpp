@@ -3544,10 +3544,18 @@ void ForeignNpcAnimation::addAnimSource(const std::string &model)
     //animName = model.substr(0, pos) + "castselfalt.kf";
     if (mIsTES4)
     {
-        animName = model.substr(0, pos) + "idleanims\\umpa_disco.kf";
+        //animName = model.substr(0, pos) + "idleanims\\umpa_disco.kf";
         //animName = model.substr(0, pos) + "idleanims\\umpa_sexy_walk.kf";
-        //animName = model.substr(0, pos) + "walkforward.kf";
-        animName = model.substr(0, pos) + "idle.kf";
+
+        int roll = Misc::Rng::rollDice(4); // [0, 3]
+        if (roll == 0)
+            animName = model.substr(0, pos) + "castselfalt.kf";
+        else if (roll == 1)
+            animName = model.substr(0, pos) + "sneakidle.kf";
+        else if (roll == 2)
+            animName = model.substr(0, pos) + "walkforward.kf";
+        else
+            animName = model.substr(0, pos) + "idle.kf";
         addForeignAnimSource(model, animName);
     }
     else if (mIsFO3 || mIsFONV)
