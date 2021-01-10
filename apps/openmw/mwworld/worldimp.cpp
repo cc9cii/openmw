@@ -1619,7 +1619,6 @@ namespace MWWorld
         mPhysics->stepSimulation(duration);
 
         processDoors(duration);
-        processAnimActivators(duration);
 
         mProjectileManager->update(duration);
 
@@ -1809,12 +1808,6 @@ namespace MWWorld
                     ++it;
             }
         }
-    }
-
-    void World::processAnimActivators(float duration)
-    {
-        //bool isAnimActivator = it->first.getBase()->mClass->getTypeName() == typeid (ESM4::Activator).name();
-        //MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(it->first);
     }
 
     bool World::toggleCollisionMode()

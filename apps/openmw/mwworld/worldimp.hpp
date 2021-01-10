@@ -120,7 +120,6 @@ namespace MWWorld
             void PCDropped (const Ptr& item);
 
             void processDoors(float duration);
-            void processAnimActivators(float duration);
             ///< Run physics simulation and modify \a world accordingly.
 
             void doPhysics(float duration);
