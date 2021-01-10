@@ -577,6 +577,11 @@ namespace MWMechanics
 
         // AI setting modifiers
         int creature = !ptr.getClass().isNpc();
+
+        // FIXME: no AI for now to help with testing
+        if (ptr.getTypeName() == typeid(ESM4::Creature).name())
+            creature = false;
+
         if (creature && ptr.get<ESM::Creature>()->mBase->mData.mType == ESM::Creature::Humanoid)
             creature = false;
         // Note: the Creature variants only work on normal creatures, not on daedra or undead creatures.
