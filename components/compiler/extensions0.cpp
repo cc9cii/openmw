@@ -3,6 +3,8 @@
 #include "opcodes.hpp"
 #include "extensions.hpp"
 
+#include "../tes4compiler/opcodes.hpp"
+
 namespace Compiler
 {
     void registerExtensions (Extensions& extensions, bool consoleOnly)
@@ -10,6 +12,7 @@ namespace Compiler
         Ai::registerExtensions (extensions);
         Animation::registerExtensions (extensions);
         Cell::registerExtensions (extensions);
+        Console::registerExtensions (extensions);
         Container::registerExtensions (extensions);
         Control::registerExtensions (extensions);
         Dialogue::registerExtensions (extensions);
@@ -107,7 +110,11 @@ namespace Compiler
     {
         void registerExtensions (Extensions& extensions)
         {
-
+            // FIXME: this does not belong here (only used for ragdoll testing)
+            extensions.registerInstruction
+                ("killactor", "/c", Tes4Compiler::Tes4Crime::opcodeKillActor, Tes4Compiler::Tes4Crime::opcodeKillActorExplicit);
+            extensions.registerInstruction
+                ("kill",      "/c", Tes4Compiler::Tes4Crime::opcodeKillActor, Tes4Compiler::Tes4Crime::opcodeKillActorExplicit);
         }
     }
 
