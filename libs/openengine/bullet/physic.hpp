@@ -77,6 +77,8 @@ namespace Physic
         // Hack: placeable objects (that can be picked up by the player) have different collision behaviour.
         // This variable needs to be passed to BulletNifLoader.
         bool mPlaceable;
+
+        std::vector<btTypedConstraint*> mConstraints; // only with the parent body
     };
 
 

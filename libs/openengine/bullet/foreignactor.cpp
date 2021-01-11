@@ -144,6 +144,16 @@ namespace Physic
 
     ForeignActor::~ForeignActor()
     {
+        // NOTE: btMotionState is deleted by RigidBody dtor
+
+        std::vector<btTypedConstraint*>::const_iterator cit = mForeignBody->mConstraints.begin();
+        for (; cit != mForeignBody->mConstraints.end(); ++cit)
+        {
+            mEngine->mDynamicsWorld->removeConstraint(*cit);
+
+            delete *cit;
+        }
+
         if(mForeignBody)
         {
             std::map<std::string, RigidBody*>::iterator it = mForeignBody->mChildren.begin();

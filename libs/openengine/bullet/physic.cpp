@@ -622,7 +622,10 @@ namespace Physic
 
                 btTypedConstraint* constraint = ci->mConstraints[i]->buildConstraint(bodies);
                 if (constraint)
-                mDynamicsWorld->addConstraint(constraint, /*disable collision between linked bodies*/true);
+                {
+                    parentBody->mConstraints.push_back(constraint);
+                    mDynamicsWorld->addConstraint(constraint, /*disable collision between linked bodies*/true);
+                }
             }
         }
 
@@ -806,6 +809,11 @@ namespace Physic
             RigidBody* body = it->second;
             if(body != NULL)
             {
+                // remove the constraints before the rigid bodies
+                std::vector<btTypedConstraint*>::const_iterator cit = body->mConstraints.begin();
+                for (; cit != body->mConstraints.end(); ++cit)
+                    mDynamicsWorld->removeConstraint(*cit);
+
                 std::map<std::string, RigidBody*>::iterator it2 = body->mChildren.begin();
                 for (; it2 != body->mChildren.end(); ++it2)
                     mDynamicsWorld->removeRigidBody(it2->second);
@@ -842,6 +850,11 @@ namespace Physic
                 if (mAnimatedShapes.find(body) != mAnimatedShapes.end())
                     deleteShape(mAnimatedShapes[body].mCompound);
                 mAnimatedShapes.erase(body);
+
+                // delete the constraints before the rigid bodies
+                std::vector<btTypedConstraint*>::const_iterator cit = body->mConstraints.begin();
+                for (; cit != body->mConstraints.end(); ++cit)
+                    delete *cit;
 
                 std::map<std::string, RigidBody*>::iterator it2 = body->mChildren.begin();
                 for (; it2 != body->mChildren.end(); ++it2)
