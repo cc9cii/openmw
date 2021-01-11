@@ -354,6 +354,8 @@ namespace MWWorld
             virtual int getEffectiveArmorRating(const MWWorld::Ptr& ptr, const MWWorld::Ptr& actor) const;
 
             virtual void playgroup(const MWWorld::Ptr& ptr, const std::string& animation, int flag = 0);
+
+            virtual void killActor(const MWWorld::Ptr& ptr, const std::string& actor = "");
     };
 }
 

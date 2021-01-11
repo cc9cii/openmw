@@ -530,6 +530,35 @@ namespace MWScript
                 }
         };
 
+        template<class R>
+        class OpKillActor : public Interpreter::Opcode1
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime, unsigned int arg0)
+                {
+
+                    MWWorld::Ptr ptr = R()(runtime);
+
+                    // handle the arguments
+                    std::string actor = "";
+                    if (arg0 >= 1)
+                    {
+                        // FIXME: untested, prob wrong
+                        int index = runtime[0].mInteger;
+                        runtime.pop();
+                        actor = runtime.getStringLiteral(index);
+
+                        runtime.pop();
+                    }
+
+                    std::cout << "KillActor " << actor << std::endl;
+
+                    // FIXME: should use runtime.getContext() here
+                    const_cast<MWWorld::Class&>(ptr.getClass()).killActor(ptr, actor);
+                }
+        };
+
         void installOpcodes (Interpreter::Interpreter& interpreter)
         {
             // Actor
@@ -558,6 +587,12 @@ namespace MWScript
                 (Tes4Compiler::Tes4Animation::opcodePlayGroup, new OpPlayGroup<ImplicitRef>);
             interpreter.installSegment5
                 (Tes4Compiler::Tes4Animation::opcodePlayGroupExplicit, new OpPlayGroup<ExplicitTes4Ref>);
+
+            // Crime
+            interpreter.installSegment3
+                (Tes4Compiler::Tes4Crime::opcodeKillActor, new OpKillActor<ImplicitRef>);
+            interpreter.installSegment3
+                (Tes4Compiler::Tes4Crime::opcodeKillActorExplicit, new OpKillActor<ExplicitTes4Ref>);
 
             // Faction
             interpreter.installSegment5

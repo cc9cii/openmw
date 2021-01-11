@@ -341,4 +341,14 @@ namespace MWClass
         //return std::move(newPtr);
         return newPtr;
     }
+
+    void ForeignCreature::killActor(const MWWorld::Ptr& ptr, const std::string& actor)
+    {
+        // FIXME: KillActor command should not care about the health value
+        getCreatureStats(ptr).setDynamic(0/*health*/, 0.f /*value*/);
+
+        // enable ragdoll
+        MWBase::World* world = MWBase::Environment::get().getWorld();
+        world->enableRagdoll(ptr);
+    }
 }

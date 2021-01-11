@@ -468,4 +468,9 @@ namespace MWWorld
     {
         throw std::runtime_error("class does not support playing animations");
     }
+
+    void Class::killActor(const MWWorld::Ptr& ptr, const std::string& actor)
+    {
+        throw std::runtime_error("class does not support killing actors");
+    }
 }

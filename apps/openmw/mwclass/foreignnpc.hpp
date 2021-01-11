@@ -101,6 +101,8 @@ namespace MWClass
             virtual std::string getPrimaryFaction(const MWWorld::Ptr &ptr) const;
 
             virtual int getPrimaryFactionRank(const MWWorld::Ptr &ptr) const;
+
+            virtual void killActor(const MWWorld::Ptr& ptr, const std::string& actor = "");
     };
 }
 

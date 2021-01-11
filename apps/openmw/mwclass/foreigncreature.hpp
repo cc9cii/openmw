@@ -63,6 +63,7 @@ namespace MWClass
             //    return false;
             //}
 
+            virtual void killActor(const MWWorld::Ptr& ptr, const std::string& actor = "");
     };
 }
 
