@@ -312,6 +312,8 @@ namespace NiBtOgre
         float mDamping;
 
         bhkMalleableConstraint(uint32_t index, NiStream *stream, const NiModel& model, BuildData& data);
+
+        virtual btTypedConstraint *buildConstraint(const std::map<bhkEntity*, btRigidBody*>& bodies) const;
     };
 
     // Seen in NIF ver 20.0.0.4, 20.0.0.5

@@ -1810,6 +1810,11 @@ namespace MWWorld
         }
     }
 
+    bool World::enableRagdoll(const Ptr& actor)
+    {
+        return mPhysics->enableRagdoll(actor);
+    }
+
     bool World::toggleCollisionMode()
     {
         return mPhysics->toggleCollisionMode();

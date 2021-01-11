@@ -596,6 +596,8 @@ namespace MWBase
             virtual void resetActors() = 0;
 
             virtual bool isWalkingOnWater (const MWWorld::Ptr& actor) = 0;
+
+            virtual bool enableRagdoll (const MWWorld::Ptr& actor) = 0;
     };
 }
 

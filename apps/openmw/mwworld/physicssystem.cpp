@@ -832,6 +832,23 @@ namespace MWWorld
         }
     }
 
+    bool PhysicsSystem::enableRagdoll (const MWWorld::Ptr& actor)
+    {
+        Ogre::SceneNode *node = actor.getRefData().getBaseNode();
+        const std::string& handle = node->getName();
+
+        if(OEngine::Physic::PhysicActor *physact = mEngine->getCharacter(handle))
+        {
+            OEngine::Physic::ForeignActor *foreignActor = static_cast<OEngine::Physic::ForeignActor*>(physact);
+
+            // FIXME: need to remember the current bone positions and if possible any
+            // forces/momentum vector
+            return foreignActor->enableRagdoll();
+        }
+
+        return false;
+    }
+
     void PhysicsSystem::rotateObject (const Ptr& ptr)
     {
         Ogre::SceneNode* node = ptr.getRefData().getBaseNode();

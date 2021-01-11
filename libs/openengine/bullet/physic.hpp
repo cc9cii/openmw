@@ -22,6 +22,7 @@ class btHeightfieldTerrainShape;
 namespace BtOgre
 {
     class DebugDrawer;
+    class RigidBodyState;
 }
 
 namespace Ogre
@@ -78,6 +79,8 @@ namespace Physic
         // This variable needs to be passed to BulletNifLoader.
         bool mPlaceable;
 
+        float mMass;
+        BtOgre::RigidBodyState *mMotionState;
         std::vector<btTypedConstraint*> mConstraints; // only with the parent body
     };
 

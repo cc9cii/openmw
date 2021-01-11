@@ -99,7 +99,7 @@ namespace BtOgre {
 // FIXME: split out from the header file for testing only
 void RigidBodyState::setWorldTransform(const btTransform &centerOfMassWorldTrans)
 {
-    if (mSceneNode == nullptr)
+    if (mSceneNode == nullptr && mBone == nullptr)
         return; // silently return before we set a node
 
     mGraphicsWorldTrans = centerOfMassWorldTrans * mCenterOfMassOffset;

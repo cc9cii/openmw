@@ -121,6 +121,8 @@ namespace MWWorld
             /// Get the handle of all actors colliding with \a object in this frame.
             void getActorsCollidingWith(const MWWorld::Ptr& object, std::vector<std::string>& out) const;
 
+            bool enableRagdoll (const MWWorld::Ptr& actor);
+
         private:
 
             void updateWater();

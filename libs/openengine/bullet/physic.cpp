@@ -233,12 +233,16 @@ namespace Physic
         , mLocalTransform(Ogre::Matrix4::IDENTITY)
         , mIsForeign(false)
         , mPlaceable(false)
+        , mMass(0.f)
+        , mMotionState(nullptr)
     {
     }
 
     RigidBody::~RigidBody()
     {
         delete getMotionState();
+        if (mMotionState)
+            delete mMotionState;
     }
 
 
@@ -506,13 +510,18 @@ namespace Physic
             if (!collisionShape)
                 continue; // phantom
 
+            btVector3 localInertia(0.f, 0.f, 0.f);
+            // FIXME: doesn't seem to work properly, causes unwanted movements
+            //if (ci->mMass[iter->first])
+                //collisionShape->calculateLocalInertia(7*ci->mMass[iter->first], localInertia);
+
             // FIXME: not sure what the correct havok scaling for mass might be
             collisionShape->setLocalScaling(btVector3(scale, scale, scale));
             btRigidBody::btRigidBodyConstructionInfo CI
                 = btRigidBody::btRigidBodyConstructionInfo(7*ci->mMass[iter->first],
                     0/*btMotionState**/,
                     collisionShape,
-                    btVector3(0.f, 0.f, 0.f)); // local inertia
+                    localInertia);
 
             //CI.m_localInertia.setZero();
             //CI.m_collisionShape->calculateLocalInertia(CI.m_mass, CI.m_localInertia);
@@ -547,6 +556,11 @@ namespace Physic
             body->mPlaceable = placeable;
             body->mLocalTransform = iter->second.first; // needed for rotateObject() and moveObject()
             body->mIsForeign = true;
+
+            // FIXME: copied from Bullet example
+            body->setDamping(btScalar(0.05), btScalar(0.85));
+            body->setDeactivationTime(btScalar(0.8));
+            body->setSleepingThresholds(btScalar(1.6), btScalar(2.5));
 
             if (body->getCollisionShape()->getUserIndex() == 4) // useFullTransform
                 // NOTE: effectively does nothing since scaledBoxTranslation is ZERO and boxRotation is IDENTITY

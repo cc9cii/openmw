@@ -462,7 +462,7 @@ btTypedConstraint *NiBtOgre::bhkLimitedHingeConstraint::buildConstraint(const st
     btHingeConstraint *constraint
         = new btHingeConstraint(*bodyA, *bodyB, localA, localB);
 
-    constraint->setLimit(btScalar(-M_PI_2), btScalar(M_PI_2));
+    constraint->setLimit(btScalar(0), btScalar(M_PI_4/2));
 #if 0
     btHingeConstraint* hingeC;
     btConeTwistConstraint* coneC;
@@ -604,6 +604,123 @@ NiBtOgre::bhkMalleableConstraint::bhkMalleableConstraint(uint32_t index, NiStrea
     stream->read(mDamping);
 }
 
+btTypedConstraint *NiBtOgre::bhkMalleableConstraint::buildConstraint(const std::map<bhkEntity*, btRigidBody*>& bodies) const
+{
+    btVector3 pivotA;
+    btVector3 pivotB;
+    if (mType == 1)
+    {
+        pivotA = btVector3(mHinge.pivotA.x, mHinge.pivotA.y, mHinge.pivotA.z);
+        pivotB = btVector3(mHinge.pivotA.x, mHinge.pivotB.y, mHinge.pivotB.z);
+    }
+    else if (mType == 2)
+    {
+        pivotA = btVector3(mLimitedHinge.pivotA.x, mLimitedHinge.pivotA.y, mLimitedHinge.pivotA.z);
+        pivotB = btVector3(mLimitedHinge.pivotB.x, mLimitedHinge.pivotB.y, mLimitedHinge.pivotB.z);
+    }
+    else if (mType == 7)
+    {
+        pivotA = mRagdoll.pivotA;
+        pivotB = mRagdoll.pivotB;
+    }
+
+    if (bodies.size() != 2)
+        throw std::runtime_error ("bhkRagdollContraint: the number of btRigidBody is not 2");
+
+    btTransform localA;
+    localA.setIdentity();
+    btTransform localB;
+    localB.setIdentity();
+    Ogre::Vector3 scale = Ogre::Vector3(1.f); // FIXME: assume uniform scaling for now (get from shape?)
+
+    std::map<bhkEntity*, btRigidBody*>::const_iterator rbIter = bodies.find(mEntities[0]);
+    if (rbIter == bodies.end())
+        throw std::runtime_error ("bhkRagdollContraint: cannot find the bhkEntity A");
+
+    btRigidBody *bodyA = rbIter->second;
+    pivotA = pivotA *scale.x* mHavokScale;
+    getBodyTransform(*(rbIter->first), *bodyA, pivotA, localA);
+
+    // NOTE: new value of rbIter
+    rbIter = bodies.find(mEntities[1]);
+    if (rbIter == bodies.end())
+        throw std::runtime_error ("bhkRagdollContraint: cannot find the bhkEntity B");
+
+    btRigidBody * bodyB = rbIter->second;
+    pivotB = pivotB * scale.x * mHavokScale;
+    getBodyTransform(*(rbIter->first), *bodyB, pivotB, localB);
+
+    if (mType == 1 || mType == 2)
+    {
+        btHingeConstraint *constraint
+            = new btHingeConstraint(*bodyA, *bodyB, localA, localB);
+        constraint->setLimit(btScalar(-M_PI_4/8), btScalar(M_PI_4/2));
+
+        return constraint;
+    }
+    else if (mType == 7)
+    {
+        btGeneric6DofConstraint *constraint
+            = new btGeneric6DofConstraint(*bodyA, *bodyB, localA, localB,
+                                         /*useLinearReferenceFrameA*/false);
+        //btVector3 planeA = mRagdoll.planeA;
+        //btVector3 coneA = mRagdoll.twistA.cross(planeA);
+        //btVector3 limitLowerA = mRagdoll.planeMinAngle/8 * planeA - coneA * mRagdoll.coneMaxAngle/8;
+        //btVector3 limitUpperA = mRagdoll.planeMaxAngle/8 * planeA + coneA * mRagdoll.coneMaxAngle/8;
+        //constraint->setAngularLowerLimit(limitLowerA);
+        //constraint->setAngularUpperLimit(limitUpperA);
+
+        constraint->setLimit(0, -1, 0.5);
+        constraint->setLimit(1, -1, 0.5);
+        constraint->setLimit(2, -1, 0.5);
+        constraint->setLimit(3, -M_PI_4/2, M_PI_4);
+        constraint->setLimit(4, -M_PI_4/2, M_PI_4);
+        constraint->setLimit(5, -M_PI_4/2, M_PI_4);
+
+        return constraint;
+    }
+
+#if 0
+    btHingeConstraint* hingeC;
+    btConeTwistConstraint* coneC;
+
+    btTransform localA, localB;
+
+    localA.setIdentity(); localB.setIdentity();
+    localA.getBasis().setEulerZYX(0,M_PI_2,0);
+    localA.setOrigin(scale*btVector3(btScalar(0.), btScalar(0.15), btScalar(0.)));
+
+    localB.getBasis().setEulerZYX(0,M_PI_2,0);
+    localB.setOrigin(scale*btVector3(btScalar(0.), btScalar(-0.15), btScalar(0.)));
+
+    hingeC =  new btHingeConstraint(*m_bodies[BODYPART_PELVIS], *m_bodies[BODYPART_SPINE], localA, localB);
+
+    hingeC->setLimit(btScalar(-M_PI_4), btScalar(M_PI_2));
+
+
+    localA.setIdentity(); localB.setIdentity();
+    localA.getBasis().setEulerZYX(0,M_PI_2,0);
+    localA.setOrigin(scale*btVector3(btScalar(0.0658497), btScalar(6.72815), btScalar(0.0395605)));
+
+    localB.getBasis().setEulerZYX(0,M_PI_2,0);
+    localB.setOrigin(scale*btVector3(btScalar(0.511301), btScalar(-42.1899), btScalar(0.372982)));
+
+    coneC = new btConeTwistConstraint(*m_bodies[TargetchainBottom01], *m_bodies[TargetHeavyTarget], localA, localB);
+
+    coneC->setLimit(0.7854*2, 0.4226*2, 0.);
+#endif
+
+#if 0
+    // FIXME: need to tune these values
+    constraint->setParam(BT_CONSTRAINT_STOP_ERP,0.8f,0);
+    constraint->setParam(BT_CONSTRAINT_STOP_ERP,0.8f,1);
+    constraint->setParam(BT_CONSTRAINT_STOP_ERP,0.8f,2);
+    constraint->setParam(BT_CONSTRAINT_STOP_CFM,0.f,0);
+    constraint->setParam(BT_CONSTRAINT_STOP_CFM,0.f,1);
+    constraint->setParam(BT_CONSTRAINT_STOP_CFM,0.f,2);
+#endif
+}
+
 // seen in nif ver 20.0.0.4, 20.0.0.5
 //
 // Seems to be for quivers only? (TES4)
@@ -707,13 +824,25 @@ btTypedConstraint *NiBtOgre::bhkRagdollConstraint::buildConstraint(const std::ma
     constraint->setParam(BT_CONSTRAINT_STOP_CFM,0.f,2);
 #endif
 
+#if 0
     btVector3 planeA = mRagdoll.planeA;
     btVector3 coneA = mRagdoll.twistA.cross(planeA);
-    btVector3 limitLowerA = mRagdoll.planeMinAngle * planeA - coneA * mRagdoll.coneMaxAngle;
-    btVector3 limitUpperA = mRagdoll.planeMaxAngle * planeA + coneA * mRagdoll.coneMaxAngle;
+    btVector3 limitLowerA = mRagdoll.planeMinAngle/8 * planeA - coneA * mRagdoll.coneMaxAngle/8;
+    btVector3 limitUpperA = mRagdoll.planeMaxAngle/8 * planeA + coneA * mRagdoll.coneMaxAngle/8;
     constraint->setAngularLowerLimit(limitLowerA);
     constraint->setAngularUpperLimit(limitUpperA);
 
+    constraint->setLimit(0, -1, 0.5);
+    constraint->setLimit(1, -1, 0.5);
+    constraint->setLimit(2, -1, 0.5);
+#else
+    constraint->setLimit(0, -1, 0.5);
+    constraint->setLimit(1, -1, 0.5);
+    constraint->setLimit(2, -1, 0.5);
+    constraint->setLimit(3, -M_PI_4/8, M_PI_4/8);
+    constraint->setLimit(4, -M_PI_4, M_PI_4);
+    constraint->setLimit(5, -M_PI_4/8, M_PI_4/8);
+#endif
     return constraint;
 }
 

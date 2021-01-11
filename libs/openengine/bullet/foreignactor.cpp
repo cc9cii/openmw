@@ -19,6 +19,7 @@
 #include <extern/nibtogre/nimodel.hpp>
 #include <extern/nibtogre/btrigidbodycimanager.hpp> // BtRigidBodyCIPtr
 #include <extern/nibtogre/btrigidbodyci.hpp>
+#include <extern/nibtogre/bhkrefobject.hpp>
 
 #include "BtOgrePG.h"
 #include "BtOgreGP.h"
@@ -59,7 +60,7 @@ namespace Physic
             // FIXME: not sure what the correct havok scaling for mass might be
             collisionShape->setLocalScaling(btVector3(scale, scale, scale));
             btRigidBody::btRigidBodyConstructionInfo CI
-                = btRigidBody::btRigidBodyConstructionInfo(0*7*ci->mMass[iter->first], // NOTE: 0 mass
+                = btRigidBody::btRigidBodyConstructionInfo(0.f, // NOTE: 0 mass
                     0/*btMotionState**/,
                     collisionShape,
                     btVector3(0.f, 0.f, 0.f)); // local inertia
@@ -97,6 +98,13 @@ namespace Physic
             body->mPlaceable = false;
             body->mLocalTransform = iter->second.first; // needed for rotateObject() and moveObject()
             body->mIsForeign = true;
+            body->mMass = 7*ci->mMass[iter->first]; // for enabling ragdoll later
+            body->mMotionState = state;
+
+            // FIXME: copied from Bullet example
+            body->setDamping(btScalar(0.05), btScalar(0.85));
+            body->setDeactivationTime(btScalar(0.8));
+            body->setSleepingThresholds(btScalar(1.6), btScalar(2.5));
 
 #if 1
             if (body->getCollisionShape()->getUserIndex() == 4) // useFullTransform
@@ -137,7 +145,35 @@ namespace Physic
             ++numBodies;
         }
 
-        // FIXME: constraints go here
+        // store constraints for later removal/delete
+        // NOTE: constraints are not enabled until ragdoll is enabled
+        for (std::size_t i = 0; i < ci->mConstraints.size(); ++i)
+        {
+            if (NiBtOgre::bhkConstraint* bhkConst = dynamic_cast<NiBtOgre::bhkConstraint*>(ci->mConstraints[i]))
+            {
+                // assumed that there are always exactly 2
+                if (bhkConst->mEntities.size() != 2)
+                    throw std::logic_error("Too many bhkEntities for a constraint");
+
+                std::map<NiBtOgre::bhkEntity*, btRigidBody*> bodies;
+                for (std::size_t j = 0; j < 2; ++j)
+                {
+                    int32_t aRef = bhkConst->mEntities[j]->selfRef();
+                    std::map<std::int32_t, RigidBody*>::const_iterator cit = rigidBodyMap.find(aRef);
+                    if (cit == rigidBodyMap.end())
+                        throw std::runtime_error("cannot find RigidBody for constraints");
+
+                    bodies[bhkConst->mEntities[j]] = cit->second;
+                }
+
+                btTypedConstraint* constraint = ci->mConstraints[i]->buildConstraint(bodies);
+                if (constraint)
+                {
+                    parentBody->mConstraints.push_back(constraint);
+                    // NOTE: constraints are not added to the world here; they will be when ragdoll is enabled
+                }
+            }
+        }
 
         mForeignBody = parentBody;
     }
@@ -185,6 +221,58 @@ namespace Physic
     btCollisionObject *ForeignActor::getRigidBody() const
     {
         return mForeignBody;
+    }
+
+    bool ForeignActor::enableRagdoll()
+    {
+        std::cout << "ForeignActor::enableRagdoll" << std::endl;
+
+        // FIXME: need to remember bone transform before removing and adding the rigid bodies
+
+        btVector3 localInertia(0.f, 0.f, 0.f);
+        if (mForeignBody->mMass)
+            mForeignBody->getCollisionShape()->calculateLocalInertia(mForeignBody->mMass, localInertia);
+
+        mEngine->mDynamicsWorld->removeRigidBody(mForeignBody);
+
+        mForeignBody->setMassProps(mForeignBody->mMass, localInertia);
+        mForeignBody->setMotionState(mForeignBody->mMotionState);
+        mForeignBody->mMotionState = nullptr;
+
+        // FIXME: mask settings
+        mEngine->mDynamicsWorld->addRigidBody(
+            mForeignBody,CollisionType_World|CollisionType_Raycasting,CollisionType_World|CollisionType_Raycasting|CollisionType_Actor|CollisionType_HeightMap);
+
+        //mForeignBody->applyGravity(); // FIXME: doesn't seem to do anything?
+
+        std::map<std::string, RigidBody*>::iterator it = mForeignBody->mChildren.begin();
+        for (; it != mForeignBody->mChildren.end(); ++it)
+        {
+            localInertia = btVector3(0.f, 0.f, 0.f);
+            if (it->second->mMass)
+                it->second->getCollisionShape()->calculateLocalInertia(it->second->mMass, localInertia);
+
+            mEngine->mDynamicsWorld->removeRigidBody(it->second);
+
+            it->second->setMassProps(it->second->mMass, localInertia);
+            it->second->setMotionState(it->second->mMotionState);
+            it->second->mMotionState = nullptr;
+
+            // FIXME: mask settings
+            mEngine->mDynamicsWorld->addRigidBody(
+                it->second,CollisionType_World|CollisionType_Raycasting,CollisionType_World|CollisionType_Raycasting|CollisionType_Actor|CollisionType_HeightMap);
+
+            //it->second->applyGravity(); // FIXME: doesn't seem to do anything?
+        }
+
+        // enable constraints
+        std::vector<btTypedConstraint*>::const_iterator cit = mForeignBody->mConstraints.begin();
+        for (; cit != mForeignBody->mConstraints.end(); ++cit)
+        {
+            mEngine->mDynamicsWorld->addConstraint(*cit, /*disable collision between linked bodies*/true);
+        }
+
+        return true;
     }
 }
 }

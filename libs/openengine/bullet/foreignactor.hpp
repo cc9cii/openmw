@@ -25,6 +25,8 @@ namespace Physic
 
         btCollisionObject *getRigidBody() const;
 
+        bool enableRagdoll();
+
     private:
 
         ForeignActor(const ForeignActor&);
