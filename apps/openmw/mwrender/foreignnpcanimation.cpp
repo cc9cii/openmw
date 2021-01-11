@@ -4084,7 +4084,8 @@ Ogre::Vector3 ForeignNpcAnimation::runAnimation(float timepassed)
 
     mHeadAnimationTime->update(timepassed);
 //#if 0 // FIXME: FO3 head rotation
-    if (mSkelBase)
+    if (mSkelBase &&
+            !mPtr.getClass().getCreatureStats(mPtr).isDead()) // FIXME: testing ragdoll
     {
         Ogre::SkeletonInstance *baseinst = mSkelBase->getSkeleton();
         if(mViewMode == VM_FirstPerson)
@@ -4135,6 +4136,7 @@ Ogre::Vector3 ForeignNpcAnimation::runAnimation(float timepassed)
         mStartTimer -= timepassed;
 
     if (!mIsTES5 && // FIXME: does not work for TES5
+            !mPtr.getClass().getCreatureStats(mPtr).isDead() && // FIXME: testing ragdoll
             mHeadASSet && mHeadASSet->hasAnimationState("Happy")) // if "Happy" exists so should others
     {
         if (mStartTimer <= 1)

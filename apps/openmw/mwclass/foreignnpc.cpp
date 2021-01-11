@@ -746,14 +746,12 @@ namespace MWClass
 
     void ForeignNpc::killActor(const MWWorld::Ptr& ptr, const std::string& actor)
     {
-        std::cout << "killActor" << std::endl;
-
         // stop animation
         // FIXME: KillActor command should not care about the health value
         getCreatureStats(ptr).setDynamic(0/*health*/, 0.f /*value*/);
 
-        if (getCreatureStats(ptr).isDead())
-            std::cout << "dead" << std::endl;
+        //if (getCreatureStats(ptr).isDead())
+            //std::cout << "dead" << std::endl;
 
         // enable ragdoll
         MWBase::World* world = MWBase::Environment::get().getWorld();

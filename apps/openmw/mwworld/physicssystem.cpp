@@ -827,7 +827,8 @@ namespace MWWorld
             physact->setPosition(position);
 
             // HACK: piggy back on setPosition() to update collision shapes
-            if (physact->isForeign())
+            if (physact->isForeign()
+                && !ptr.getClass().getCreatureStats(ptr).isDead()) // FIXME: testing ragdoll
                 updateForeignActor(ptr, physact);
         }
     }
