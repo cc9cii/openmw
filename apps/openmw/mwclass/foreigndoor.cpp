@@ -171,33 +171,36 @@ namespace MWClass
         const std::string lockedSound = "LockedDoor";
         const std::string trapActivationSound = "Disarm Trap Fail";
 
-        MWWorld::ContainerStore &invStore = actor.getClass().getContainerStore(actor);
-
         bool needKey = ptr.getCellRef().isLocked() && ptr.getCellRef().getLockLevel() > 0;
         bool hasKey = false;
         std::string keyName;
 
-        // make key id lowercase
-        std::string keyId = ptr.getCellRef().getKey();
-        Misc::StringUtils::lowerCaseInPlace(keyId);
-        for (MWWorld::ContainerStoreIterator it = invStore.begin(); it != invStore.end(); ++it)
+        if (actor.getClass().isActor()) // CRopeRock01
         {
-            std::string refId = it->getCellRef().getRefId();
-            Misc::StringUtils::lowerCaseInPlace(refId);
-            if (refId == keyId)
-            {
-                hasKey = true;
-                keyName = it->getClass().getName(*it);
-            }
-        }
+            MWWorld::ContainerStore& invStore = actor.getClass().getContainerStore(actor);
 
-        if (needKey && hasKey)
-        {
-            if(actor == MWBase::Environment::get().getWorld()->getPlayerPtr())
-                MWBase::Environment::get().getWindowManager()->messageBox(keyName + " #{sKeyUsed}");
-            unlock(ptr); //Call the function here. because that makes sense.
-            // using a key disarms the trap
-            ptr.getCellRef().setTrap("");
+            // make key id lowercase
+            std::string keyId = ptr.getCellRef().getKey();
+            Misc::StringUtils::lowerCaseInPlace(keyId);
+            for (MWWorld::ContainerStoreIterator it = invStore.begin(); it != invStore.end(); ++it)
+            {
+                std::string refId = it->getCellRef().getRefId();
+                Misc::StringUtils::lowerCaseInPlace(refId);
+                if (refId == keyId)
+                {
+                    hasKey = true;
+                    keyName = it->getClass().getName(*it);
+                }
+            }
+
+            if (needKey && hasKey)
+            {
+                if (actor == MWBase::Environment::get().getWorld()->getPlayerPtr())
+                    MWBase::Environment::get().getWindowManager()->messageBox(keyName + " #{sKeyUsed}");
+                unlock(ptr); //Call the function here. because that makes sense.
+                // using a key disarms the trap
+                ptr.getCellRef().setTrap("");
+            }
         }
 
         if (!needKey || hasKey)
