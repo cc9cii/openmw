@@ -103,11 +103,11 @@ namespace Compiler
             /// \note Currently only segment 3 and segment 5 opcodes are supported.
 
             void generateFunctionCode (int keyword, std::vector<Interpreter::Type_Code>& code,
-                Literals& literals, const std::string& id, int optionalArguments) const;
+                Literals& literals, const std::string& id, int optionalArguments, int localRefIndex = -1) const;
             ///< Append code for function to \a code.
 
             void generateInstructionCode (int keyword, std::vector<Interpreter::Type_Code>& code,
-                Literals& literals, const std::string& id, int optionalArguments) const;
+                Literals& literals, const std::string& id, int optionalArguments, int localRefIndex = -1) const;
             ///< Append code for function to \a code.
 
             void listKeywords (std::vector<std::string>& keywords) const;

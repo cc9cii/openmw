@@ -62,6 +62,8 @@ namespace Tes4Compiler
 
         void pushString (CodeContainer& code, Compiler::Literals& literals, const std::string& value);
 
+        void pushRef (CodeContainer& code, Compiler::Literals& literals, int value);
+
         void assignToLocal (CodeContainer& code, char localType,
             int localIndex, const CodeContainer& value, char valueType);
 

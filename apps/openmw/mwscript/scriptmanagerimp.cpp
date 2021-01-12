@@ -278,6 +278,7 @@ namespace MWScript
 
 #if 0 // FIXME: temp testing
                 if (name == "00083192" && blockName == "gamemode")
+                //if (name == "00051AD3" && blockName == "onactivate")
                 for (unsigned int i = 0; i < iter2->second.first.size(); ++i)
                     std::cout << "0x" << std::setfill('0') << std::setw(8) << std::hex << iter2->second.first[i] << std::endl;
 #endif

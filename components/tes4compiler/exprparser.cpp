@@ -224,7 +224,7 @@ namespace Tes4Compiler
         mRefOp = false; // FIXME: what a mess
 
         std::string name2 = Misc::StringUtils::lowerCase (name);
-        std::string id = Misc::StringUtils::lowerCase (mExplicit);
+        std::string id = Misc::StringUtils::lowerCase (mExplicit);//.substr(4/*ref_*/)); // HACK
         std::string scriptId = "";
 
         std::pair<char, bool> type = getContext().getMemberType (name2, id, &scriptId);
@@ -359,16 +359,37 @@ namespace Tes4Compiler
                 }
             }
 #endif
-            ESM4::FormId formId = getContext().getReference(name2);
-            //if ((type == 'r' || formId != 0) && mExplicit.empty())
-            if (formId != 0)
+            if (ESM4::FormId formId = getContext().getReference(name2))
             {
+#if 1
                 mPotentialExplicit = name; // to make parseSpecial check for S_ref
-                //pushIntegerLiteral(formId); // WARN: unsigned to signed, hopefully ok
                 mPotentialReference = formId;
 
                 return true;
             }
+#else
+                mPotentialExplicit = "ref_"+name2; // to make parseSpecial check for S_ref
+
+                char type = mLocals.getType (mPotentialExplicit);
+                if (type != 'r')
+                {
+                    mLocals.declare ('r', mPotentialExplicit); // NOTE: declare() converts to lower case anyway
+
+                    char localType = mLocals.getType (mPotentialExplicit);
+                    int localIndex = mLocals.getIndex(mPotentialExplicit);
+
+                    std::vector<Interpreter::Type_Code> value;
+                    Generator::pushInt (value, formId);
+                    char valueType = 'l';
+                    Generator::assignToLocal (mCode, localType, localIndex, value, valueType);
+                }
+
+                mNextOperand = false; // FIXME: not sure why this is needed (MG09Script)
+                mOperands.push_back ('l');
+
+                return true;
+            }
+#endif
             else
             {
                 int32_t packId = getContext().getAIPackage(name2);
@@ -497,7 +518,11 @@ namespace Tes4Compiler
                         mTokenLoc = loc;
                         int optionals = parseArguments (argumentType, scanner);
 
-                        extensions->generateFunctionCode (keyword, mCode, mLiterals, mExplicit, optionals);
+                        int localIndex = -1;
+                        if (hasExplicit && !mExplicit.empty())
+                            localIndex = mLocals.getIndex(mExplicit);
+
+                        extensions->generateFunctionCode (keyword, mCode, mLiterals, mExplicit, optionals, localIndex);
                         mOperands.push_back (returnType);
                         mExplicit.clear();
                         mRefOp = false;
@@ -518,7 +543,11 @@ namespace Tes4Compiler
 
                         int optionals = parseArguments (argumentType, scanner);
 
-                        extensions->generateInstructionCode(keyword, mCode, mLiterals, mExplicit, optionals);
+                        int localIndex = -1;
+                        if (hasExplicit && !mExplicit.empty())
+                            localIndex = mLocals.getIndex(mExplicit);
+
+                        extensions->generateInstructionCode(keyword, mCode, mLiterals, mExplicit, optionals, localIndex);
                         mOperands.push_back('l'); // FIXME: ?? is this needed for an instruction?
                         mExplicit.clear();
                         mRefOp = false;
@@ -720,7 +749,7 @@ namespace Tes4Compiler
             return true;
         }
 
-        // FIXME: tidy up logic
+        // FIXME: tidy up logic (do this in parseName()?)
         if (!mPotentialExplicit.empty())
         {
             mPotentialExplicit.clear();
@@ -874,7 +903,7 @@ namespace Tes4Compiler
         int optionalCount = 0;
 
         ExprParser parser (getErrorHandler(), getContext(), mLocals, mLiterals, true);
-        StringParser stringParser (getErrorHandler(), getContext(), mLiterals);
+        StringParser stringParser (getErrorHandler(), getContext(), mLocals, mLiterals);
         DiscardParser discardParser (getErrorHandler(), getContext());
         JunkParser junkParser (getErrorHandler(), getContext(), ignoreKeyword);
 

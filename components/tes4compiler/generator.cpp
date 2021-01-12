@@ -441,6 +441,12 @@ namespace Tes4Compiler
             opPushInt (code, index);
         }
 
+        void pushRef (CodeContainer& code, Compiler::Literals& literals, int value)
+        {
+            int index = literals.addInteger (value);
+            opPushInt (code, index | 0x0400); // HACK: 2nd high bit of 24 bit
+        }
+
         void assignToLocal (CodeContainer& code, char localType,
             int localIndex, const CodeContainer& value, char valueType)
         {

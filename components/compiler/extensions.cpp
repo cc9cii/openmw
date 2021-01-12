@@ -112,7 +112,7 @@ namespace Compiler
     }
 
     void Extensions::generateFunctionCode (int keyword, std::vector<Interpreter::Type_Code>& code,
-        Literals& literals, const std::string& id, int optionalArguments) const
+        Literals& literals, const std::string& id, int optionalArguments, int localRefIndex) const
     {
         assert (optionalArguments>=0);
 
@@ -129,8 +129,15 @@ namespace Compiler
             if (iter->second.mCodeExplicit==-1)
                 throw std::logic_error ("explicit references not supported");
 
-            int index = literals.addString (id);
-            Generator::pushInt (code, literals, index);
+            if (localRefIndex == -1)
+            {
+                int index = literals.addString (id);
+                Generator::pushInt (code, literals, index);
+            }
+            else // localIndex for ref variable
+            {
+                Generator::fetchLocal (code, 'r', localRefIndex | 0x0400); // HACK: 2nd high bit of 24bit
+            }
         }
 
         switch (iter->second.mSegment)
@@ -161,7 +168,7 @@ namespace Compiler
 
     void Extensions::generateInstructionCode (int keyword,
         std::vector<Interpreter::Type_Code>& code, Literals& literals, const std::string& id,
-        int optionalArguments) const
+        int optionalArguments, int localRefIndex) const
     {
         assert (optionalArguments>=0);
 
@@ -178,8 +185,15 @@ namespace Compiler
             if (iter->second.mCodeExplicit==-1)
                 throw std::logic_error ("explicit references not supported");
 
-            int index = literals.addString (id);
-            Generator::pushInt (code, literals, index);
+            if (localRefIndex == -1)
+            {
+                int index = literals.addString (id);
+                Generator::pushInt (code, literals, index);
+            }
+            else // localIndex for ref variable
+            {
+                Generator::fetchLocal (code, 'r', localRefIndex | 0x0400); // HACK: 2nd high bit of 24 bit
+            }
         }
 
         switch (iter->second.mSegment)

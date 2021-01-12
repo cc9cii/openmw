@@ -7,13 +7,14 @@
 
 #include "scanner.hpp"
 #include "generator.hpp"
+#include "../compiler/locals.hpp"
 #include "../compiler/context.hpp"
 #include "../compiler/extensions.hpp"
 
 namespace Tes4Compiler
 {
-    StringParser::StringParser (Compiler::ErrorHandler& errorHandler, const Compiler::Context& context, Compiler::Literals& literals)
-    : Parser (errorHandler, context), mLiterals (literals), mState (StartState), mSmashCase (false)
+    StringParser::StringParser (Compiler::ErrorHandler& errorHandler, const Compiler::Context& context, Compiler::Locals& locals, Compiler::Literals& literals)
+    : Parser (errorHandler, context), mLocals (locals), mLiterals (literals), mState (StartState), mSmashCase (false)
     {
 
     }
@@ -24,10 +25,22 @@ namespace Tes4Compiler
         if (mState==StartState || mState==CommaState)
         {
             start();
-            if (mSmashCase)
-                Generator::pushString (mCode, mLiterals, Misc::StringUtils::lowerCase (name));
+
+            std::string name2 = Misc::StringUtils::lowerCase(name);
+            char type =  mLocals.getType(name2);
+            if (type == 'r')
+            {
+                int localRefIndex = -1;
+                localRefIndex = mLocals.getIndex(name2);
+                Generator::pushRef (mCode, mLiterals, localRefIndex);
+            }
             else
-                Generator::pushString (mCode, mLiterals, name);
+            {
+                if (mSmashCase)
+                    Generator::pushString (mCode, mLiterals, Misc::StringUtils::lowerCase (name));
+                else
+                    Generator::pushString (mCode, mLiterals, name);
+            }
 
             return false;
         }

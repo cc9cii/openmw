@@ -185,7 +185,7 @@ namespace Tes4Compiler
         int optionalCount = 0;
 
         ExprParser parser (getErrorHandler(), getContext(), mLocals, literals, true);
-        StringParser stringParser (getErrorHandler(), getContext(), literals);
+        StringParser stringParser (getErrorHandler(), getContext(), mLocals, literals);
 
         std::stack<std::vector<Interpreter::Type_Code> > stack;
 

@@ -6477,6 +6477,7 @@ If we decide that the `Ogre::SceneNode` for an `Ogre::Entity` with a rigidbody i
   * static objects with havok ignores havok (RicketyFence01.NIF) - if they clip through to the ground then they'll fall down
   * either the rendering and/or collision shape placement for root havok models are wrong (fixed 08/01/21)
   * Ragdoll with skinned meshes are not yet implemented (fixed 08/01/21)
+  * How to deal with animation combined with havok? `CTrapSwingMaceLong01.NIF`
 
 # [08/01/2021 - 09/01/2021] Ragdoll with skinned mesh
 
@@ -6491,7 +6492,186 @@ If we decide that the `Ogre::SceneNode` for an `Ogre::Entity` with a rigidbody i
   * COC "ImperialDungeon05"
   * COC "DarkFissure"
 
-# [10/01/2021] Collision shapes for NPC skeletons
+# [10/01/2021 - 11/01/2021] Collision shapes and Ragdoll for Actors
+
+They kinda work, but there are a few issues:
+
+  * The constraints are too loose, NPCs usually fold over fully at the waist
+  * They do not fall down from gravity alone - seem to need an external impulse
+  * their momentum at the time of death is not carried over to the ragdoll
+  * Enabling local inertia messes up `RootHavok02.NIF`
+
+# [12/01/2021] Debugging CRopeRock01
+
+    FormId 0x00051AD3
+
+    scn CRopeRock01SCRIPT
+
+    ; activates parent
+
+    short init
+    short busy
+    ref target
+    ref mySelf
+
+    begin onActivate
+
+        if init == 0
+            set target to getParentRef
+            set mySelf to getSelf
+            set init to 1
+        endif
+
+        if isActionRef mySelf == 0 && busy == 0
+            set busy to 1
+            target.activate mySelf 1
+            playgroup forward 0
+        endif
+
+    end
+
+    begin gameMode
+
+        if isAnimPlaying == 0 && busy == 1
+            set busy to 0
+        endif
+
+    end
+
+    0x0000002c
+    0x00000008
+    0x00000000
+    0x00000008
+    0x00000000 index for local short
+    0xc8000015 fetch local short (init)
+    0x00000000 index for fetch int literal
+    0xc8000004 fetch int literal (value 0)
+    0xc800001a cmp eq
+    0xc8000019 skip non zero
+    0x0100000b ---------------------+
+    // set target to getParentRef   |
+    0x00000000 local ref index? (target)
+    0xca00060c getParentRef         |
+    0xc800004b store local ref      |
+    // set mySelf to getSelf        |
+    0x00000001 local ref index? (myself)
+    0xca00060d getSelf implcit      |
+    0xc800004b store local ref      |
+    // set init to 1                |
+    0x00000000 index for local short? (init)
+    0x00000001 index for fetch int literal
+    0xc8000004 fetch int literal (value 1)
+    0xc8000000 store local short (init)
+    0x00000000 <--------------------+
+
+    // isActionRef mySelf == 0
+    0xca0005f0 isActionRef implicit <------------ this doesn't look right, where is "myself"?
+    0x00000002 index for fetch int literal
+    0xc8000004 fetch int literal (value 0)
+    0xc800001a cmp eq
+
+    // set busy to 1
+    0x00000001 index for local short
+    0xc8000015 fetch local short (busy)
+    0x00000003 index for fetch int literal
+    0xc8000004 fetch int literal (value 0)
+
+    0xc800001a cmp eq
+    0xc8000048 logical and
+    0xc8000019 skip non zero
+    0x0100000f ---------------------+
+    // set busy to 1                |
+    0x00000001 index for local short? (busy)
+    0x00000004 index for fetch int literal
+    0xc8000004 fetch int literal (value 1)
+    0xc8000000 store local short (busy)
+                                    |
+    // target.activate mySelf 1     |
+    0x00000005 index for fetch int literal
+    0xc8000004 fetch int literal (value 1)
+    0x00000001 index for string literal (mySelf)
+    0x00000006 index for fetch int literal
+    0xc8000004 fetch int literal    |
+    0xc2006f02 <- Activate explicit |
+                                    |
+    // playgroup forward 0          |
+    0x00000007 index for fetch int literal
+    0xc8000004 fetch int literal (value 0)
+    0x00000003 push int (3 which is probably the index of string literal "forward")
+    0xca0004d4 PlayGroup implicit   |
+    0x00000000 <--------------------+
+    0x00000001 <- int literal
+    0x00000000
+    0x00000000
+    0x00000001
+    0x00000001
+    0x00000002
+    0x00000000
+    0x6573796d <- string literal
+    0x6d00666c
+    0x6c657379
+    0x61740066
+    0x74656772
+    0x726f6600
+    0x64726177
+    0x00000000
+
+Some notes before I forget:
+
+  * To stop at the beginning of an "if", put a breakpoint in `ControlParser::parseKeyword()`
+  * To stop at a "set" command, put a breakpoint in `LineParser::parseName()` or `LineParser::parseKeyword()` in the block:
+
+```cpp
+        else if (mState==SetLocalVarState && keyword==Scanner::K_to)
+```
+
+## Explicit function call
+
+The code generation looks wrong:
+
+    // target.activate mySelf 1
+    0x00000005 index for fetch int literal
+    0xc8000004 fetch int literal (value 1)
+    0x00000001 index for string literal (mySelf)
+    0x00000006 index for fetch int literal
+    0xc8000004 fetch int literal
+    0xc2006f02 <- Activate explicit
+
+This would be parsed by `LineParser` where `mState == IfBodyState`.  The `LineParser::parseName()` would get to `mState == StartState` and we find that we have a local ref variable.  Maybe we need to fetch the local ref variable value here?
+
+Anyway we are now in `PotentialExplicit` state with `mExplicit` set to "target".  Now `LineParser::parseSpecial()` sees "." and we are now in `Explicit` state.
+
+`LineParser::parseKeyword()` sees "activate" as an instruction.  `ExprParser::parseArguments()` generates code for the arguments (`/cl`, i.e. optional string and optional integer).
+
+The first argument is "mySelf" which `StingParser::parseName()` generates code using `Generator::pushString()`.  I guess the interpreter needs to check if it is a local ref variable. So here we get:
+
+    0x00000001 <-- push 1 to stack (1 is the index to string literal "mySelf")
+
+Then we get the next argument which is integer "1".  Since this is on the stack the order appears reversed.
+
+    0x00000005 index for fetch int literal
+    0xc8000004 fetch int literal (value 1)
+
+We finally get to `Extensions::generateInstructionCode()`.  Since we have `mExplict` set to "target", the generator will push that as a string literal.  But for some reason the code for this string literal looks different:
+
+    0x00000006 index for string literal
+    0xc8000004 fetch int literal
+
+So the issue might be the generator pushing a string literal when it should be recognising "target" as a local ref varialbe and simply pushing its index instead.
+
+Similarly with argument "mySelf" the generator should be able recognise it as a local ref variable and generate a code to retrieve its value (but then how do we deal with non ref variables such as editor ids?)
+
+A solution might be to convert *all* these to local ref variables.  Doing so might reduce the double-searching (once during compilation and once during runtime) as well.
+
+So an `EditorId` name for an explicit call should result in a store local ref variable (of the `FormId`) then pushing the index of that to the stack where as a local ref variable for an explicit call should be just pushing the index of the variable.
+
+## Explicit function call - rethink
+
+The trouble with creating a local ref variable is that the interpreter context won't know about these local variables.
+
+This means we need to go back to using string literals and have some logic in interpreter context to figure out the different usages indicated above.  That seems better than trying to propagate additional local declarations to various objects and scripts.
+
+One hack would be to use some kind of indicator to distinguish between a local ref variable and a literal string.  This can be done by using one or two bits of the indices for the local ref variable and the literal string.
 
 
 

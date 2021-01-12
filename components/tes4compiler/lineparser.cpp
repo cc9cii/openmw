@@ -108,6 +108,13 @@ namespace Tes4Compiler
 
         if (mState==SetState)
         {
+            // SE02QuestScript:
+            //     SEHaskillRef.Moveto player       <---- ref
+            //     set SEHaskillRef.summoned to 1   <---- member access to script attached to ref
+            //
+            // NOTE: mName is the target for "set" which means getMemberType() doesn't get confused
+            //       with ref_sehaskillref
+
             std::string name2 = Misc::StringUtils::lowerCase (name);
             mName = name2;
 
@@ -207,14 +214,7 @@ namespace Tes4Compiler
 
             char type = mLocals.getType (name2);
 
-            // FIXME: if getReference store its FormId as a local ref variable?
-            //
-            // Hack: getReference returns a formid
-            //       if non-zero create a local ref variable with name2
-            //
-            // alternatively store the FormId as an integer literal? (in both cases)
-            // e.g. Generator::pushString(mCode, mLiterals, name2);
-            // but this can't work if the local ref variable is filled by a function e.g. GetParentRef
+#if 1
             if (type == 'r' || getContext().getReference(name2) != 0)
             {
                 mState = PotentialExplicitState;
@@ -222,6 +222,59 @@ namespace Tes4Compiler
 
                 return true;
             }
+#else
+            if (type == 'r')
+            {
+                mState = PotentialExplicitState;
+                mExplicit = name2; // name2 is local ref variable (in lower case)
+
+                return true;
+            }
+            else if (ESM4::FormId formId = getContext().getReference(name2))
+            {
+                std::string localName = "ref_"+name2;
+
+                char type = mLocals.getType (localName);
+                if (type != 'r')
+                {
+                    // declare a local ref variable and store formid
+                    mLocals.declare ('r', localName); // NOTE: declare() converts to lower case anyway
+
+                    char localType = mLocals.getType (localName);
+                    int localIndex = mLocals.getIndex(localName);
+
+                    // opPushInt - push localIndex to stack
+                    // opFetchLocalRef - replace stack[0] with local ref variable of index in stack[0]
+                    //Generator::fetchLocal (mCode, localType, localIndex);
+
+                    std::vector<Interpreter::Type_Code> value;
+                    Generator::pushInt (value, formId); // FIXME: just a guess
+                    char valueType = 'l';
+
+                    // opPushInt - push localIndex to stack
+                    // opStoreLocalRef - store stack[0] to local ref variable of index in stack[1]
+                    //     then pop stack[0] and stack[1]
+                    Generator::assignToLocal (mCode, localType, localIndex, value, valueType);
+
+                }
+
+                // now let's see if we see a special '.' to become ExplicitState
+                mState = PotentialExplicitState;
+                mExplicit = localName;
+
+                // if in ExplicitState and encounter an extention, then where is the index for
+                // the local ref variable?
+                //
+                // Extensions::generateInstructionCode() will put a string literal if mExplicit
+                // is present - this is not what we want if we have a local ref variable
+                //
+                // Instead of copying Extentions to tes4compiler, add a parameter to generate a
+                // different code.  Note that Extentions doesn't seem to have access to mLocals
+                // so we need to pass in the local index of the ref variable.
+
+                return true;
+            }
+#endif
         }
 
         if (mState==StartState && mAllowExpression)
@@ -346,9 +399,13 @@ namespace Tes4Compiler
 
                         //std::cout << "instruction " << loc.mLiteral << std::endl; // FIXME: temp testing
 
+                        int localRefIndex = -1;
+                        if (hasExplicit && !mExplicit.empty())
+                            localRefIndex = mLocals.getIndex(mExplicit);
+
                         mCode.insert (mCode.end(), code.begin(), code.end());
                         extensions->generateInstructionCode (keyword, mCode, mLiterals,
-                            mExplicit, optionals);
+                            mExplicit, optionals, localRefIndex);
 #if 1
                     }
                     catch (const Compiler::SourceException&)

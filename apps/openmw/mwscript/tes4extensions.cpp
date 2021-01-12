@@ -65,18 +65,29 @@ namespace MWScript
 
                     //std::cout << "IsActionRef: actor " << actor.getCellRef().getRefId() << std::endl;
 
-                    // here the literal string is "player" in CGAmbushAGateScript
-                    std::string editorId = runtime.getStringLiteral (runtime[0].mInteger);
+                    MWWorld::Ptr object;
+                    int index = runtime[0].mInteger;
+                    if ((index & 0x0800) == 0 && (index & 0x0400) != 0)
+                    {
+                        int index2 = runtime.getIntegerLiteral(index & 0x03ff);
+                        int ref = runtime.getContext().getLocalRef(index2);
+                        object
+                            = MWBase::Environment::get().getWorld()->searchPtrViaFormId(ref, true/*activeOnly*/);
+                    }
+                    else
+                    {
+                        // here the literal string is "player" in CGAmbushAGateScript
+                        // FIXME: "playerref" needs support as well?
+                        std::string editorId = runtime.getStringLiteral(index);
+                        object
+                            = MWBase::Environment::get().getWorld()->searchPtrViaEditorId(editorId, true/*activeOnly*/);
+                    }
                     runtime.pop();
 
-                    // FIXME: "playerref" needs support as well?
-                    // FIXME: searchPtr needs to search TES4 objects' EditorId
-                    MWWorld::Ptr object
-                        = MWBase::Environment::get().getWorld()->searchPtr(editorId, false/*activeOnly*/);
 
                     if (actor == object)
                     {
-                        std::cout << "ActionRef is " << editorId << std::endl; // FIXME: temp testing
+                        std::cout << "ActionRef is " << object.getCellRef().getRefId() << std::endl; // FIXME: temp testing
 
                         runtime.push (true);
                     }
@@ -175,13 +186,23 @@ namespace MWScript
                     Interpreter::Type_Integer flag = 0;
                     if (arg0 >= 1) // explicit
                     {
-                        std::string name = runtime.getStringLiteral(runtime[0].mInteger);
-                        std::cout << "Activate: arg " << name << std::endl;
+                        int index = runtime[0].mInteger;
+                        if ((index & 0x0800) == 0 && (index & 0x0400) != 0)
+                        {
+                            int index2 = runtime.getIntegerLiteral(index & 0x03ff);
+                            int ref = runtime.getContext().getLocalRef(index2);
+                            actor
+                                = MWBase::Environment::get().getWorld()->searchPtrViaFormId(ref, true/*activeOnly*/);
 
-                        // FIXME: not 100% sure if below method is correct
-                        unsigned int ref = runtime.getContext().getLocalRef(runtime[0].mInteger);
-                        actor = MWBase::Environment::get().getWorld()->searchPtrViaFormId(ref, true/*activeOnly*/);
-
+                            std::cout << "Activate: first arg " << ESM4::formIdToString(ref) << std::endl;
+                        }
+                        else
+                        {
+                            std::string editorId = runtime.getStringLiteral(index);
+                            actor
+                                = MWBase::Environment::get().getWorld()->searchPtrViaEditorId(editorId, true/*activeOnly*/);
+                            std::cout << "Activate: first arg " << editorId << std::endl;
+                        }
                         runtime.pop();
                     }
                     else // implicit
@@ -197,9 +218,8 @@ namespace MWScript
                     // directly -- NPC used it, Player moused over and clicked on it, etc.)
                     if (arg0 >= 2)
                     {
-                        // FIXME: not 100% sure if below method is correct
                         flag = runtime[0].mInteger;
-                        std::cout << "Activate: arg " << flag << std::endl;
+                        std::cout << "Activate: 2nd arg " << flag << std::endl;
                         runtime.pop();
                     }
 
@@ -255,12 +275,14 @@ namespace MWScript
                     std::cout << "PlayGroup: " << playgroupId << " " << flag; // FIXME: temp testing
 
                     MWRender::Animation *anim = MWBase::Environment::get().getWorld()->getAnimation(ptr);
+#if 0
                     if (anim->hasAnimation("forward") || anim->hasAnimation("backward"))
                     {
                         std::cout << " (has animation Forward or Backword)" << std::endl;
                     }
                     else
                         std::cout << std::endl;
+#endif
 
                     // FIXME: should use runtime.getContext() here
                     const_cast<MWWorld::Class&>(ptr.getClass()).playgroup(ptr, playgroupId, flag);

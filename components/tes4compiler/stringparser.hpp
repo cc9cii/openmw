@@ -9,6 +9,7 @@
 
 namespace Compiler
 {
+    class Locals;
     class Literals;
 }
 
@@ -21,6 +22,7 @@ namespace Tes4Compiler
                 StartState, CommaState
             };
 
+            Compiler::Locals& mLocals;
             Compiler::Literals& mLiterals;
             State mState;
             std::vector<Interpreter::Type_Code> mCode;
@@ -28,7 +30,7 @@ namespace Tes4Compiler
 
         public:
 
-            StringParser (Compiler::ErrorHandler& errorHandler, const Compiler::Context& context, Compiler::Literals& literals);
+            StringParser (Compiler::ErrorHandler& errorHandler, const Compiler::Context& context, Compiler::Locals& locals, Compiler::Literals& literals);
 
             virtual bool parseName (const std::string& name, const Compiler::TokenLoc& loc,
                 Scanner& scanner);

@@ -80,7 +80,7 @@ namespace MWScript
         {
             if (mReference.isEmpty() && !mTargetId.empty())
                 mReference =
-                MWBase::Environment::get().getWorld()->searchPtrViaEditorId(mTargetId, false);
+                MWBase::Environment::get().getWorld()->searchPtrViaEditorId(mTargetId, false/*activeOnly*/);
 
             if (mReference.isEmpty() && doThrow)
                 throw std::runtime_error("no implicit reference");
