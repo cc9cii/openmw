@@ -229,10 +229,6 @@ namespace MWScript
         if (acre)
             return acre->mFormId;
 
-        const ESM4::AIPackage *pack = store.getForeign<ESM4::AIPackage>().searchLower(lowerEditorId);
-        if (pack)
-            return pack->mData.type;
-
         const ESM4::Quest *quest = store.getForeign<ESM4::Quest>().search (lowerEditorId);
         if (quest && quest->mQuestScript)
         {
@@ -240,6 +236,17 @@ namespace MWScript
             if (script)
                 return script->mFormId;
         }
+
+        return 0;
+    }
+
+    int32_t CompilerContext::getAIPackage (const std::string& lowerEditorId) const
+    {
+        const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
+
+        const ESM4::AIPackage *pack = store.getForeign<ESM4::AIPackage>().searchLower(lowerEditorId);
+        if (pack)
+            return pack->mData.type;
 
         return 0;
     }

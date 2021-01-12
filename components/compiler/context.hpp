@@ -59,6 +59,8 @@ namespace Compiler
             virtual ESM4::FormId getReference (const std::string& editorId) const = 0;
             ///< Return the \a FormId of an object reference, identified by its reference
             /// \a EditorId, in currently active cells.  Return 0 if none found.
+
+            virtual int32_t getAIPackage (const std::string& lowerEditorId) const = 0;
     };
 }
 

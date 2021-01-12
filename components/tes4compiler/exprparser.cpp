@@ -249,7 +249,7 @@ namespace Tes4Compiler
         Compiler::Literals& literals, bool argument)
     : Parser (errorHandler, context), mLocals (locals), mLiterals (literals),
       mNextOperand (true), mFirst (true), mArgument (argument), mExplicit(""), mRefOp (false), mMemberOp (false),
-      mPotentialExplicit(""), mPotentialReference(0)
+      mPotentialExplicit(""), mPotentialReference(0), mPotentialAIPackage(-1)
     {}
 
     bool ExprParser::parseInt (int value, const Compiler::TokenLoc& loc, Scanner& scanner)
@@ -368,6 +368,16 @@ namespace Tes4Compiler
                 mPotentialReference = formId;
 
                 return true;
+            }
+            else
+            {
+                int32_t packId = getContext().getAIPackage(name2);
+                if (packId != -1)
+                {
+                    mPotentialAIPackage = packId;
+
+                    return true;
+                }
             }
         }
         else
@@ -720,8 +730,15 @@ namespace Tes4Compiler
                 mPotentialReference = 0;
             }
         }
-        // falls through
 
+        // See SE05QuestScript
+        //     if ( HerdirTarget.GetCurrentAIPackage != SE05TortureHoldPosition )
+        if (mPotentialAIPackage != -1)
+        {
+            pushIntegerLiteral(mPotentialAIPackage); // ai package type
+            mPotentialAIPackage = -1;
+        }
+        // falls through
 
         if (code==Scanner::S_newline)
         {

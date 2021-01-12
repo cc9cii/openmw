@@ -32,6 +32,7 @@ namespace Tes4Compiler
             bool mMemberOp;
             std::string mPotentialExplicit;
             unsigned int mPotentialReference;
+            int32_t mPotentialAIPackage;
 
             int getPriority (char op) const;
 
