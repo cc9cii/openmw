@@ -23,14 +23,7 @@ MWWorld::Ptr MWScript::ExplicitTes4Ref::operator() (Interpreter::Runtime& runtim
     bool activeOnly, bool actor) const
 {
     // Sometimes refId is the EditorId of the REFR and other times it is a local ref variable.
-    // How to distinguish?  getLocalRef() can throw and we can't be certain that the index is correct.
-    //
-    // One ugly way is to search assuming that the index is for a literal string of an EditorId, then
-    // if it fails to return a valid Ptr then assume it must be an index for a ref variable holding
-    // a FormId
-    //
-    // Another hack is to use a special bit marker for local ref variables.
-
+    // HACK: use a special bit marker for local ref variables
     int index = runtime[0].mInteger;
     if ((index & 0x800) == 0 && (index & 0x0400) != 0)
     {

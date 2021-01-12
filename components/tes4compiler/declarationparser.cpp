@@ -36,15 +36,17 @@ bool Tes4Compiler::DeclarationParser::parseName (const std::string& name, const 
 
         char type = mLocals.getType (name2);
 
-        // SE08QuestScript has below:
+        // SE08QuestScript has below duplication:
         //
-        // short PasswallBattleBegin ;Set to 1 when Order attacks Passwall after stage 20
-        // ...
-        // short PasswallBattleBegin ;Set to 1 at the beginning of stage 26
+        //     short PasswallBattleBegin ;Set to 1 when Order attacks Passwall after stage 20
+        //     ...
+        //     short PasswallBattleBegin ;Set to 1 at the beginning of stage 26
         //
-        // Also ArenaGrandChampionMatchScript: short FightOver
-        //      Dark05AssassinatedScript: Float fQuestDelayTime
-        //      etc
+        // Duplicates in other scripts:
+        //
+        //     ArenaGrandChampionMatchScript: short FightOver
+        //     Dark05AssassinatedScript: Float fQuestDelayTime
+        //     etc
         if (type!=' ')
         {
             /// \todo add option to make re-declared local variables an error
