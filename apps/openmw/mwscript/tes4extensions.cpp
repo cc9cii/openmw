@@ -581,6 +581,51 @@ namespace MWScript
                 }
         };
 
+        template<class R>
+        class OpGetInCell : public Interpreter::Opcode0
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime)
+                {
+
+                    MWWorld::Ptr ptr = R()(runtime);
+
+                    std::cout << "GetInCell: " << std::endl; // FIXME: temp testing
+
+                    runtime.push (0); // FIXME:
+                }
+        };
+
+        template<class R>
+        class OpLock : public Interpreter::Opcode1
+        {
+            public:
+
+                virtual void execute (Interpreter::Runtime& runtime, unsigned int arg0)
+                {
+
+                    //MWWorld::Ptr ptr = R()(runtime);
+
+                    // handle the arguments
+                    Interpreter::Type_Integer flag = 0;
+                    if (arg0 >= 1)
+                    {
+                        // FIXME: untested, prob wrong
+                        Interpreter::Type_Integer flag = runtime[0].mInteger;
+                        std::cout << "arg " << flag << std::endl;
+
+                        runtime.pop();
+                    }
+                    else // implicit
+                    {
+                        MWWorld::Ptr ptr = R()(runtime);
+                    }
+
+                    //std::cout << "Lock" << std::endl;
+                }
+        };
+
         void installOpcodes (Interpreter::Interpreter& interpreter)
         {
             // Actor
@@ -590,6 +635,10 @@ namespace MWScript
                 (Tes4Compiler::Tes4Actor::opcodeSetActorValue, new OpSetActorValue<ImplicitRef>);
             interpreter.installSegment5
                 (Tes4Compiler::Tes4Actor::opcodeSetActorValueExplicit, new OpSetActorValue<ExplicitTes4Ref>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Actor::opcodeGetInCell, new OpGetInCell<ImplicitRef>);
+            interpreter.installSegment5
+                (Tes4Compiler::Tes4Actor::opcodeGetInCellExplicit, new OpGetInCell<ExplicitTes4Ref>);
 
             // AI
             interpreter.installSegment5
@@ -650,6 +699,11 @@ namespace MWScript
 
             interpreter.installSegment5
                 (Tes4Compiler::Tes4Misc::opcodeEnableLinkedPathPoints, new OpEnableLinkedPathPoints<ImplicitRef>);
+
+            interpreter.installSegment3
+                (Tes4Compiler::Tes4Misc::opcodeLock, new OpLock<ImplicitRef>);
+            interpreter.installSegment3
+                (Tes4Compiler::Tes4Misc::opcodeLockExplicit, new OpLock<ExplicitTes4Ref>);
 
             interpreter.installSegment5
                 (Tes4Compiler::Tes4Misc::opcodeSetDestroyed, new OpSetDestroyed<ImplicitRef>);

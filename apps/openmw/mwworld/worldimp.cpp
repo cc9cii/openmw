@@ -772,7 +772,7 @@ namespace MWWorld
         if (editorId == "player" || editorId == "playerref" || editorId == "Player")
             return mPlayer->getPlayer();
 
-        return mWorldScene->searchPtrViaEditorId(editorId);
+        return mWorldScene->searchPtrViaEditorId(editorId, activeOnly);
     }
 
     struct FindContainerFunctor

@@ -2092,7 +2092,9 @@ namespace MWWorld
         return Ptr();
     }
 
-    Ptr Scene::searchPtrViaEditorId (const std::string& editorId)
+    // FIXME: this only searches active cells
+    // but to fix this properly, all persistent references need to become Ptr with RefData
+    Ptr Scene::searchPtrViaEditorId (const std::string& editorId, bool activeOnly)
     {
         for (CellStoreCollection::const_iterator iter (mActiveCells.begin());
             iter != mActiveCells.end(); ++iter)

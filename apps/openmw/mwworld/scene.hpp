@@ -145,7 +145,7 @@ namespace MWWorld
 
             Ptr searchPtrViaFormId(ESM4::FormId formId);
 
-            Ptr searchPtrViaEditorId (const std::string& editorId);
+            Ptr searchPtrViaEditorId (const std::string& editorId, bool activeOnly = true);
     };
 }
 
