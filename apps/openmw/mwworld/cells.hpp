@@ -88,8 +88,6 @@ namespace MWWorld
             ///< \param searchInContainers Only affect loaded cells.
             /// @note name must be lower case
 
-            Ptr getForeignPtr (const std::string& name, CellStore& cellStore, bool searchInContainers = false);
-
             /// @note name must be lower case
             Ptr getPtr (const std::string& name);
 

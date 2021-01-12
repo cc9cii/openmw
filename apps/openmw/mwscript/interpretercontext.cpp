@@ -74,7 +74,7 @@ namespace MWScript
     {
         if (!id.empty())
         {
-            return MWBase::Environment::get().getWorld()->getForeignPtr(id, activeOnly);
+            return MWBase::Environment::get().getWorld()->getPtr(id, activeOnly);
         }
         else
         {
@@ -601,7 +601,7 @@ namespace MWScript
         if (id.empty())
             ref2 = getReferenceImp();
         else
-            ref2 = MWBase::Environment::get().getWorld()->getForeignPtr(id, false);
+            ref2 = MWBase::Environment::get().getWorld()->getPtr(id, false);
 
         if (ref2.getContainerStore()) // is the object contained?
         {
@@ -613,7 +613,7 @@ namespace MWScript
                 throw std::runtime_error("failed to find container ptr");
         }
 
-        const MWWorld::Ptr ref = MWBase::Environment::get().getWorld()->getForeignPtr(name, false);
+        const MWWorld::Ptr ref = MWBase::Environment::get().getWorld()->getPtr(name, false);
 
         // If the objects are in different worldspaces, return a large value (just like vanilla)
         if (ref.getCell()->getCell()->getCellId().mWorldspace != ref2.getCell()->getCell()->getCellId().mWorldspace)

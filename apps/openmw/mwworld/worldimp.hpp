@@ -261,8 +261,6 @@ namespace MWWorld
             ///< Return a pointer to a liveCellRef with the given name.
             /// \param activeOnly do non search inactive cells.
 
-            virtual Ptr getForeignPtr (const std::string& name, bool activeOnly);
-
             virtual Ptr searchPtr (const std::string& name, bool activeOnly);
             ///< Return a pointer to a liveCellRef with the given name.
             /// \param activeOnly do non search inactive cells.
