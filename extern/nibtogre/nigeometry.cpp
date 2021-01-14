@@ -438,6 +438,7 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
 
     Ogre::Matrix4 transform = Ogre::Matrix4(Ogre::Matrix4::IDENTITY);
     bool isStatic = false;
+    bool isSkinned = mSkinInstanceRef != -1;
 
     // ICDoor04, UpperChest02 - these have animation flag but are static. Therefore we can't
     // rely on that flag.  We have to confirm with an extra check by calling isDynamicMesh().
@@ -450,7 +451,10 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
         NiNodeRef controlledNodeRef = 0;
         if (mParent->isDynamicMesh(&controlledNodeRef))
         {
-            mParent->getTransform(controlledNodeRef, transform); // get transform to controlledNode
+            // get transform to controlledNode; if skinned include controlledNode's local transform
+            // FIXME: dont understand why skinned meshes need this, perhaps the NIF files'
+            //        vertex data assumes this extra transform?
+            mParent->getTransform(controlledNodeRef, transform, (isSkinned ? true : false));
             transform = transform * mLocalTransform;
 
             if (controlledNodeRef != mParent->selfRef())
@@ -463,7 +467,7 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
     {
         transform = mLocalTransform;
     }
-    else if (mSkinInstanceRef != -1)
+    else if (mSkinInstanceRef != -1) // NOTE: never gets here if skinned mesh is animated
     {
         transform = mParent->getLocalTransform() * mLocalTransform;
     }
@@ -883,6 +887,8 @@ bool NiBtOgre::NiTriBasedGeom::buildSubMesh(Ogre::Mesh *mesh, BoundsFinder& boun
 
 
 
+        // NOTE: if you set a skeleton name to a mesh then it will expect bone weight
+        // assignments
         mesh->setSkeletonName(mModel.getName()); // FIXME: not the best place from a SubMesh?
 
         Ogre::VertexBoneAssignment boneInf;

@@ -302,7 +302,7 @@ const void NiBtOgre::NiNode::getTransform(NiNodeRef nodeRef, Ogre::Matrix4& tran
         {
             // recurse till we find nodeRef
             Ogre::Matrix4 worldTransform = Ogre::Matrix4(Ogre::Matrix4::IDENTITY);
-            mParent->getTransform(nodeRef, worldTransform);
+            mParent->getTransform(nodeRef, worldTransform, nodeOffset);
             transform = worldTransform * mLocalTransform;
         }
     }

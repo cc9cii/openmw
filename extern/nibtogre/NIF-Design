@@ -1867,7 +1867,7 @@ Now since the **Ogre::Bone names match the RigidBody target name**, the physics 
 ## Ragdolls
 
   * COC "ImperialDungeon05" and look for `Dungeons\Caves\Traps\CTrapLog01.NIF` to test.
-  * COC "ICMarketDistrictAFightingChance" for the CathedralCryptLight02.NIF and TargetHeavy01.NIF (but easier to get there from outside)
+  * COC "ICMarketDistrictAFightingChance" for the `CathedralCryptLight02.NIF` and `TargetHeavy01.NIF` (but easier to get there from outside)
   * COC "WellspringCave" to see the hanging roots (Dungeons\Misc\RootHavok06.NIF)
 
 The vines at Wellspring Cave look ok except:
@@ -6672,6 +6672,86 @@ The trouble with creating a local ref variable is that the interpreter context w
 This means we need to go back to using string literals and have some logic in interpreter context to figure out the different usages indicated above.  That seems better than trying to propagate additional local declarations to various objects and scripts.
 
 One hack would be to use some kind of indicator to distinguish between a local ref variable and a literal string.  This can be done by using one or two bits of the indices for the local ref variable and the literal string.
+
+# [13/01/2021 - 15/01/2021] Combining animation and havok
+
+Currently several places have differences, including:
+
+  * `ObjectAnimation` ctor - disables havok if animation (`NiMultiTargetTransformController` exists)
+  * `NiTriBasedGeom::buildSubMesh()` - different transform
+  * `bhkRigidBody::getShape()` - different transform and bone name
+  * `BtRigidBodyCI::loadImpl()` - different transform
+
+Also note that there are complications with skinned meshes as well.  However these transform differences maybe ok if havok mesh's parent NiNode is the controlledNode for animated meshes.
+
+## Other havok issues - `RichetyFence01.NIF`
+
+See the notes on 08/01/21 - 09/01/21.  The issue here is that `getShape()` is called indicating that the shape is "dynamic" when it is not.  As a result the required transforms are not baked into the collision shape.
+
+## Other havok issues - `RopeRock01.NIF`
+
+This one has it all - animation, havok and skinned meshes. The issue here is that the NIF file's vertices seem to have the parent `NiNode`'s local transforms baked in (TODO: need to confirm this suspicion).  As a result the rendered mesh is not in the correct place.
+
+## Other havok issues - `TrapSwingMaceLong01.NIF`
+
+This one has animation and havok.  The meshes are not skinned, so the resulting entities are attached to scene nodes (like `CathedralCryptLight02.NIF`).
+
+## Unification strategy
+
+There has to be a common way to deal with all these different cases, especially how the transforms are applied.  Maybe the best way is to standardise to exclude the parent NiNode's local transforms however the skinned meshes seem to need them for Ogre (but the NPC/Creature animations seem fine?)
+
+Strangly, the door animations look wrong even though their meshes are not skinned.
+
+### Experiment 1
+
+  * Enable animation and havok at the same time by disabling the check for `NiMultiTargetTransformController`
+  * Disable "fake skin" used for node animation
+  * Use the same transform for rendering and physics (i.e. local transform only)
+  * Attach both rendering entities and physics rigid bodies to the same node - either `SceneNode` or `Bone` (if skinned) - unless static in which case to the root `SceneNode`.
+
+Having a common transform for skinned and non-skinned meshes turns out to be more difficult than anticipated.  If the mesh always includes the parent `NiNode`'s local transform, then by using that transform's inverse as an offset when attaching the mesh to a bone should work.  However using this approach the wheel in `Dungeons\Sewers\SewerWheel01.NIF` has wrong center of rotation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+tree 39868fcbf0c857393716696b17c66032b97d01ba
+parent b44b4bad325296ca8ab7d519e33ca533f679abf8
+author cc9c <cc9c@iinet.net.au> Sun Jan 6 09:48:44 2019 +1100
+committer cc9c <cc9c@iinet.net.au> Sun Jan 6 09:48:44 2019 +1100
+
+Get the source closer to cc9cii branch for eventual release of NIF code.  Lots of old NIF code as well as comments were removed.  Vertex animation works, if jerky.
+
+tree d079767941df643afe34f0a2b3455b0bb45df7d4
+parent 285b4bf726448722a2390260280925600b23c56f
+author scrawl <scrawl@baseoftrash.de> Fri Mar 8 23:46:25 2013 +0100
+committer scrawl <scrawl@baseoftrash.de> Fri Mar 8 23:46:25 2013 +0100
+
+Create a separate rigid body / shape with full details for raycasting, remove the occlusion query hack
 
 
 
