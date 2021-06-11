@@ -40,6 +40,8 @@ static const std::string PATHGRID_POINT_MATERIAL = "pathgridPointMaterial";
 static const std::string PATHGRID_LINE_MATERIAL = "pathgridLineMaterial";
 static const std::string PATHGRID_ALT_POINT_MATERIAL = "pathgridPriorityPointMaterial";
 static const std::string PATHGRID_ALT_LINE_MATERIAL = "pathgridAltLineMaterial";
+static const std::string PATHGRID_ROAD_POINT_MATERIAL = "pathgridRoadPointMaterial";
+static const std::string PATHGRID_ROAD_LINE_MATERIAL = "pathgridRoadLineMaterial";
 static const std::string DEBUGGING_GROUP = "debugging";
 static const float POINT_MESH_BASE = 35.f;
 
