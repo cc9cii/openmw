@@ -412,7 +412,7 @@ void Debugging::enableCellPathgrid(MWWorld::CellStore *store)
         if (store->getCell()->isExterior())
         {
             gridX = static_cast<const MWWorld::ForeignCell*>(store->getCell())->mCell->mX;
-            gridY = static_cast<const MWWorld::ForeignCell*>(store->getCell())->mCell->mX;
+            gridY = static_cast<const MWWorld::ForeignCell*>(store->getCell())->mCell->mY;
 
             // NOTE: since the pathgrid points are already in world space, no need to convert them
             //cellPathGridPos.x = Ogre::Real(gridX * ESM4::Land::REAL_SIZE);
