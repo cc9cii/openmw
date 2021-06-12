@@ -684,7 +684,7 @@ void Debugging::disableRoad()
 {
     if (mRoadNode)
     {
-        destroyCellPathgridNode(mRoadNode);
+        destroyRoadNode(mRoadNode);
         mRoadNode = nullptr;
     }
 }
@@ -692,6 +692,13 @@ void Debugging::disableRoad()
 void Debugging::destroyCellPathgridNode(SceneNode *node)
 {
     mPathGridRoot->removeChild(node);
+    destroyAttachedObjects(node);
+    mSceneMgr->destroySceneNode(node);
+}
+
+void Debugging::destroyRoadNode(SceneNode *node)
+{
+    mRoadRoot->removeChild(node);
     destroyAttachedObjects(node);
     mSceneMgr->destroySceneNode(node);
 }

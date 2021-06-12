@@ -80,6 +80,7 @@ namespace MWRender
 
         // utility
         void destroyCellPathgridNode(Ogre::SceneNode *node);
+        void destroyRoadNode(Ogre::SceneNode *node);
         void destroyAttachedObjects(Ogre::SceneNode *node);
 
         // materials
