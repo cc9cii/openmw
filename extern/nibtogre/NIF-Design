@@ -1691,9 +1691,9 @@ void PhysicsSystem::addObject (const Ptr& ptr, const std::string& mesh, bool pla
     // TODO: probably possible to optimise the use of the "group" parameter, e.g. per cell
 
 
-# [04/03/2020] Finding missing `TrapLog`
+# [04/03/2020] Finding missing `TrapLogs`
 
-COC "ImperialDungeon05" and look for `Dungeons\Caves\Traps\CTrapLog01.NIF`.  Found it - it turns out that `CollisoinType_World` had to be added in th flags otherwise the collision shapes don't collide with the floor and sink through.
+COC "ImperialDungeon05" and look for `Dungeons\Caves\Traps\CTrapLogs01.NIF`.  Found it - it turns out that `CollisoinType_World` had to be added in th flags otherwise the collision shapes don't collide with the floor and sink through.
 
 ```cpp
 if (!raycasting)
@@ -1866,7 +1866,7 @@ Now since the **Ogre::Bone names match the RigidBody target name**, the physics 
 
 ## Ragdolls
 
-  * COC "ImperialDungeon05" and look for `Dungeons\Caves\Traps\CTrapLog01.NIF` to test.
+  * COC "ImperialDungeon05" and look for `Dungeons\Caves\Traps\CTrapLogs01.NIF` to test.
   * COC "ICMarketDistrictAFightingChance" for the `CathedralCryptLight02.NIF` and `TargetHeavy01.NIF` (but easier to get there from outside)
   * COC "WellspringCave" to see the hanging roots (Dungeons\Misc\RootHavok06.NIF)
 
@@ -1965,9 +1965,9 @@ if (mObjectRoot->mForeignObj->havokEnabled())
 
 That flag is set by `NiIntergerExtraData` using the `BSX` flags in the NIF file (e.g. `Dungeons\Chargen\IDGate01.NIF`, `FormId` 0x0003665B).  `IDGate01` has `BSX` flag 0x0B which for TES4 includes "enable animation", "enable collision" and "enable havok".
 
-We may need to change the code to exclude the models with animation enabled?  But that disables ragdoll from others such as `Dungeons\Misc\RootHavok06.NIF`.  Maybe it will be necessary to capture the presence of constraints during the construction of the NiModel.  **FIXME:** Even so objects such as `Clutter\MinotaurHead.NIF` and `Dungeons\Caves\Traps\CTrapLog01.NIF` will have both animation and havok enabled, so some kind of control mechanism will need to be devised.
+We may need to change the code to exclude the models with animation enabled?  But that disables ragdoll from others such as `Dungeons\Misc\RootHavok06.NIF`.  Maybe it will be necessary to capture the presence of constraints during the construction of the NiModel.  **FIXME:** Even so objects such as `Clutter\MinotaurHead.NIF` and `Dungeons\Caves\Traps\CTrapLogs01.NIF` will have both animation and havok enabled, so some kind of control mechanism will need to be devised.
 
-CTrapLog01 animation, looking from the left of the pile from the top of the hill:
+CTrapLogs01 animation, looking from the left of the pile from the top of the hill:
 
                  Log05 =========
               Log04 Log03 =========
@@ -3821,7 +3821,7 @@ The issue with only females appearing seems to be related to which NPC data is u
 
 The only solution here is to properly implement supporting levelled Npc and Creatues. There are some things to consider:
 
-  * Some of the data must come from the original `AHCR` or `REFR` - e.g. position
+  * Some of the data must come from the original `ACHR` or `REFR` - e.g. position
 
 COC "zBethOffice02"
 **FIXME:** Should have continued until the final Npc was found **FIXED**
@@ -6684,15 +6684,21 @@ Currently several places have differences, including:
 
 Also note that there are complications with skinned meshes as well.  However these transform differences maybe ok if havok mesh's parent NiNode is the controlledNode for animated meshes.
 
-## Other havok issues - `RichetyFence01.NIF`
+## Variety 1 - `RichetyFence01.NIF`
+
+Static but havok enabled with non-zero mass.
 
 See the notes on 08/01/21 - 09/01/21.  The issue here is that `getShape()` is called indicating that the shape is "dynamic" when it is not.  As a result the required transforms are not baked into the collision shape.
 
-## Other havok issues - `RopeRock01.NIF`
+No idea yet on how to fix this.
 
-This one has it all - animation, havok and skinned meshes. The issue here is that the NIF file's vertices seem to have the parent `NiNode`'s local transforms baked in (TODO: need to confirm this suspicion).  As a result the rendered mesh is not in the correct place.
+## Variety 2 - `RopeRock01.NIF`
 
-## Other havok issues - `TrapSwingMaceLong01.NIF`
+This one has it all - animation, havok and skinned meshes. The issue here is that the NIF file's vertices seem to have the parent `NiNode`'s local transforms baked in.  As a result the rendered mesh is not in the correct place.
+
+Fixed 15/01/21 by using different transforms for animated skinned meshes.
+
+## Variety 3 - `TrapSwingMaceLong01.NIF`
 
 This one has animation and havok.  The meshes are not skinned, so the resulting entities are attached to scene nodes (like `CathedralCryptLight02.NIF`).
 
@@ -6711,6 +6717,107 @@ Strangly, the door animations look wrong even though their meshes are not skinne
 
 Having a common transform for skinned and non-skinned meshes turns out to be more difficult than anticipated.  If the mesh always includes the parent `NiNode`'s local transform, then by using that transform's inverse as an offset when attaching the mesh to a bone should work.  However using this approach the wheel in `Dungeons\Sewers\SewerWheel01.NIF` has wrong center of rotation.
 
+# [18/01/2021 - 19/01/2021] Activation and deactivation
+
+It is unclear when havok should be enabled and disabled if the model has both havok and animation. There are a couple of examples both of which have havok, animation and attached scripts:
+
+  * `RopeRock01.NIF` - can have havok enabled except when animation is playing after activation
+  * `CTrapLogs01.NIF` - enabling havok at the start will result in the logs moving due to gravity
+
+The rigid bodies in the two models have `MO_SYS_KEYFRAMED` motion system.  According to Nifskope:
+
+    Simulation is not performed as a normal rigid body. The keyframed rigid body has an infinite mass when viewed by the rest of the system. (used for creatures)
+
+That description appears to suggest that havok is not fully enabled at the start.  Maybe only `MO_SYS_DYNAMIC` motion system does that.  Interestingly `RicketyFencd01.NIF` also has its rigid body as `MO_SYS_KEYFRAMED`.
+
+## Motion System
+
+It is unlikely Bullet has a directly equivalent concept of Motion System in Havok, but below might be loose approximation (just a guess):
+
+  Motion System       | Bullet
+  --------------------+------------------------
+  `MO_SYS_DYNAMIC`    | dynamic objects
+  `MO_SYS_FIXED`      | static objects
+  `MO_SYS_KEYFRAMED`  | kinematic objects
+
+# [13/03/2021 - 14/03/2021] Back from a long break
+
+Not sure what to do next.  Some possibilities are:
+
+  * Figure out how CTrabpLogs01.NIF is triggered (e.g. velocity greater than a certain pre-defined limit)
+  * Improve the configuration of Bullet rigid body constraints
+  * Enable Bullet multi-threading
+  * Something other than physics and come back to it (e.g. character controller, AI packages, etc)
+
+## Try starting with AI Packages
+
+Call sequence:
+
+    >	openmw.exe!MWMechanics::Actors::addActor(const MWWorld::Ptr & ptr, bool updateImmediately) Line 1023	C++	Symbols loaded.
+        openmw.exe!MWClass::ForeignNpc::insertObject(const MWWorld::Ptr & ptr, const std::string & model, MWWorld::PhysicsSystem & physics) Line 196	C++	Symbols loaded.
+        openmw.exe!`anonymous namespace'::addObject(const MWWorld::Ptr & ptr, MWWorld::PhysicsSystem * physics, MWRender::RenderingManager & rendering, bool dist) Line 81	C++	Symbols loaded.
+        openmw.exe!MWWorld::Scene::addObjectToScene(const MWWorld::Ptr & ptr) Line 2014	C++	Symbols loaded.
+        openmw.exe!MWWorld::World::copyObjectToCell(const MWWorld::Ptr & object, MWWorld::CellStore * cell, ESM::Position pos, bool adjustPos) Line 2219	C++	Symbols loaded.
+        openmw.exe!MWWorld::World::safePlaceObject(const MWWorld::Ptr & ptr, MWWorld::CellStore * cell, ESM::Position pos) Line 1537	C++	Symbols loaded.
+        openmw.exe!MWClass::LevelledCreature::insertObjectRendering(const MWWorld::Ptr & ptr, const std::string & model, MWRender::RenderingInterface & renderingInterface) Line 85	C++	Symbols loaded.
+        openmw.exe!`anonymous namespace'::addObject(const MWWorld::Ptr & ptr, MWWorld::PhysicsSystem * physics, MWRender::RenderingManager & rendering, bool dist) Line 79	C++	Symbols loaded.
+        openmw.exe!`anonymous namespace'::InsertFunctor::operator()(const MWWorld::Ptr & ptr) Line 148	C++	Symbols loaded.
+        [Inline Frame] openmw.exe!MWWorld::CellStore::forEachImp(`anonymous-namespace'::InsertFunctor &) Line 419	C++	Symbols loaded.
+        openmw.exe!MWWorld::CellStore::forEach<`anonymous namespace'::InsertFunctor>(`anonymous-namespace'::InsertFunctor & functor) Line 232	C++	Symbols loaded.
+        openmw.exe!MWWorld::Scene::insertCell(MWWorld::CellStore & cell, bool rescale, Loading::Listener * loadingListener) Line 2001	C++	Symbols loaded.
+        openmw.exe!MWWorld::Scene::loadForeignCell(MWWorld::CellStore * cell, Loading::Listener * loadingListener, unsigned int worldId) Line 468	C++	Symbols loaded.
+
+
+        openmw.exe!MWMechanics::AiWander::init() Line 99	C++	Symbols loaded.
+        openmw.exe!MWMechanics::AiWander::AiWander(int distance, int duration, int timeOfDay, const std::vector<unsigned char,std::allocator<unsigned char>> & idle, bool repeat) Line 91	C++	Symbols loaded.
+        openmw.exe!MWMechanics::AiSequence::fill(const ESM::AIPackageList & list) Line 297	C++	Symbols loaded.
+    >	openmw.exe!MWClass::Npc::ensureCustomData(const MWWorld::Ptr & ptr) Line 233	C++	Symbols loaded.
+
+
+AI Package data is currently loaded during the setup of the custom data of an actor.  It may be beneficial to make it more explicit?
+
+# [10/04/2021 - 11/04/2021] Another attempt to kickstart
+
+# [30/05/2021] Another attempt to kickstart
+
+# [03/06/2021 - 10/06/2021] Another attempt to kickstart
+
+Finally got the code compiled and running again.  For some reason collision to the hanging roots (`Dungeons\Misc\RootHavok06.NIF`) was not working in WellspringCave - it turned out to be something related to `btCollisionObject::CF_KINEMATIC_OBJECT` but can't remember why that code was required...
+
+## AI package compilation to pre-determine location
+
+It would be highly inefficient to go through all the NPCs each time a cell is loaded.
+
+Current thinking is to "compile" all NPC AI packages and cache the results somewhere.  When a cell is loaded, the cache can be queried to see if an NPC needs to be in that cell.
+
+However implementing the pre-determination of locations may not be trivial.  For example:
+
+  * Sergius Verus has a package "Wander" to go to `ICPalace02 (07, 16)` on Sundas between 20 and 24.
+  * Palonirya has a package "Accompany" Sergius Verus on Sundas between 20 and 24.
+
+So, when loading the cell `ICPalace02 (07, 16)` on Sundas at 21 hours, both Sergius Verus and Palonirya need to be spawned there.
+
+However it is unclear what happens at 20 hours. Maybe they begin travelling?  If so does Palonirya head straight to `ICPalace02` or towards Sergius's current location?
+
+## AI package location
+
+It may be possible to go through the location data of each package for a given NPC and "register" the NPC's `FormId` for the relevant cell and time.  Note, however, that the condition data may invalidate it - i.e. will probably have to check the condition data before spawning any `NPC`.
+
+## Record group load order
+
+PACK records are loaded **after** CELL and WRLD records (i.e. ACHR and ACRE).  This means we can't pre-process the AI package locations until all the loading is completed.
+
+Note that all the DLCs should be loaded because a DLC may modify the records.  The best place, therefore, seems to be `ESMStore::setUp`.
+
+## Travel package - Regner
+
+With a Travel AI package, we know the destination but we don't know the starting location.  For example, Regner sleeps in his house ("Editor Location") between 0 and 6, then wanders near the "Editor Location" (default package) until "Regner Sit" travel package starts at 8.  Based on above, the travel starts in his house and ends in cell "BrumaExteria06".  Without this detailed examination of Regner's activities before the travel, the starting location won't be known.  Also, some kind of path finding will need to be done in order to find all the cells visited during this travel.
+
+Also complicating matters is the conditions for the packages, which can change during the gameplay (e.g. quest stage update).  One possible way to deal with this is to ignore the conditions for now and check at the time of spawning.
+
+# [11/06/2021 - 12/06/2021] Road records
+
+Maybe required for predicting visited cells during a Travel package.
 
 
 
@@ -6721,37 +6828,6 @@ Having a common transform for skinned and non-skinned meshes turns out to be mor
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-tree 39868fcbf0c857393716696b17c66032b97d01ba
-parent b44b4bad325296ca8ab7d519e33ca533f679abf8
-author cc9c <cc9c@iinet.net.au> Sun Jan 6 09:48:44 2019 +1100
-committer cc9c <cc9c@iinet.net.au> Sun Jan 6 09:48:44 2019 +1100
-
-Get the source closer to cc9cii branch for eventual release of NIF code.  Lots of old NIF code as well as comments were removed.  Vertex animation works, if jerky.
-
-tree d079767941df643afe34f0a2b3455b0bb45df7d4
-parent 285b4bf726448722a2390260280925600b23c56f
-author scrawl <scrawl@baseoftrash.de> Fri Mar 8 23:46:25 2013 +0100
-committer scrawl <scrawl@baseoftrash.de> Fri Mar 8 23:46:25 2013 +0100
-
-Create a separate rigid body / shape with full details for raycasting, remove the occlusion query hack
 
 
 
