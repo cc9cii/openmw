@@ -27,14 +27,7 @@
 #include "road.hpp"
 
 #include <stdexcept>
-#include <iostream> // FIXME: for debugging only
-
-#undef TESTING
-#if defined (TESTING)
-#  include <iomanip>  // FIXME: for debugging only
-
-#  include <boost/scoped_array.hpp> // FIXME
-#endif
+//#include <iostream> // FIXME: for debugging only
 
 #include "formid.hpp" // FIXME: for workaround
 #include "reader.hpp"
@@ -61,14 +54,6 @@ void ESM4::Road::load(ESM4::Reader& reader)
 
     mEditorId = formIdToString(mFormId); // FIXME: quick workaround to use existing code
 
-#if defined (TESTING)
-    std::size_t totalLinks = 0; // should equal to the sum of all the links from each of the nodes
-
-    const int cellSize = 4096;
-
-    std::vector<std::pair<int, int> > gridNodes;
-#endif
-
     while (reader.getSubRecordHeader())
     {
         const ESM4::SubRecordHeader& subHdr = reader.subRecordHeader();
@@ -78,95 +63,16 @@ void ESM4::Road::load(ESM4::Reader& reader)
             {
                 std::size_t numNodes = subHdr.dataSize / sizeof(PGRP);
 
-#if defined (TESTING)
-                gridNodes.resize(numNodes);
-#endif
                 mNodes.resize(numNodes);
                 for (std::size_t i = 0; i < numNodes; ++i)
                 {
                     reader.get(mNodes.at(i));
-#if defined (TESTING)
-                    totalLinks += mNodes[i].numLinks;
-
-                    // covert to grid
-                    int x = int(mNodes[i].x / cellSize);
-                    int y = int(mNodes[i].y / cellSize);
-                    gridNodes[i] = std::make_pair(x, y);
-#endif
                 }
 
                 break;
             }
             case ESM4::SUB_PGRR:
             {
-#if defined (TESTING)
-#  if 0
-                boost::scoped_array<unsigned char> mDataBuf(new unsigned char[subHdr.dataSize]);
-                reader.get(&mDataBuf[0], subHdr.dataSize);
-
-                std::ostringstream ss;
-                ss << ESM4::formIdToString(mFormId) << " " << mEditorId << " "
-                /*ss*/ << ESM4::printName(subHdr.typeId) << ":size " << subHdr.dataSize << "\n";
-                for (unsigned int i = 0; i < subHdr.dataSize; ++i)
-                {
-                    //if (mDataBuf[i] > 64 && mDataBuf[i] < 91)
-                        //ss << (char)(mDataBuf[i]) << " ";
-                    //else
-                        ss << std::setfill('0') << std::setw(2) << std::hex << (int)(mDataBuf[i]);
-                    if ((i & 0x000f) == 0xf)
-                        ss << "\n";
-                    else if (i < subHdr.dataSize-1)
-                        ss << " ";
-                }
-                std::cout << ss.str() << std::endl;
-#  else
-                //std::cout << "current world " << ESM4::formIdToString(reader.currWorld()) << std::endl;
-
-                // each record appears to be 12 bytes e.g. 30 7c cf 47 03 cd 08 48 00 fe b2 46
-                // which might be the x, y, z of a node
-                float x, y, z;
-
-                // NOTE: assumes PGRP sub-record comes before PGRR
-                for (std::size_t i = 0; i < mNodes.size(); ++i)
-                {
-                    for (std::size_t j = 0; j < mNodes[i].numLinks; ++j)
-                    {
-                        reader.get(x);
-                        reader.get(y);
-                        reader.get(z);
-
-                        bool found = false;
-                        for (std::size_t k = 0; k < mNodes.size(); ++k)
-                        {
-                            if (x != mNodes[k].x || y != mNodes[k].y || z != mNodes[k].z)
-                                continue;
-                            else
-                            {
-                                int X = int(x / cellSize);
-                                int Y = int(y / cellSize);
-
-                                std::cout << "(" << gridNodes[i].first/*mNodes[i].x*/ << ","
-                                    << gridNodes[i].second/*mNodes[i].y*/ << ")."
-                                    << j << "(" << X/*x*/ << "," << Y/*y*/ << ") "/* << z*/ << std::endl;
-
-                                std::cout << "(" << i << ")." << j << "(" << k << ") " << std::endl;
-
-                                found = true;
-                                break;
-                            }
-                        }
-
-                        if (!found)
-                            throw std::runtime_error("ESM4::ROAD::PGRR - Unknown link point "
-                                + std::to_string(j) + "at node " + std::to_string(i) + ".");
-                    }
-                }
-#  endif
-#else
-                //std::cout << "ROAD " << ESM4::printName(subHdr.typeId) << " skipping..."
-                        //<< subHdr.dataSize << std::endl;
-                //reader.skipSubRecordData();
-
                 static PGRR link;
                 static RDRP linkPt;
 
@@ -199,7 +105,7 @@ void ESM4::Road::load(ESM4::Reader& reader)
                                 + std::to_string(j) + "at node " + std::to_string(i) + ".");
                     }
                 }
-#endif
+
                 break;
             }
             default:
