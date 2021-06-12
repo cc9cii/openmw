@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2020 cc9cii
+  Copyright (C) 2020 - 2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -51,6 +51,12 @@ namespace ESM4
             std::uint16_t unknown;  // probably padding
         };
 
+        struct PGRR
+        {
+            std::int16_t startNode;
+            std::int16_t endNode;
+        };
+
         struct PGRI
         {
             std::int32_t localNode;
@@ -59,12 +65,6 @@ namespace ESM4
             float z; // foreign
         };
 #pragma pack(pop)
-
-        struct PGRR
-        {
-            std::int16_t startNode;
-            std::int16_t endNode;
-        };
 
         struct PGRL
         {
