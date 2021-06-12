@@ -652,22 +652,8 @@ void ESMStore::loadTes4Record (ESM::ESMReader& esm)
         // PGRD is handled in CellStore::loadTes4Record()
         // not loaded here since PGRD is in "Cell Temporary Child" group
         case ESM4::REC_PGRD: // Oblivion only?
-        //
-        case ESM4::REC_IDLE:
-        case ESM4::REC_MATO:
-        //
-        case ESM4::REC_PHZD:
-        case ESM4::REC_PGRE:
-        case ESM4::REC_ROAD: // Oblivion only?
-        {
-            //std::cout << ESM4::printName(hdr.record.typeId) << " skipping..." << std::endl;
-            //reader.skipRecordData();
-            reader.getRecordData();
-            ESM4::Road record;
-            record.load(reader); // FIXME not stored yet
-            break;
-        }
 #endif
+        case ESM4::REC_ROAD: reader.getRecordData(); mRoads.loadForeign(reader); break; // Oblivion only
         case ESM4::REC_LGTM: reader.getRecordData(); mLightingTemplates.loadForeign(reader); break;
         case ESM4::REC_MUSC: reader.getRecordData(); mMusic.loadForeign(reader); break;
         case ESM4::REC_ALOC: reader.getRecordData(); mMediaLocCtlr.loadForeign(reader); break; // FONV
@@ -685,7 +671,7 @@ void ESMStore::loadTes4Record (ESM::ESMReader& esm)
         }
         //case ESM4::REC_REGN:
         case ESM4::REC_PHZD: // Skyrim only?
-        case ESM4::REC_ROAD: case ESM4::REC_NAVM: case ESM4::REC_NAVI:
+        case ESM4::REC_NAVM: case ESM4::REC_NAVI:
         case ESM4::REC_IDLE:
         case ESM4::REC_MATO:
         {

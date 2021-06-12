@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2020 cc9cii
+  Copyright (C) 2020 - 2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -52,12 +52,21 @@ namespace ESM4
             std::uint16_t unknown2;
         };
 
+        // FIXME: duplicated from PGRD
         struct PGRR
         {
             std::int16_t startNode;
             std::int16_t endNode;
         };
+
+        struct RDRP
+        {
+            float x;
+            float y;
+            float z;
+        };
 #pragma pack(pop)
+        FormId mParent;       // world FormId, from the loading sequence
 
         FormId mFormId;       // from the header
         std::uint32_t mFlags; // from the header, see enum type RecordFlag for details

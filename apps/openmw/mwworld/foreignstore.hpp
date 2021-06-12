@@ -8,6 +8,7 @@
 #include <components/loadinglistener/loadinglistener.hpp>
 
 #include <extern/esm4/qust.hpp>
+#include <extern/esm4/road.hpp>
 
 #include "storebase.hpp"
 
@@ -278,6 +279,30 @@ namespace MWWorld
         const ESM4::Quest *searchCondition(ESM4::FormId formId) const;
 
         const ESM4::Quest *search(const std::string& quest) const;
+    };
+
+
+    template <>
+    class ForeignStore<ESM4::Road> : public StoreBase
+    {
+    private:
+
+        std::vector<ESM4::Road*> mRoads;
+        std::map<ESM4::FormId, std::size_t> mFormIdMap;
+
+    public:
+
+        virtual ~ForeignStore();
+
+        size_t getSize() const;
+
+        RecordId load(ESM::ESMReader& esm);
+        ForeignId loadForeign(ESM4::Reader& reader);
+
+        const ESM4::Road *find(ESM4::FormId formId) const;
+        const ESM4::Road *search(ESM4::FormId formId) const;
+
+        const ESM4::Road *searchWorld(ESM4::FormId formId) const;
     };
 
 } //end namespace

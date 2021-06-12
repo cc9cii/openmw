@@ -151,6 +151,8 @@ namespace MWWorld
         ForeignStore<ESM4::ActorCharacter> mForeignAchrs;
         ForeignStore<ESM4::ActorCreature> mForeignAcres;
 
+        ForeignStore<ESM4::Road>       mRoads;
+
         // Lookup of all IDs. Makes looking up references faster. Just
         // maps the id name to the record type.
         std::map<std::string, int> mIds;
@@ -341,6 +343,7 @@ namespace MWWorld
           //mForeignStores[ESM4::REC_CELL] = &mForeignCells;
           //mForeignStores[ESM4::REC_LAND] = &mForeignLands;
           //mForeignStores[ESM4::REC_REGN] = &mForeignRegions;
+            mForeignStores[ESM4::REC_ROAD] = &mRoads;
 
             mPathgrids.setCells(mCells);
             mForeignIds.clear();
@@ -1021,6 +1024,11 @@ namespace MWWorld
     template <>
     inline const ForeignStore<ESM4::ActorCreature>& ESMStore::getForeign<ESM4::ActorCreature>() const {
         return mForeignAcres;
+    }
+
+    template <>
+    inline const ForeignStore<ESM4::Road>& ESMStore::getForeign<ESM4::Road>() const {
+        return mRoads;
     }
 }
 

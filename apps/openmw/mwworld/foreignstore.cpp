@@ -1118,6 +1118,73 @@ namespace MWWorld
 
         return nullptr;
     }
+
+    ForeignStore<ESM4::Road>::~ForeignStore()
+    {
+        std::vector<ESM4::Road*>::iterator it = mRoads.begin();
+        for (; it != mRoads.end(); ++it)
+            delete *it;
+    }
+
+    size_t ForeignStore<ESM4::Road>::getSize() const
+    {
+        return mRoads.size();
+    }
+
+    RecordId ForeignStore<ESM4::Road>::load(ESM::ESMReader& esm)
+    {
+        ESM4::Reader& reader = static_cast<ESM::ESM4Reader*>(&esm)->reader();
+        ForeignId result = loadForeign(reader);
+
+        std::string id = ESM4::formIdToString(result.mId);
+        return RecordId(id, result.mIsDeleted); // NOTE: id is uppercase (not that it matters)
+    }
+
+    ForeignId ForeignStore<ESM4::Road>::loadForeign(ESM4::Reader& reader)
+    {
+        // FIXME: unique_ptr?
+        ESM4::Road *record = new ESM4::Road();
+        record->load(reader);
+
+        bool isDeleted = (record->mFlags & ESM4::Rec_Deleted) != 0;
+        std::size_t index = mRoads.size();
+        mRoads.push_back(record);
+
+        mFormIdMap[record->mFormId] = index;
+
+        return ForeignId(record->mFormId, isDeleted);
+    }
+
+    const ESM4::Road *ForeignStore<ESM4::Road>::find(ESM4::FormId formId) const
+    {
+        const ESM4::Road *road = search(formId);
+        if (road)
+            return road;
+
+        std::ostringstream msg;
+        msg << /*T::getRecordType() <<*/ "Road '" << ESM4::formIdToString(formId) << "' not found";
+        throw std::runtime_error(msg.str());
+    }
+
+    const ESM4::Road *ForeignStore<ESM4::Road>::search(ESM4::FormId formId) const
+    {
+        std::map<ESM4::FormId, std::size_t>::const_iterator it = mFormIdMap.find(formId);
+        if (it != mFormIdMap.end())
+            return mRoads[it->second];
+
+        return nullptr;
+    }
+
+    const ESM4::Road *ForeignStore<ESM4::Road>::searchWorld(ESM4::FormId formId) const
+    {
+        for (std::size_t i = 0; i < mRoads.size(); ++i)
+        {
+            if (formId == mRoads[i]->mParent)
+                return mRoads[i];
+        }
+
+        return nullptr;
+    }
 }
 
 //template class MWWorld::ForeignStore<MWWorld::ForeignWorld>;

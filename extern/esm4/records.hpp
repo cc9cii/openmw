@@ -52,6 +52,7 @@
 #include <extern/esm4/dial.hpp>
 #include <extern/esm4/info.hpp>
 #include <extern/esm4/pgrd.hpp>
+#include <extern/esm4/road.hpp>
 #include <extern/esm4/qust.hpp>
 #include <extern/esm4/pack.hpp>
 #include <extern/esm4/lgtm.hpp>
