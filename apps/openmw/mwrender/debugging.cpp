@@ -19,6 +19,7 @@
 //#include <extern/esm4/land.hpp>
 #include <extern/esm4/cell.hpp>
 #include <extern/esm4/pgrd.hpp>
+#include <extern/esm4/road.hpp>
 
 #include "../mwbase/world.hpp" // these includes can be removed once the static-hack is gone
 #include "../mwbase/environment.hpp"
@@ -97,7 +98,47 @@ void Debugging::destroyGridMaterials()
     {
         MaterialManager::getSingleton().remove(PATHGRID_POINT_MATERIAL, DEBUGGING_GROUP);
         MaterialManager::getSingleton().remove(PATHGRID_LINE_MATERIAL, DEBUGGING_GROUP);
+        MaterialManager::getSingleton().remove(PATHGRID_ALT_POINT_MATERIAL, DEBUGGING_GROUP);
+        MaterialManager::getSingleton().remove(PATHGRID_ALT_LINE_MATERIAL, DEBUGGING_GROUP);
         mGridMatsCreated = false;
+    }
+}
+
+void Debugging::createRoadGridMaterials()
+{
+    if (mRoadGridMatsCreated)
+        return;
+
+    if (!MaterialManager::getSingleton().getByName(PATHGRID_ROAD_LINE_MATERIAL, DEBUGGING_GROUP))
+    {
+        MaterialPtr lineMatPtr = MaterialManager::getSingleton().create(PATHGRID_ROAD_LINE_MATERIAL, DEBUGGING_GROUP);
+        lineMatPtr->setReceiveShadows(false);
+        lineMatPtr->getTechnique(0)->setLightingEnabled(true);
+        lineMatPtr->getTechnique(0)->getPass(0)->setDiffuse(0.f,1.f,0.f,0.f);
+        lineMatPtr->getTechnique(0)->getPass(0)->setAmbient(0.f,1.f,0.f);
+        lineMatPtr->getTechnique(0)->getPass(0)->setSelfIllumination(0.f,1.f,0.f);
+    }
+
+    if (!MaterialManager::getSingleton().getByName(PATHGRID_ROAD_POINT_MATERIAL, DEBUGGING_GROUP))
+    {
+        MaterialPtr pointMatPtr = MaterialManager::getSingleton().create(PATHGRID_ROAD_POINT_MATERIAL, DEBUGGING_GROUP);
+        pointMatPtr->setReceiveShadows(false);
+        pointMatPtr->getTechnique(0)->setLightingEnabled(true);
+        pointMatPtr->getTechnique(0)->getPass(0)->setDiffuse(0.f,1.f,0.f,0.f);
+        pointMatPtr->getTechnique(0)->getPass(0)->setAmbient(0.f,1.f,0.f);
+        pointMatPtr->getTechnique(0)->getPass(0)->setSelfIllumination(0.f,1.f,0.f);
+    }
+
+    mRoadGridMatsCreated = true;
+}
+
+void Debugging::destroyRoadGridMaterials()
+{
+    if (mRoadGridMatsCreated)
+    {
+        MaterialManager::getSingleton().remove(PATHGRID_ROAD_POINT_MATERIAL, DEBUGGING_GROUP);
+        MaterialManager::getSingleton().remove(PATHGRID_ROAD_LINE_MATERIAL, DEBUGGING_GROUP);
+        mRoadGridMatsCreated = false;
     }
 }
 
@@ -322,12 +363,104 @@ Ogre::ManualObject *Debugging::createTES4PathgridPoints(const ESM4::Pathgrid *pa
     return result;
 }
 
+Ogre::ManualObject *Debugging::createTES4RoadPoints(const ESM4::Road *road)
+{
+    Ogre::ManualObject *result = mSceneMgr->createManualObject();
+    const float height = POINT_MESH_BASE * sqrtf(2);
+    // sometimes the road points overlap with pathgrid points - add an offset for visibility
+    const float offset = 20.f;
+
+    bool first = true;
+    uint32 startIndex = 0;
+    std::vector<ESM4::Road::PGRP> nodes = road->mNodes;
+    for (std::size_t i = 0; i < nodes.size(); ++i, startIndex += 6)
+    {
+        Ogre::Vector3 pointPos(nodes[i].x, nodes[i].y, nodes[i].z);
+
+        if (first)
+        {
+            result->begin(PATHGRID_ROAD_POINT_MATERIAL, RenderOperation::OT_TRIANGLE_STRIP);
+        }
+        else
+        {
+            // degenerate triangle from previous octahedron
+            result->index(startIndex - 4); // 2nd point of previous octahedron
+            result->index(startIndex); // start point of current octahedron
+        }
+
+        Ogre::Real pointMeshBase = static_cast<Ogre::Real>(POINT_MESH_BASE);
+
+        result->position(pointPos + Vector3(             0,              0,  height+offset)); // 0
+        result->position(pointPos + Vector3(-pointMeshBase, -pointMeshBase,         offset)); // 1
+        result->position(pointPos + Vector3( pointMeshBase, -pointMeshBase,         offset)); // 2
+        result->position(pointPos + Vector3( pointMeshBase,  pointMeshBase,         offset)); // 3
+        result->position(pointPos + Vector3(-pointMeshBase,  pointMeshBase,         offset)); // 4
+        result->position(pointPos + Vector3(             0,              0, -height+offset)); // 5
+
+        result->index(startIndex + 0);
+        result->index(startIndex + 1);
+        result->index(startIndex + 2);
+        result->index(startIndex + 5);
+        result->index(startIndex + 3);
+        result->index(startIndex + 4);
+        // degenerates
+        result->index(startIndex + 4);
+        result->index(startIndex + 5);
+        result->index(startIndex + 5);
+        // end degenerates
+        result->index(startIndex + 1);
+        result->index(startIndex + 4);
+        result->index(startIndex + 0);
+        result->index(startIndex + 3);
+        result->index(startIndex + 2);
+
+        first = false;
+    }
+
+    result->end();
+    result->setVisibilityFlags (RV_Debug);
+
+    return result;
+}
+
+Ogre::ManualObject *Debugging::createTES4RoadLines(const ESM4::Road *road)
+{
+    const float offset = 20.f;
+
+    Ogre::ManualObject *result = mSceneMgr->createManualObject();
+
+    result->begin(PATHGRID_ROAD_LINE_MATERIAL, RenderOperation::OT_LINE_LIST);
+
+    std::vector<ESM4::Road::PGRP> nodes = road->mNodes;
+    std::vector<ESM4::Road::PGRR> links = road->mLinks;
+    for (std::size_t i = 0; i < links.size(); ++i)
+    {
+        const ESM4::Road::PGRP& p1 = nodes[links[i].startNode];
+        const ESM4::Road::PGRP& p2 = nodes[links[i].endNode];
+
+        Ogre::Vector3 start(p1.x, p1.y, p1.z+10.f+offset);  // raise a little for visibility
+        Ogre::Vector3 end(p2.x, p2.y, p2.z+10.f+offset);    // raise a little for visibility
+
+        result->position(start);
+        result->position(end);
+    }
+
+    result->end();
+    result->setVisibilityFlags (RV_Debug);
+
+    return result;
+}
+
 Debugging::Debugging(SceneNode *root, OEngine::Physic::PhysicEngine *engine) :
     mEngine(engine), mSceneMgr(root->getCreator()),
     mPathgridEnabled(false),
+    mRoadEnabled(false),
+    mRoad(nullptr),
     mRootNode(root),
     mPathGridRoot(NULL), mInteriorPathgridNode(NULL),
-    mGridMatsCreated(false)
+    mRoadRoot(nullptr), mRoadNode(nullptr),
+    mGridMatsCreated(false),
+    mRoadGridMatsCreated(false)
 {
     ResourceGroupManager::getSingleton().createResourceGroup(DEBUGGING_GROUP);
 }
@@ -337,6 +470,11 @@ Debugging::~Debugging()
     if (mPathgridEnabled)
     {
         togglePathgrid();
+    }
+
+    if (mRoadEnabled)
+    {
+        toggleRoad();
     }
 
     ResourceGroupManager::getSingleton().destroyResourceGroup(DEBUGGING_GROUP);
@@ -352,7 +490,13 @@ bool Debugging::toggleRenderMode (int mode){
 
         case MWBase::World::Render_Pathgrid:
             togglePathgrid();
+
             return mPathgridEnabled;
+
+        case MWBase::World::Render_Road:
+            toggleRoad();
+
+            return mRoadEnabled;
     }
 
     return false;
@@ -370,6 +514,18 @@ void Debugging::cellRemoved(MWWorld::CellStore *store)
     mActiveCells.erase(std::remove(mActiveCells.begin(), mActiveCells.end(), store), mActiveCells.end());
     if (mPathgridEnabled)
         disableCellPathgrid(store);
+}
+
+void Debugging::roadAdded(const ESM4::Road *road)
+{
+    mRoad = road;
+    if (mRoadEnabled)
+    {
+        if (road)
+            enableRoad();
+        else
+            disableRoad();
+    }
 }
 
 void Debugging::togglePathgrid()
@@ -397,6 +553,28 @@ void Debugging::togglePathgrid()
         mSceneMgr->destroySceneNode(mPathGridRoot);
         mPathGridRoot = NULL;
         destroyGridMaterials();
+    }
+}
+
+// COW "Tamriel" -4 10
+void Debugging::toggleRoad()
+{
+    mRoadEnabled = !mRoadEnabled;
+    if (mRoadEnabled)
+    {
+        createRoadGridMaterials();
+        mRoadRoot = mRootNode->createChildSceneNode();
+
+        enableRoad();
+    }
+    else
+    {
+        disableRoad();
+
+        mRoadRoot->removeAndDestroyAllChildren();
+        mSceneMgr->destroySceneNode(mRoadRoot);
+        mRoadRoot = nullptr;
+        destroyRoadGridMaterials();
     }
 }
 
@@ -484,6 +662,30 @@ void Debugging::disableCellPathgrid(MWWorld::CellStore *store)
             destroyCellPathgridNode(mInteriorPathgridNode);
             mInteriorPathgridNode = NULL;
         }
+    }
+}
+
+void Debugging::enableRoad()
+{
+    if (!mRoad)
+        return;
+
+    Ogre::Vector3 pos = Ogre::Vector3::ZERO;
+    SceneNode *roadPathGrid = mRoadRoot->createChildSceneNode(pos);
+    roadPathGrid->attachObject(createTES4RoadPoints(mRoad));
+    roadPathGrid->attachObject(createTES4RoadLines(mRoad));
+
+    mRoadNode = roadPathGrid;
+
+    return;
+}
+
+void Debugging::disableRoad()
+{
+    if (mRoadNode)
+    {
+        destroyCellPathgridNode(mRoadNode);
+        mRoadNode = nullptr;
     }
 }
 

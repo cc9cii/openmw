@@ -447,8 +447,9 @@ op 0x20002fe: RemoveFromLevItem
 op 0x20002ff: SetFactionReaction
 op 0x2000300: EnableLevelupMenu
 op 0x2000301: ToggleScripts
+op 0x2000302: ToggleRoad
 
-opcodes 0x2000302-0x20003ff unused
+opcodes 0x2000303-0x20003ff unused
 opcodes 0x2000400-0x20006ff tes4
 opcodes 0x2000700-0x3ffffff unused
 

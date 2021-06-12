@@ -270,6 +270,8 @@ namespace Compiler
             extensions.registerInstruction ("tw", "", opcodeToggleWorld);
             extensions.registerInstruction ("togglepathgrid", "", opcodeTogglePathgrid);
             extensions.registerInstruction ("tpg", "", opcodeTogglePathgrid);
+            extensions.registerInstruction ("toggleroad", "", opcodeToggleRoad);
+            extensions.registerInstruction ("trd", "", opcodeToggleRoad);
             extensions.registerInstruction ("dontsaveobject", "", opcodeDontSaveObject);
             extensions.registerInstruction ("pcforce1stperson", "", opcodePcForce1stPerson);
             extensions.registerInstruction ("pcforce3rdperson", "", opcodePcForce3rdPerson);

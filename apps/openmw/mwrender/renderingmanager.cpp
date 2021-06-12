@@ -266,6 +266,11 @@ void RenderingManager::cellAdded (MWWorld::CellStore *store)
     mDebugging->cellAdded(store);
 }
 
+void RenderingManager::roadAdded (const ESM4::Road *road)
+{
+    mDebugging->roadAdded(road);
+}
+
 void RenderingManager::addObject (const MWWorld::Ptr& ptr, const std::string& model){
     const MWWorld::Class& class_ =
             ptr.getClass();
@@ -509,7 +514,8 @@ void RenderingManager::skySetMoonColour (bool red){
 
 bool RenderingManager::toggleRenderMode(int mode)
 {
-    if (mode == MWBase::World::Render_CollisionDebug || mode == MWBase::World::Render_Pathgrid)
+    if (mode == MWBase::World::Render_CollisionDebug || mode == MWBase::World::Render_Pathgrid
+                                                     || mode == MWBase::World::Render_Road)
         return mDebugging->toggleRenderMode(mode);
     else if (mode == MWBase::World::Render_Wireframe)
     {

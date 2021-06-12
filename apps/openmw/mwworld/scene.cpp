@@ -467,6 +467,11 @@ namespace MWWorld
         // NOTE: this also calls Debugging to add active cells for Pathgrids
         mRendering.cellAdded (cell); // calls mTerrain->loadCell()
 
+        const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
+        const ESM4::Road *road = store.getForeign<ESM4::Road>().searchWorld(worldId);
+
+        mRendering.roadAdded(road); // NOTE: road may be nullptr (Debugging handles it)
+
         bool waterEnabled = cell->getCell()->hasWater() || cell->isExterior();
         mRendering.setWaterEnabled(waterEnabled);
         float waterLevel = /*cell->isExterior() ? -1.f : */cell->getWaterLevel();

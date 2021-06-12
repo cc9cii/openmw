@@ -261,6 +261,19 @@ namespace MWScript
             }
         };
 
+        class OpToggleRoad : public Interpreter::Opcode0
+        {
+        public:
+            virtual void execute (Interpreter::Runtime& runtime)
+            {
+                bool enabled =
+                    MWBase::Environment::get().getWorld()->toggleRenderMode (MWBase::World::Render_Road);
+
+                runtime.getContext().report (enabled ?
+                    "Road rendering -> On" : "Road Rendering -> Off");
+            }
+        };
+
         class OpFadeIn : public Interpreter::Opcode0
         {
             public:
@@ -1149,6 +1162,7 @@ namespace MWScript
             interpreter.installSegment5 (Compiler::Misc::opcodeFadeOut, new OpFadeOut);
             interpreter.installSegment5 (Compiler::Misc::opcodeFadeTo, new OpFadeTo);
             interpreter.installSegment5 (Compiler::Misc::opcodeTogglePathgrid, new OpTogglePathgrid);
+            interpreter.installSegment5 (Compiler::Misc::opcodeToggleRoad, new OpToggleRoad);
             interpreter.installSegment5 (Compiler::Misc::opcodeToggleWater, new OpToggleWater);
             interpreter.installSegment5 (Compiler::Misc::opcodeToggleWorld, new OpToggleWorld);
             interpreter.installSegment5 (Compiler::Misc::opcodeDontSaveObject, new OpDontSaveObject);

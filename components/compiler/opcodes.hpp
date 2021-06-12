@@ -223,6 +223,7 @@ namespace Compiler
         const int opcodeToggleWater = 0x2000144;
         const int opcodeToggleWorld = 0x20002f5;
         const int opcodeTogglePathgrid = 0x2000146;
+        const int opcodeToggleRoad = 0x2000302;
         const int opcodeDontSaveObject = 0x2000153;
         const int opcodePcForce1stPerson = 0x20002f6;
         const int opcodePcForce3rdPerson = 0x20002f7;

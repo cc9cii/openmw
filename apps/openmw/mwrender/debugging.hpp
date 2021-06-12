@@ -15,6 +15,7 @@ namespace ESM
 namespace ESM4
 {
     struct Pathgrid;
+    struct Road;
 }
 
 namespace OEngine
@@ -51,11 +52,14 @@ namespace MWRender
 
         // Path grid stuff
         bool mPathgridEnabled;
+        bool mRoadEnabled;
 
         void togglePathgrid();
+        void toggleRoad();
 
         typedef std::vector<MWWorld::CellStore *> CellList;
         CellList mActiveCells;
+        const ESM4::Road* mRoad; // assumes max one road per world
 
         Ogre::SceneNode *mRootNode;
 
@@ -65,8 +69,14 @@ namespace MWRender
         ExteriorPathgridNodes mExteriorPathgridNodes;
         Ogre::SceneNode *mInteriorPathgridNode;
 
+        Ogre::SceneNode *mRoadRoot;
+        Ogre::SceneNode *mRoadNode;
+
         void enableCellPathgrid(MWWorld::CellStore *store);
         void disableCellPathgrid(MWWorld::CellStore *store);
+
+        void enableRoad();
+        void disableRoad();
 
         // utility
         void destroyCellPathgridNode(Ogre::SceneNode *node);
@@ -76,6 +86,9 @@ namespace MWRender
         bool mGridMatsCreated;
         void createGridMaterials();
         void destroyGridMaterials();
+        bool mRoadGridMatsCreated;
+        void createRoadGridMaterials();
+        void destroyRoadGridMaterials();
 
         // path grid meshes
         Ogre::ManualObject *createPathgridLines(const ESM::Pathgrid *pathgrid);
@@ -84,6 +97,9 @@ namespace MWRender
         Ogre::ManualObject *createTES4PathgridLines(const ESM4::Pathgrid *pathgrid);
         Ogre::ManualObject *createTES4PathgridConnections(const ESM4::Pathgrid *pathgrid);
         Ogre::ManualObject *createTES4PathgridPoints(const ESM4::Pathgrid *pathgrid);
+
+        Ogre::ManualObject *createTES4RoadPoints(const ESM4::Road *road);
+        Ogre::ManualObject *createTES4RoadLines(const ESM4::Road *road);
     public:
         Debugging(Ogre::SceneNode* root, OEngine::Physic::PhysicEngine *engine);
         ~Debugging();
@@ -91,6 +107,8 @@ namespace MWRender
 
         void cellAdded(MWWorld::CellStore* store);
         void cellRemoved(MWWorld::CellStore* store);
+
+        void roadAdded(const ESM4::Road* road);
     };
 
 

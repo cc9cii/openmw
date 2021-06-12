@@ -20,6 +20,7 @@
 namespace ESM4
 {
     typedef uint32_t FormId;
+    struct Road;
 }
 
 namespace Ogre
@@ -105,6 +106,8 @@ public:
     /// \todo this function should be removed later. Instead the rendering subsystems should track
     /// when rebatching is needed and update automatically at the end of each frame.
     void cellAdded (MWWorld::CellStore *store);
+
+    void roadAdded (const ESM4::Road *road);
 
     /// Clear all savegame-specific data (i.e. fog of war textures)
     void clear();
