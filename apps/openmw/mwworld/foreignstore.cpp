@@ -1250,6 +1250,7 @@ template class MWWorld::ForeignStore<ESM4::DialogInfo>;
 template class MWWorld::ForeignStore<ESM4::Quest>;
 template class MWWorld::ForeignStore<ESM4::AIPackage>;
 template class MWWorld::ForeignStore<ESM4::Pathgrid>;
+//template class MWWorld::ForeignStore<ESM4::Road>;
 template class MWWorld::ForeignStore<ESM4::BodyPartData>;
 template class MWWorld::ForeignStore<ESM4::HeadPart>;
 template class MWWorld::ForeignStore<ESM4::LightingTemplate>;
