@@ -421,7 +421,7 @@ MWWorld::CellStore *MWWorld::Cells::getWorldCellGrid(ESM4::FormId worldId, std::
         return nullptr; // FIXME: maybe exception?
 
     // get the cell given the formid
-    const ForeignCell *cell = mStore.getForeign<ForeignCell>().find(it->second);
+    const ForeignCell *cell = mStore.getForeign<ForeignCell>().search(it->second);
     if (!cell)
         return nullptr; // FIXME: maybe exception?
 
@@ -494,7 +494,7 @@ MWWorld::CellStore *MWWorld::Cells::getForeignInterior (const std::string& name)
 
     if (result == mForeignInteriors.end())
     {
-        const ForeignCell *cell = mStore.getForeign<ForeignCell>().find(lowerName);
+        const ForeignCell *cell = mStore.getForeign<ForeignCell>().search(lowerName);
 
         result = mForeignInteriors.insert(std::make_pair(lowerName, std::move(CellStore(cell, true)))).first;
     }

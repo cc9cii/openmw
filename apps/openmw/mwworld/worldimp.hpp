@@ -565,8 +565,8 @@ namespace MWWorld
 
             /// Find center of exterior cell above land surface
             /// \return false if exterior with given name not exists, true otherwise
-            virtual bool findExteriorPosition(const std::string &name, ESM::Position &pos);
-            virtual bool findForeignWorldPosition(const std::string &world, ESM::Position &pos);
+            virtual bool findExteriorPosition(const std::string& name, ESM::Position &pos);
+            virtual bool findForeignWorldPosition(const std::string& name, ESM::Position &pos);
 
             /// Find position in interior cell near door entrance
             /// \return false if interior with given name not exists, true otherwise

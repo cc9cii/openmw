@@ -2852,7 +2852,7 @@ namespace MWWorld
             if (cellId == 0)
                 continue;
 
-            const MWWorld::ForeignCell *cell = store.getForeign<MWWorld::ForeignCell>().find(cellId);
+            const MWWorld::ForeignCell *cell = store.getForeign<MWWorld::ForeignCell>().search(cellId);
             if (!cell || !cell->isExterior())
                 continue;
 
@@ -2876,7 +2876,7 @@ namespace MWWorld
                 if (cellId == 0)
                     continue;
 
-                const MWWorld::ForeignCell *cell = store.getForeign<MWWorld::ForeignCell>().find(cellId);
+                const MWWorld::ForeignCell *cell = store.getForeign<MWWorld::ForeignCell>().search(cellId);
                 if (!cell)
                     continue;
 
@@ -2899,7 +2899,7 @@ namespace MWWorld
                 continue; // some doors do not teleport (e.g. animated)
 
             const ESM4::FormId cellId = store.getDoorCellId(it->mRef.getDestDoorId());
-            const MWWorld::ForeignCell *cell = store.getForeign<MWWorld::ForeignCell>().find(cellId);
+            const MWWorld::ForeignCell *cell = store.getForeign<MWWorld::ForeignCell>().search(cellId);
             if (!cell || cell->isExterior())
                 continue;
 
@@ -2916,7 +2916,7 @@ namespace MWWorld
                     continue;
 
                 const ESM4::FormId cellId = store.getDoorCellId(jt->mRef.getDestDoorId());
-                const MWWorld::ForeignCell *cell = store.getForeign<MWWorld::ForeignCell>().find(cellId);
+                const MWWorld::ForeignCell *cell = store.getForeign<MWWorld::ForeignCell>().search(cellId);
                 if (!cell)
                     continue;
 
@@ -2962,11 +2962,11 @@ namespace MWWorld
 
     // 1. check if it is a named cell (Editor ID)
     // 2. check worldspace formId and update position within that worldspace
-    bool World::findForeignWorldPosition(const std::string& world, ESM::Position& pos)
+    bool World::findForeignWorldPosition(const std::string& name, ESM::Position& pos)
     {
-        const ForeignCell *cell = mStore.getForeign<ForeignCell>().searchExtByName(world);
         // NOTE: currently not checking region names
-        if (cell != 0)
+        const ForeignCell *cell = mStore.getForeign<ForeignCell>().searchExtByName(name);
+        if (cell)
         {
             // FIXME: should check if the worldspace has changed from the current (normally
             // Tamriel for most external cells)

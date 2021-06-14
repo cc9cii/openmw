@@ -585,6 +585,33 @@ namespace MWWorld
             mCells.insert(lb, std::make_pair(formId, cell));
         }
 
+        // exterior cells of world spaces
+        // FIXME: needs a grid map rather than a vector
+        if (cell->isExterior() && groupType != ESM4::Grp_WorldChild) // ignore exterior dummy cell
+        {
+            if (groupType != ESM4::Grp_ExteriorSubCell) // exterior cell, has grid
+            {
+                std::ostringstream msg;
+                msg << "Unexpected Cell type in world " << ESM4::formIdToString(reader.currWorld());
+                throw std::runtime_error(msg.str());
+            }
+
+            std::map<ESM4::FormId, std::vector<ESM4::FormId> >::iterator lb2
+                = mWorldCellsMap.lower_bound(cell->mCell->mParent);
+            if (lb2 != mWorldCellsMap.end() && !(mWorldCellsMap.key_comp()(cell->mCell->mParent, lb2->first)))
+            {
+                lb2->second.push_back(formId);
+            }
+            else
+            {
+                std::vector<ESM4::FormId> cells;
+                cells.push_back(formId);
+                mWorldCellsMap.insert(lb2, std::make_pair(cell->mCell->mParent, cells));
+            }
+        }
+        //else if (cell->isExterior()) // FIXME: for testing only
+            //std::cout << "dummy cell ignored " << ESM4::formIdToString(reader.currWorld()) << std::endl;
+
         // FIXME: cleanup the mess of logic below, may need to refactor using a function or two
 
         // verify group label and update maps
@@ -675,7 +702,7 @@ namespace MWWorld
             // ignore if one already exists, should have the same formid
             if (!res.second) // checking just in case
             {
-                const ForeignCell *oldCell = find(Misc::StringUtils::lowerCase(cell->mCell->mEditorId));
+                const ForeignCell *oldCell = search(Misc::StringUtils::lowerCase(cell->mCell->mEditorId));
                 if (oldCell->mCell->mFormId != cell->mCell->mFormId) // FIXME
                     std::cout << "Cell with different formid has the same editor id" << std::endl; // AylidWorld (Knights.esp)
                     //throw std::runtime_error("Cell with different formid has the same editor id");
@@ -813,7 +840,7 @@ namespace MWWorld
         return RecordId("", false);
     }
 
-    // FIXME: how is this different to find(const std::string& name) ?
+    // FIXME: how is this different to search(const std::string& name) ?
     const ForeignCell *ForeignStore<MWWorld::ForeignCell>::searchExtByName(const std::string &name) const
     {
         ForeignCell *cell = nullptr;
@@ -841,25 +868,42 @@ namespace MWWorld
         return cell;
     }
 
-    const ESM::Cell *ForeignStore<MWWorld::ForeignCell>::find(int x, int y) const
+    const MWWorld::ForeignCell *ForeignStore<MWWorld::ForeignCell>::search(ESM4::FormId world, int x, int y) const
     {
-        // FIXME: some dummy for now
-        const ESM::Cell *ptr = nullptr;
-        return ptr;
+        std::map<ESM4::FormId, std::vector<ESM4::FormId> >::const_iterator it = mWorldCellsMap.find(world);
+
+        if (it != mWorldCellsMap.end())
+        {
+            for (std::size_t i = 0; i < it->second.size(); ++i)
+            {
+                const ForeignCell *cell = search(it->second[i]);
+                if (cell)
+                {
+                    if (cell->getGridX() == x && cell->getGridY() == y)
+                    {
+                        return cell;
+                    }
+                }
+                else
+                    throw std::runtime_error("world cell not found in cells map");
+            }
+        }
+
+        return nullptr;
     }
 
-    const MWWorld::ForeignCell *ForeignStore<MWWorld::ForeignCell>::find(const std::string& name) const
+    const MWWorld::ForeignCell *ForeignStore<MWWorld::ForeignCell>::search(const std::string& name) const
     {
         std::map<std::string, ESM4::FormId>::const_iterator it = mEditorIdMap.find(name);
 
         if (it != mEditorIdMap.end())
-            return find(it->second);
+            return search(it->second);
 
         return nullptr;
     }
 
     // WARNING: the supplied formid needs to have the correct modindex
-    const MWWorld::ForeignCell *ForeignStore<MWWorld::ForeignCell>::find(ESM4::FormId formId) const
+    const MWWorld::ForeignCell *ForeignStore<MWWorld::ForeignCell>::search(ESM4::FormId formId) const
     {
         std::map<ESM4::FormId, MWWorld::ForeignCell*>::const_iterator it = mCells.find(formId);
         if (it != mCells.end())

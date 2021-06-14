@@ -63,7 +63,7 @@ namespace MWWorld
         if(actor == world->getPlayerPtr())
         {
             world->getPlayer().setTeleported(true);
-            const ForeignCell *cell = world->getStore().getForeign<ForeignCell>().find(mCellId);
+            const ForeignCell *cell = world->getStore().getForeign<ForeignCell>().search(mCellId);
             if (cell)
             {
                 if (cell->isExterior())
@@ -80,7 +80,7 @@ namespace MWWorld
         {
             if (mCellName.empty())
             {
-                const ForeignCell *cell = world->getStore().getForeign<ForeignCell>().find(mCellId);
+                const ForeignCell *cell = world->getStore().getForeign<ForeignCell>().search(mCellId);
                 if (cell)
                 {
                     ESM4::FormId worldId = cell->mCell->mParent;

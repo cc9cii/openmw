@@ -168,6 +168,8 @@ namespace MWWorld
 
         std::map<std::string, ESM4::FormId> mEditorIdMap;
 
+        std::map<ESM4::FormId, std::vector<ESM4::FormId> > mWorldCellsMap;
+
         ESM4::FormId mLastPreloadedCell;       // FIXME for testing only
 
     public:
@@ -195,9 +197,9 @@ namespace MWWorld
         RecordId load(ESM::ESMReader& esm, ForeignStore<ForeignWorld>& worlds);
         //void setUp();
 
-        const ESM::Cell *find(int x, int y) const; // FIXME: returns wrong cell type
-        const ForeignCell *find(ESM4::FormId formId) const;
-        const ForeignCell *find(const std::string& name) const;
+        const ForeignCell *search(ESM4::FormId world, int x, int y) const;
+        const ForeignCell *search(ESM4::FormId formId) const;
+        const ForeignCell *search(const std::string& name) const;
 
         void testPreload(ESM::ESMReader& esm); // FIXME for testing only
     };
