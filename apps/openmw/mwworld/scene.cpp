@@ -320,7 +320,7 @@ namespace MWWorld
 
                 ESM4::FormId landWorldId = worldId;
                 const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
-                const ForeignWorld *world = store.getForeign<ForeignWorld>().find(worldId);
+                const ForeignWorld *world = store.getForeign<ForeignWorld>().search(worldId);
                 if (world && world->mParent)
                     landWorldId = world->mParent; // use parent world e.g. Cheydinhal
 
@@ -428,7 +428,7 @@ namespace MWWorld
         if (cell->getCell()->isExterior())
         {
             const ForeignLand *land =
-                    MWBase::Environment::get().getWorld()->getStore().getForeign<ForeignLand>().find(cell->getForeignLandId());
+                    MWBase::Environment::get().getWorld()->getStore().getForeign<ForeignLand>().search(cell->getForeignLandId());
             //if (land)
                 //std::cout << "heightoffset " << land->mHeightMap.heightOffset << std::endl;
 
@@ -451,7 +451,7 @@ namespace MWWorld
 
             ESM4::FormId landWorldId = worldId;
             const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
-            const ForeignWorld *world = store.getForeign<ForeignWorld>().find(worldId);
+            const ForeignWorld *world = store.getForeign<ForeignWorld>().search(worldId);
             if (world && world->mParent)
                 landWorldId = world->mParent; // use parent world e.g. Cheydinhal
 
@@ -797,11 +797,11 @@ namespace MWWorld
             ESM4::FormId landscapeWorldId = worldId;
             ESM4::FormId currLandscapeWorldId = currentWorldId;
 
-            const ForeignWorld *currWorld = store.getForeign<ForeignWorld>().find(currentWorldId);
+            const ForeignWorld *currWorld = store.getForeign<ForeignWorld>().search(currentWorldId);
             if (currWorld && currWorld->mParent)
                 currLandscapeWorldId = currWorld->mParent;
 
-            const ForeignWorld *newWorld = store.getForeign<ForeignWorld>().find(worldId);
+            const ForeignWorld *newWorld = store.getForeign<ForeignWorld>().search(worldId);
             if (newWorld && newWorld->mParent)
                 landscapeWorldId = newWorld->mParent;
 
@@ -978,7 +978,7 @@ namespace MWWorld
             ESM4::FormId currMusicId = 0;
             if (mCurrentCell && mCurrentCell->isForeignCell())
             {
-                const ForeignWorld *currWorld = store.getForeign<ForeignWorld>().find(currentWorldId);
+                const ForeignWorld *currWorld = store.getForeign<ForeignWorld>().search(currentWorldId);
                 if (currWorld)
                     currMusicId = currWorld->mMusic;
 
@@ -1211,10 +1211,10 @@ namespace MWWorld
             const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
             const MWWorld::ForeignStore<ESM4::Static> &statStore = store.getForeign<ESM4::Static>();
 
-            const ForeignWorld *newWorld = store.getForeign<ForeignWorld>().find(worldId);
+            const ForeignWorld *newWorld = store.getForeign<ForeignWorld>().search(worldId);
             const ForeignWorld *visWorld = newWorld;
             if (newWorld && newWorld->mParent)
-                visWorld = store.getForeign<ForeignWorld>().find(newWorld->mParent);
+                visWorld = store.getForeign<ForeignWorld>().find(newWorld->mParent); // may throw
 
             // delete
             const std::vector<std::pair<std::int16_t, std::int16_t> >& cmpGrids
@@ -1500,7 +1500,7 @@ namespace MWWorld
                 = static_cast<const MWWorld::ForeignCell*>(mCurrentCell->getCell())->mCell->mParent;
 
             const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
-            const ForeignWorld *world = store.getForeign<ForeignWorld>().find(worldId);
+            const ForeignWorld *world = store.getForeign<ForeignWorld>().search(worldId);
             if (world && world->mParent)
                 worldId = world->mParent; // use parent world e.g. Cheydinhal
 
@@ -2121,7 +2121,7 @@ namespace MWWorld
     void Scene::updateTES4LODLandscapeAtGrid (ESM4::FormId worldId, int x, int y)
     {
         const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
-        const ForeignWorld *world = store.getForeign<ForeignWorld>().find(worldId);
+        const ForeignWorld *world = store.getForeign<ForeignWorld>().search(worldId);
         if (world && world->mParent)
             worldId = world->mParent; // use parent world e.g. Cheydinhal
 

@@ -403,6 +403,17 @@ namespace MWWorld
 
     const ForeignWorld *ForeignStore<ForeignWorld>::find(ESM4::FormId worldId) const
     {
+        const MWWorld::ForeignWorld *world = search(worldId);
+        if (world)
+            return world;
+
+        std::ostringstream msg;
+        msg << "World '" << ESM4::formIdToString(worldId) << "' not found";
+        throw std::runtime_error(msg.str());
+    }
+
+    const ForeignWorld *ForeignStore<ForeignWorld>::search(ESM4::FormId worldId) const
+    {
         std::map<ESM4::FormId, ForeignWorld*>::const_iterator it = mWorlds.find(worldId);
         if (it != mWorlds.end())
             return it->second;
@@ -412,7 +423,7 @@ namespace MWWorld
 
     // editorId parameter is assumed to be in lower case
     // FIXME: should maintain a map for a faster lookup?
-    const ForeignWorld *ForeignStore<ForeignWorld>::find(const std::string& editorId) const
+    const ForeignWorld *ForeignStore<ForeignWorld>::search(const std::string& editorId) const
     {
         std::map<ESM4::FormId, ForeignWorld*>::const_iterator it = mWorlds.begin();
         for (;it != mWorlds.end(); ++it)
@@ -952,7 +963,7 @@ namespace MWWorld
         return ForeignId(record->mFormId, ((record->mFlags & ESM4::Rec_Deleted) != 0));
     }
 
-    const ForeignLand *ForeignStore<ForeignLand>::find(ESM4::FormId formId) const
+    const ForeignLand *ForeignStore<ForeignLand>::search(ESM4::FormId formId) const
     {
         std::map<ESM4::FormId, ForeignLand*>::const_iterator it = mLands.find(formId);
         if (it != mLands.end())
@@ -961,16 +972,24 @@ namespace MWWorld
         return nullptr;
     }
 
+#if 0
+    ForeignLand *ForeignStore<ForeignLand>::find(ESM4::FormId worldId, int x, int y) const
+    {
+        MWWorld::ForeignLand *land = search(worldId, x, y);
+        if (land)
+            return land;
+
+        std::ostringstream msg;
+        msg << "Land '" << ESM4::formIdToString(worldId) << "' (" << std::to_string(x)
+            << "," << std::to_string(y) << ") not found";
+        throw std::runtime_error(msg.str());
+    }
+
     ForeignLand *ForeignStore<ForeignLand>::search(ESM4::FormId worldId, int x, int y) const
     {
         return nullptr; // FIXME
     }
-
-    ForeignLand *ForeignStore<ForeignLand>::find(ESM4::FormId worldId, int x, int y) const
-    {
-        return nullptr; // FIXME
-    }
-
+#endif
     ForeignStore<ForeignDialogue>::~ForeignStore()
     {
         std::vector<ForeignDialogue*>::iterator it = mDialogues.begin();

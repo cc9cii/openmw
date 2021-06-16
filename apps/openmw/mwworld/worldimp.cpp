@@ -2857,7 +2857,7 @@ namespace MWWorld
                 continue;
 
             // in TES4 all external cell doors are in the dummy cell
-            const ForeignWorld *world = store.getForeign<ForeignWorld>().find(cell->mCell->mParent);
+            const ForeignWorld *world = store.getForeign<ForeignWorld>().search(cell->mCell->mParent);
             if (!world)
                 throw std::runtime_error ("findForeignInteriorPosition: cannot find external world");
 

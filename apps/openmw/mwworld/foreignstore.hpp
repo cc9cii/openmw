@@ -132,7 +132,6 @@ namespace MWWorld
         std::map<ESM4::FormId, ForeignWorld*> mWorlds;
 
     public:
-        //typedef SharedIterator<ForeignWorld> iterator; // FIXME: is this needed?
 
         virtual ~ForeignStore();
 
@@ -140,16 +139,15 @@ namespace MWWorld
         ForeignWorld *getWorld(ESM4::FormId worldId);
 
         const ForeignWorld *find(ESM4::FormId worldId) const;
+        const ForeignWorld *search(ESM4::FormId worldId) const;
 
         // Assumes editorId to be lower case.
-        const ForeignWorld *find(const std::string& editorId) const; // FIXME: deprecated
+        const ForeignWorld *search(const std::string& editorId) const; // FIXME: deprecated
 
         // Returns 0 if not found. Does not assume editorId to be lower case.
         ESM4::FormId getFormId(const std::string& editorId) const;
 
         size_t getSize() const;
-        //iterator begin() const; // FIXME: is this needed?
-        //iterator end() const; // FIXME: is this needed?
 
         // FIXME: need to overload eraseStatic()?
 
@@ -221,10 +219,11 @@ namespace MWWorld
         ForeignId loadForeign(ESM4::Reader& reader);
         //void setUp();
 
-        const ForeignLand *find(ESM4::FormId formId) const;
+        const ForeignLand *search(ESM4::FormId formId) const;
 
-        ForeignLand *search(ESM4::FormId worldId, int x, int y) const;
-        ForeignLand *find(ESM4::FormId worldId, int x, int y) const;
+        // below currently unused
+        //ForeignLand *find(ESM4::FormId worldId, int x, int y) const;
+        //ForeignLand *search(ESM4::FormId worldId, int x, int y) const;
     };
 
     template <>

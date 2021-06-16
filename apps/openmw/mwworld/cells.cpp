@@ -407,10 +407,8 @@ void MWWorld::Cells::initNewWorld(const ForeignWorld *world)
 //
 MWWorld::CellStore *MWWorld::Cells::getWorldCellGrid(ESM4::FormId worldId, std::int16_t x, std::int16_t y)
 {
-    // find the world for the given form id
+    // find the world for the given form id (NOTE: find may throw)
     const ForeignWorld *world = mStore.getForeign<ForeignWorld>().find(worldId);
-    if (!world)
-        return nullptr; // FIXME: maybe exception?
 
     // now find the cell's formid for the given x, y
     const std::map<std::pair<std::int16_t, std::int16_t>, ESM4::FormId>& cellGridMap = world->getCellGridMap();
@@ -472,7 +470,7 @@ MWWorld::CellStore *MWWorld::Cells::getWorldDummyCell (ESM4::FormId worldId)
         return &it->second;
 
     // check if the world exists and init as required
-    const ForeignWorld *world = mStore.getForeign<ForeignWorld>().find(worldId);
+    const ForeignWorld *world = mStore.getForeign<ForeignWorld>().search(worldId);
     if (world)
     {
         initNewWorld(world);

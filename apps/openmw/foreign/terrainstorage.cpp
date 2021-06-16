@@ -50,7 +50,7 @@ namespace Foreign
             // The cell isn't guaranteed to have Land. This is because the terrain implementation
             // has to wrap the vertices of the last row and column to the next cell, which may be a nonexisting cell
             if (cell)
-                return esmStore.getForeign<MWWorld::ForeignLand>().find(cell->getForeignLandId());
+                return esmStore.getForeign<MWWorld::ForeignLand>().search(cell->getForeignLandId());
             else
                 return 0;
         }

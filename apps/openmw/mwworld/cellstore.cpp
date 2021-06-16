@@ -440,7 +440,7 @@ namespace MWWorld
             //mWaterLevel = static_cast<const ForeignCell*>(mCell)->mWaterHeight; // Non-ocean water-height
             const ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
             const ForeignWorld* world
-                = store.getForeign<ForeignWorld>().find(static_cast<const ForeignCell*>(mCell)->mCell->mParent);
+                = store.getForeign<ForeignWorld>().search(static_cast<const ForeignCell*>(mCell)->mCell->mParent);
             if (world)
                 mWaterLevel = world->mWaterLevel;
             else
@@ -1262,7 +1262,7 @@ namespace MWWorld
 
             const ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
             const ForeignWorld *world
-                = store.getForeign<ForeignWorld>().find(static_cast<const ForeignCell*>(mCell)->mCell->mParent);
+                = store.getForeign<ForeignWorld>().search(static_cast<const ForeignCell*>(mCell)->mCell->mParent);
             if (!world)
                 continue;
 
@@ -1445,7 +1445,7 @@ namespace MWWorld
                 {
                     ESM4::FormId worldId
                         = static_cast<const MWWorld::ForeignCell*>(getCell())->mCell->mParent;
-                    const ForeignWorld *world = store.getForeign<ForeignWorld>().find(worldId);
+                    const ForeignWorld *world = store.getForeign<ForeignWorld>().search(worldId);
                     if (world)
                     {
                         std::string worldName = world->mEditorId;
