@@ -143,9 +143,10 @@ void ESM4::Reference::load(ESM4::Reader& reader)
                 // 12 bytes
                 if (subHdr.dataSize == 12)
                 {
-                    float data = reader.get(data);
-                    float data2 = reader.get(data2);
-                    float data3 = reader.get(data3);
+                    float data, data2, data3;
+                    reader.get(data);
+                    reader.get(data2);
+                    reader.get(data3);
                     bool hasVisibleWhenDistantFlag = (mFlags & 0x00008000) != 0;
                     // some are trees, e.g. 000E03B6, mBaseObj 00022F32, persistent, visible when distant
                     // some are doors, e.g. 000270F7, mBaseObj 000CD338, persistent, initially disabled
