@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2019 cc9cii
+  Copyright (C) 2019, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,10 +27,10 @@
 #ifndef ESM4_IDLM_H
 #define ESM4_IDLM_H
 
-#include <string>
+#include <cstdint>
 #include <vector>
 
-#include "common.hpp"
+#include "formid.hpp"
 
 namespace ESM4
 {

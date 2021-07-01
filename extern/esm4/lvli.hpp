@@ -27,16 +27,18 @@
 #ifndef ESM4_LVLI_H
 #define ESM4_LVLI_H
 
+#include <cstdint>
 #include <vector>
 
-#include "common.hpp" // LVLO
+#include "formid.hpp"
+#include "inventory.hpp" // LVLO
 
 namespace ESM4
 {
     class Reader;
     class Writer;
 
-    struct LeveledItem
+    struct LevelledItem
     {
         FormId mFormId;       // from the header
         std::uint32_t mFlags; // from the header, see enum type RecordFlag for details
@@ -52,11 +54,12 @@ namespace ESM4
 
         std::vector<LVLO> mLvlObject;
 
-        LeveledItem();
-        virtual ~LeveledItem();
+        LevelledItem();
+        virtual ~LevelledItem();
 
         bool calcAllLvlLessThanPlayer() const;
         bool calcEachItemInCount() const;
+        bool useAll() const;
         std::int8_t chanceNone() const;
 
         virtual void load(ESM4::Reader& reader);

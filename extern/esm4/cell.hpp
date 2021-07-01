@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015-2016, 2018-2019 cc9cii
+  Copyright (C) 2015-2016, 2018-2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -31,6 +31,9 @@
 #include <string>
 #include <vector>
 
+#include "formid.hpp"
+#include "lighting.hpp"
+
 namespace ESM4
 {
     class Reader;
@@ -42,7 +45,7 @@ namespace ESM4
     enum CellFlags               // TES4                     TES5
     {                            // -----------------------  ------------------------------------
         CELL_Interior = 0x0001,  // Can't travel from here   Interior
-        CELL_HasWater = 0x0002,  // Has water                Has Water
+        CELL_HasWater = 0x0002,  // Has water (Int)          Has Water (Int)
         CELL_NoTravel = 0x0004,  //                          not Can't Travel From Here(Int only)
         CELL_HideLand = 0x0008,  // Force hide land (Ext)    No LOD Water
                                  // Oblivion interior (Int)
@@ -56,22 +59,6 @@ namespace ESM4
     // The cells need to be organised under world spaces.
     struct Cell
     {
-#pragma pack(push, 1)
-        // TES4 (guesses only), TES5 are 96 bytes
-        struct Lighting
-        {                              //               | Aichan Prison values
-            std::uint32_t ambient;     //               | 16 17 19 00 (RGBA)
-            std::uint32_t directional; //               | 00 00 00 00 (RGBA)
-            std::uint32_t fogColor;    //               | 1D 1B 16 00 (RGBA)
-            float         fogNear;     // Fog Near      | 00 00 00 00 = 0.f
-            float         fogFar;      // Fog Far       | 00 80 3B 45 = 3000.f
-            std::int32_t  rotationXY;  // rotation xy   | 00 00 00 00 = 0
-            std::int32_t  rotationZ;   // rotation z    | 00 00 00 00 = 0
-            float         fogDirFade;  // Fog dir fade  | 00 00 80 3F = 1.f
-            float         fogClipDist; // Fog clip dist | 00 80 3B 45 = 3000.f
-        };
-#pragma pack(pop)
-
         FormId mParent;       // world formId (for grouping cells), from the loading sequence
 
         FormId mFormId;       // from the header
@@ -92,6 +79,15 @@ namespace ESM4
 
         std::vector<FormId> mRegions;
         Lighting mLighting;
+
+        FormId mLightingTemplate;             // FO3/FONV
+        std::uint32_t mLightingTemplateFlags; // FO3/FONV
+
+        FormId mMusic;         // FO3/FONV
+        FormId mAcousticSpace; // FO3/FONV
+        // TES4: 0 = default, 1 = public, 2 = dungeon
+        // FO3/FONV have more types (not sure how they are used, however)
+        std::uint8_t mMusicType;
 
         CellGroup *mCellGroup;
 

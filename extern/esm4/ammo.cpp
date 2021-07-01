@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016, 2018, 2019 cc9cii
+  Copyright (C) 2016, 2018-2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -31,13 +31,14 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::Ammo::Ammo() : mFormId(0), mFlags(0), mBoundRadius(0.f)
+ESM4::Ammo::Ammo() : mFormId(0), mFlags(0), mPickUpSound(0), mDropSound(0), mBoundRadius(0.f)
 {
     mEditorId.clear();
     mFullName.clear();
     mModel.clear();
     mText.clear();
     mIcon.clear();
+    mMiniIcon.clear();
 }
 
 ESM4::Ammo::~Ammo()
@@ -103,6 +104,7 @@ void ESM4::Ammo::load(ESM4::Reader& reader)
                 break;
             }
             case ESM4::SUB_ICON: reader.getZString(mIcon);  break;
+            case ESM4::SUB_MICO: reader.getZString(mMiniIcon); break; // FO3
             case ESM4::SUB_MODL: reader.getZString(mModel); break;
             case ESM4::SUB_ANAM: reader.get(mEnchantmentPoints); break;
             case ESM4::SUB_ENAM: reader.getFormId(mEnchantment); break;
@@ -121,13 +123,12 @@ void ESM4::Ammo::load(ESM4::Reader& reader)
 
                 break;
             }
+            case ESM4::SUB_YNAM: reader.getFormId(mPickUpSound); break;
+            case ESM4::SUB_ZNAM: reader.getFormId(mDropSound); break;
             case ESM4::SUB_MODT:
             case ESM4::SUB_OBND:
-            case ESM4::SUB_YNAM:
-            case ESM4::SUB_ZNAM:
             case ESM4::SUB_KSIZ:
             case ESM4::SUB_KWDA:
-            case ESM4::SUB_MICO: // FO3
             case ESM4::SUB_ONAM: // FO3
             case ESM4::SUB_DAT2: // FONV
             case ESM4::SUB_QNAM: // FONV

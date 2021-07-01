@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015-2016, 2018-2019 cc9cii
+  Copyright (C) 2015-2016, 2018-2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,7 +27,9 @@
 #ifndef ESM4_WRLD_H
 #define ESM4_WRLD_H
 
+#include <cstdint>
 #include <vector>
+#include <string>
 
 #include "common.hpp"
 
@@ -108,6 +110,17 @@ namespace ESM4
         RNAMstruct mData;
 
         // ----------------------
+        FormId mMusic;
+
+        // 0x01 use Land data
+        // 0x02 use LOD data
+        // 0x04 use Map data
+        // 0x08 use Water data
+        // 0x10 use Climate data
+        // 0x20 use Image Space data (Climate for TES5)
+        // 0x40 use SkyCell (TES5)
+        // 0x80 needs water adjustment (this isn't for parent I think? FONV only set for wastelandnv)
+        std::uint16_t mParentUseFlags; // FO3/FONV
 
         // cache formId's of children (e.g. CELL, ROAD)
         std::vector<FormId> mCells;

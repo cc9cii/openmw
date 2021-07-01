@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016, 2018 cc9cii
+  Copyright (C) 2016, 2018, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -31,7 +31,7 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::ActorCreature::ActorCreature() : mFormId(0), mFlags(0), mDisabled(false), mBaseObj(0), mScale(1.f),
+ESM4::ActorCreature::ActorCreature() : mFormId(0), mFlags(0), mInitiallyDisabled(false), mBaseObj(0), mScale(1.f),
                                        mOwner(0), mGlobal(0), mFactionRank(0)
 {
     mEditorId.clear();
@@ -73,6 +73,12 @@ void ESM4::ActorCreature::load(ESM4::Reader& reader)
             case ESM4::SUB_XLCM: // FO3
             case ESM4::SUB_XEZN: // FO3
             case ESM4::SUB_XRGB: // FO3
+            case ESM4::SUB_XMRC: // FO3
+            case ESM4::SUB_XAPD: // FO3
+            case ESM4::SUB_XAPR: // FO3
+            case ESM4::SUB_XRDS: // FO3
+            case ESM4::SUB_XPRD: // FO3
+            case ESM4::SUB_XATO: // FONV
             {
                 //std::cout << "ACRE " << ESM4::printName(subHdr.typeId) << " skipping..." << std::endl;
                 reader.skipSubRecordData();

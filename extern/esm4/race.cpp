@@ -34,7 +34,7 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::Race::Race() : mFormId(0), mFlags(0)
+ESM4::Race::Race() : mFormId(0), mFlags(0), mIsTES5(false)
                    , mHeightMale(1.f), mHeightFemale(1.f), mWeightMale(1.f), mWeightFemale(1.f)
                    , mRaceFlags(0), mFaceGenMainClamp(0.f), mFaceGenFaceClamp(0.f), mNumKeywords(0)
 {
@@ -60,6 +60,11 @@ void ESM4::Race::load(ESM4::Reader& reader)
     mFormId = reader.hdr().record.id;
     reader.adjustFormId(mFormId);
     mFlags  = reader.hdr().record.flags;
+
+    std::uint32_t esmVer = reader.esmVersion();
+    bool isTES4 = esmVer == ESM4::VER_080 || esmVer == ESM4::VER_100;
+    bool isFONV = esmVer == ESM4::VER_132 || esmVer == ESM4::VER_133 || esmVer == ESM4::VER_134;
+    bool isFO3 = false;
 
     bool isMale = false;
     bool headpart = true;
@@ -154,8 +159,11 @@ void ESM4::Race::load(ESM4::Reader& reader)
                 }
                 std::cout << ss.str() << std::endl;
 #else
-                if (subHdr.dataSize == 36) // TES4
+                if (subHdr.dataSize == 36) // TES4/FO3/FONV
                 {
+                    if (!isTES4 && !isFONV && !mIsTES5)
+                        isFO3 = true;
+
                     std::uint8_t skill;
                     std::uint8_t bonus;
                     for (unsigned int i = 0; i < 8; ++i)
@@ -172,6 +180,8 @@ void ESM4::Race::load(ESM4::Reader& reader)
                 }
                 else if (subHdr.dataSize >= 128 && subHdr.dataSize <= 164) // TES5
                 {
+                    mIsTES5 = true;
+
                     std::uint8_t skill;
                     std::uint8_t bonus;
                     for (unsigned int i = 0; i < 7; ++i)
@@ -301,10 +311,17 @@ void ESM4::Race::load(ESM4::Reader& reader)
             //          |             |
             //          +-------------+
             //
-            case ESM4::SUB_NAM0: // start marker head data
+            case ESM4::SUB_NAM0: // start marker head data /* 1 */
             {
                 headpart = true;
-                mHeadParts.resize(9); // assumed based on Construction Set
+                // FIXME TES5
+                if (isFO3 || isFONV)
+                {
+                    mHeadParts.resize(8);
+                    mHeadPartsFemale.resize(8);
+                }
+                else
+                    mHeadParts.resize(9); // assumed based on Construction Set
                 currentIndex = 0xffffffff;
                 break;
             }
@@ -328,37 +345,65 @@ void ESM4::Race::load(ESM4::Reader& reader)
             case ESM4::SUB_MODL:
             {
                 if (headpart)
-                    reader.getZString(mHeadParts[currentIndex].mesh);
-                else if (isMale)
-                    reader.getZString(mBodyPartsMale[currentIndex].mesh);
+                {
+                    if (isMale || isTES4)
+                        reader.getZString(mHeadParts[currentIndex].mesh);
+                    else
+                        reader.getZString(mHeadPartsFemale[currentIndex].mesh); // TODO: check TES4
+                }
                 else
-                    reader.getZString(mBodyPartsFemale[currentIndex].mesh);
+                {
+                    if (isMale)
+                        reader.getZString(mBodyPartsMale[currentIndex].mesh);
+                    else
+                        reader.getZString(mBodyPartsFemale[currentIndex].mesh);
+                }
 
                 break;
             }
             case ESM4::SUB_MODB: reader.skipSubRecordData(); break; // always 0x0000?
-            case ESM4::SUB_ICON: // Only in TES4?
+            case ESM4::SUB_ICON:
             {
                 if (headpart)
-                    reader.getZString(mHeadParts[currentIndex].texture);
-                else if (isMale)
-                    reader.getZString(mBodyPartsMale[currentIndex].texture);
+                {
+                    if (isMale || isTES4)
+                        reader.getZString(mHeadParts[currentIndex].texture);
+                    else
+                        reader.getZString(mHeadPartsFemale[currentIndex].texture); // TODO: check TES4
+                }
                 else
-                    reader.getZString(mBodyPartsFemale[currentIndex].texture);
+                {
+                    if (isMale)
+                        reader.getZString(mBodyPartsMale[currentIndex].texture);
+                    else
+                        reader.getZString(mBodyPartsFemale[currentIndex].texture);
+                }
 
                 break;
             }
             //
-            case ESM4::SUB_NAM1: // start marker body data
+            case ESM4::SUB_NAM1: // start marker body data /* 4 */
             {
                 headpart = false; // body part
-                mBodyPartsMale.resize(5);   // 0 = upper body, 1 = legs, 2 = hands, 3 = feet, 4 = tail
-                mBodyPartsFemale.resize(5); // 0 = upper body, 1 = legs, 2 = hands, 3 = feet, 4 = tail
-                currentIndex = 4; // FIXME: argonian tail mesh without preceeding INDX
+                // FIXME TES5
+                if (isFO3 || isFONV)
+                {
+                    mBodyPartsMale.resize(4);
+                    mBodyPartsFemale.resize(4);
+                }
+                else
+                {
+                    mBodyPartsMale.resize(5);   // 0 = upper body, 1 = legs, 2 = hands, 3 = feet, 4 = tail
+                    mBodyPartsFemale.resize(5); // 0 = upper body, 1 = legs, 2 = hands, 3 = feet, 4 = tail
+                }
+                if (isTES4)
+                    currentIndex = 4; // FIXME: argonian tail mesh without preceeding INDX
+                else
+                    currentIndex = 0xffffffff;
                 break;
             }
-            case ESM4::SUB_MNAM: isMale = true; break;
-            case ESM4::SUB_FNAM: isMale = false; break;
+            case ESM4::SUB_MNAM: isMale = true; break;  /* 2, 5, 7 */
+            case ESM4::SUB_FNAM: isMale = false; break; /* 3, 6, 8 */
             //
             case ESM4::SUB_HNAM:
             {
@@ -380,25 +425,52 @@ void ESM4::Race::load(ESM4::Reader& reader)
             }
             case ESM4::SUB_FGGS:
             {
-                mSymShapeModeCoefficients.resize(50);
-                for (std::size_t i = 0; i < 50; ++i)
-                    reader.get(mSymShapeModeCoefficients.at(i));
+                if (isMale || isTES4)
+                {
+                    mSymShapeModeCoefficients.resize(50);
+                    for (std::size_t i = 0; i < 50; ++i)
+                        reader.get(mSymShapeModeCoefficients.at(i));
+                }
+                else
+                {
+                    mSymShapeModeCoeffFemale.resize(50);
+                    for (std::size_t i = 0; i < 50; ++i)
+                        reader.get(mSymShapeModeCoeffFemale.at(i));
+                }
 
                 break;
             }
             case ESM4::SUB_FGGA:
             {
-                mAsymShapeModeCoefficients.resize(30);
-                for (std::size_t i = 0; i < 30; ++i)
-                    reader.get(mAsymShapeModeCoefficients.at(i));
+                if (isMale || isTES4)
+                {
+                    mAsymShapeModeCoefficients.resize(30);
+                    for (std::size_t i = 0; i < 30; ++i)
+                        reader.get(mAsymShapeModeCoefficients.at(i));
+                }
+                else
+                {
+                    mAsymShapeModeCoeffFemale.resize(30);
+                    for (std::size_t i = 0; i < 30; ++i)
+                        reader.get(mAsymShapeModeCoeffFemale.at(i));
+                }
 
                 break;
             }
             case ESM4::SUB_FGTS:
             {
-                mSymTextureModeCoefficients.resize(50);
-                for (std::size_t i = 0; i < 50; ++i)
-                    reader.get(mSymTextureModeCoefficients.at(i));
+                if (isMale || isTES4)
+                {
+                    mSymTextureModeCoefficients.resize(50);
+                    for (std::size_t i = 0; i < 50; ++i)
+                        reader.get(mSymTextureModeCoefficients.at(i));
+                }
+                else
+                {
+                    mSymTextureModeCoeffFemale.resize(50);
+                    for (std::size_t i = 0; i < 50; ++i)
+                        reader.get(mSymTextureModeCoeffFemale.at(i));
+                }
 
                 break;
             }

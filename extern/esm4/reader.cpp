@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015-2019, 2021 cc9cii
+  Copyright (C) 2015-2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -131,7 +131,7 @@ bool ESM4::Reader::skipNextGroupCellChild()
 std::size_t ESM4::Reader::openTes4File(const std::string& name)
 {
     mCtx.filename = name;
-    // NOTE: Ogre::SharedPtr<DataStream> provides implicit destruction
+
     mStream = Files::IStreamPtr(Files::openConstrainedFileStream(name.c_str()));
 
     mStream->seekg(0, std::ios::end); // FIXME: is there a better way, or eliminate the need to get the size?
@@ -246,7 +246,7 @@ void ESM4::Reader::getLocalizedString(const FormId stringId, std::string& str)
         filestream->seekg(it->second.offset);
         getZString(str, filestream);
     }
-    else // FIXME: stringId might be null? (FoxRace)
+    else
         throw std::runtime_error("ESM4::Reader::getLocalizedString localized string not found");
 }
 

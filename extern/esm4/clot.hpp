@@ -27,14 +27,15 @@
 #ifndef ESM4_CLOT_H
 #define ESM4_CLOT_H
 
-#include <string>
 #include <cstdint>
+#include <string>
+
+#include "formid.hpp"
 
 namespace ESM4
 {
     class Reader;
     class Writer;
-    typedef std::uint32_t FormId;
 
     struct Clothing
     {

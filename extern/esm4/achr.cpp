@@ -31,7 +31,7 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::ActorCharacter::ActorCharacter() : mFormId(0), mFlags(0), mDisabled(false),  mBaseObj(0),
+ESM4::ActorCharacter::ActorCharacter() : mFormId(0), mFlags(0), mInitiallyDisabled(false),  mBaseObj(0),
                                          mScale(1.f), mOwner(0), mGlobal(0)
 {
     mEditorId.clear();
@@ -76,7 +76,7 @@ void ESM4::ActorCharacter::load(ESM4::Reader& reader)
             case ESM4::SUB_XAPR: // active parent
             case ESM4::SUB_XEZN: // encounter zone
             case ESM4::SUB_XHOR:
-            case ESM4::SUB_XLCM: // leveled creature
+            case ESM4::SUB_XLCM: // levelled creature
             case ESM4::SUB_XLCN: // location
             case ESM4::SUB_XLKR: // location route?
             case ESM4::SUB_XLRT: // location type

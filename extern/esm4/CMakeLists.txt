@@ -1,5 +1,5 @@
 #
-#  Copyright (C) 2016-2019 cc9cii
+#  Copyright (C) 2016-2020 cc9cii
 #
 #  This software is provided 'as-is', without any express or implied
 #  warranty.  In no event will the authors be held liable for any damages
@@ -81,6 +81,21 @@ set(ESM4_SOURCE_FILES
     note.cpp
     bptd.cpp
     scpt.cpp
+    dial.cpp
+    qust.cpp
+    info.cpp
+    pgrd.cpp
+    pack.cpp
+    lgtm.cpp
+    pgre.cpp
+    imod.cpp
+    aspc.cpp
+    pwat.cpp
+    scol.cpp
+    musc.cpp
+    aloc.cpp
+    mset.cpp
+    dobj.cpp
     formid.cpp
     reader.cpp
 )

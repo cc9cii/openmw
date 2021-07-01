@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016, 2018 cc9cii
+  Copyright (C) 2016, 2018, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,41 +27,55 @@
 #ifndef ESM4_SOUN_H
 #define ESM4_SOUN_H
 
-#include <string>
 #include <cstdint>
+#include <string>
+
+#include "formid.hpp"
 
 namespace ESM4
 {
     class Reader;
     class Writer;
-    typedef std::uint32_t FormId;
 
     struct Sound
     {
         enum Flags
         {
-            Flags_RandomFreqShift = 0x0001,
-            Flags_PlayAtRandom    = 0x0002,
-            Flags_EnvIgnored      = 0x0004,
-            Flags_RandomLocation  = 0x0008,
-            Flags_Loop            = 0x0010,
-            Flags_MenuSound       = 0x0020,
-            Flags_2D              = 0x0040,
-            Flags_360LFE          = 0x0080
+            Flag_RandomFreqShift = 0x0001,
+            Flag_PlayAtRandom    = 0x0002,
+            Flag_EnvIgnored      = 0x0004,
+            Flag_RandomLocation  = 0x0008,
+            Flag_Loop            = 0x0010,
+            Flag_MenuSound       = 0x0020,
+            Flag_2D              = 0x0040,
+            Flag_360LFE          = 0x0080
         };
 
 #pragma pack(push, 1)
         struct SNDX
         {
-            std::uint8_t  minAttenuation;
-            std::uint8_t  maxAttenuation;
+            std::uint8_t  minAttenuation; // distance?
+            std::uint8_t  maxAttenuation; // distance?
             std::int8_t   freqAdjustment; // %, signed
-            std::uint8_t  unknown;
+            std::uint8_t  unknown; // probably padding
             std::uint16_t flags;
-            std::uint16_t unknown2;
+            std::uint16_t unknown2; // probably padding
             std::uint16_t staticAttenuation; // divide by 100 to get value in dB
-            std::uint8_t  stopTime;  // multipy vy 1440/256 to get value in minutes
-            std::uint8_t  startTime; // multipy vy 1440/256 to get value in minutes
+            std::uint8_t  stopTime;  // multiply by 1440/256 to get value in minutes
+            std::uint8_t  startTime; // multiply by 1440/256 to get value in minutes
+        };
+
+        struct SoundData
+        {
+            std::int16_t attenuationPoint1;
+            std::int16_t attenuationPoint2;
+            std::int16_t attenuationPoint3;
+            std::int16_t attenuationPoint4;
+            std::int16_t attenuationPoint5;
+            std::int16_t reverbAttenuationControl;
+            std::int32_t priority;
+            std::int32_t x;
+            std::int32_t y;
         };
 #pragma pack(pop)
 
@@ -72,6 +86,7 @@ namespace ESM4
 
         std::string mSoundFile;
         SNDX mData;
+        SoundData mExtra;
 
         Sound();
         virtual ~Sound();

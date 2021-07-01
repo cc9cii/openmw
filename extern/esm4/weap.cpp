@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016, 2018, 2019 cc9cii
+  Copyright (C) 2016, 2018-2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -31,7 +31,7 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::Weapon::Weapon() : mFormId(0), mFlags(0), mBoundRadius(0.f), mScript(0),
+ESM4::Weapon::Weapon() : mFormId(0), mFlags(0), mPickUpSound(0), mDropSound(0), mBoundRadius(0.f), mScript(0),
                          mEnchantmentPoints(0), mEnchantment(0)
 {
     mEditorId.clear();
@@ -39,6 +39,7 @@ ESM4::Weapon::Weapon() : mFormId(0), mFlags(0), mBoundRadius(0.f), mScript(0),
     mModel.clear();
     mText.clear();
     mIcon.clear();
+    mMiniIcon.clear();
 }
 
 ESM4::Weapon::~Weapon()
@@ -100,6 +101,7 @@ void ESM4::Weapon::load(ESM4::Reader& reader)
             }
             case ESM4::SUB_MODL: reader.getZString(mModel); break;
             case ESM4::SUB_ICON: reader.getZString(mIcon);  break;
+            case ESM4::SUB_MICO: reader.getZString(mMiniIcon); break; // FO3
             case ESM4::SUB_SCRI: reader.getFormId(mScript); break;
             case ESM4::SUB_ANAM: reader.get(mEnchantmentPoints); break;
             case ESM4::SUB_ENAM: reader.getFormId(mEnchantment); break;
@@ -118,6 +120,8 @@ void ESM4::Weapon::load(ESM4::Reader& reader)
 
                 break;
             }
+            case ESM4::SUB_YNAM: reader.getFormId(mPickUpSound); break;
+            case ESM4::SUB_ZNAM: reader.getFormId(mDropSound); break;
             case ESM4::SUB_MODT:
             case ESM4::SUB_BAMT:
             case ESM4::SUB_BIDS:
@@ -143,10 +147,7 @@ void ESM4::Weapon::load(ESM4::Reader& reader)
             case ESM4::SUB_NNAM:
             case ESM4::SUB_MODS:
             case ESM4::SUB_NAM0: // FO3
-            case ESM4::SUB_MICO: // FO3
             case ESM4::SUB_REPL: // FO3
-            case ESM4::SUB_YNAM: // FO3
-            case ESM4::SUB_ZNAM: // FO3
             case ESM4::SUB_MOD2: // FO3
             case ESM4::SUB_MO2T: // FO3
             case ESM4::SUB_MO2S: // FO3

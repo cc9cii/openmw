@@ -1,5 +1,4 @@
 /*
-
   Copyright (C) 2016-2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
@@ -37,8 +36,8 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::Npc::Npc() : mFormId(0), mFlags(0), mRace(0), mClass(0), mHair(0), mEyes(0), mHairLength(0.f),
-                   mDeathItem(0),
+ESM4::Npc::Npc() : mFormId(0), mFlags(0), mIsTES4(false), mIsFONV(false), mRace(0), mClass(0), mHair(0),
+                   mEyes(0), mHairLength(0.f), mDeathItem(0),
                    mScript(0), mCombatStyle(0), mSoundBase(0), mSound(0), mSoundChance(0),
                    mFootWeight(0.f), mBoundRadius(0.f), mBaseTemplate(0), mWornArmor(0), mFgRace(0)
 {
@@ -54,7 +53,6 @@ ESM4::Npc::Npc() : mFormId(0), mFlags(0), mRace(0), mClass(0), mHair(0), mEyes(0
     std::memset(&mAIData, 0, sizeof(AIData));
     std::memset(&mData, 0, sizeof(Data));
     std::memset(&mBaseConfig, 0, sizeof(ActorBaseConfig));
-    std::memset(&mActorBaseConfig, 0, sizeof(ACBS));
     std::memset(&mFaction, 0, sizeof(ActorFaction));
 }
 
@@ -67,8 +65,11 @@ void ESM4::Npc::load(ESM4::Reader& reader)
     mFormId = reader.hdr().record.id;
     reader.adjustFormId(mFormId);
     mFlags  = reader.hdr().record.flags;
+
     std::uint32_t esmVer = reader.esmVersion();
-    bool isFONV = esmVer == ESM4::VER_132 || esmVer == ESM4::VER_133 || esmVer == ESM4::VER_134;
+    mIsTES4 = esmVer == ESM4::VER_080 || esmVer == ESM4::VER_100;
+    mIsFONV = esmVer == ESM4::VER_132 || esmVer == ESM4::VER_133 || esmVer == ESM4::VER_134;
+    //mIsTES5 = esmVer == ESM4::VER_094 || esmVer == ESM4::VER_170; // WARN: FO3 is also VER_094
 
     while (reader.getSubRecordHeader())
     {
@@ -124,29 +125,28 @@ void ESM4::Npc::load(ESM4::Reader& reader)
             //
             case ESM4::SUB_AIDT:
             {
-                if (esmVer == ESM4::VER_094 || esmVer == ESM4::VER_170 || isFONV)
+                if (esmVer == ESM4::VER_094 || esmVer == ESM4::VER_170 || mIsFONV)
                 {
                     reader.skipSubRecordData(); // FIXME: process the subrecord rather than skip
                     break;
                 }
 
-                reader.get(mAIData);
+                reader.get(mAIData); // TES4
                 break;
             }
             case ESM4::SUB_ACBS:
             {
-                if (esmVer == ESM4::VER_094 || esmVer == ESM4::VER_170 || isFONV)
-                {
-                    reader.skipSubRecordData(); // FIXME: process the subrecord rather than skip
-                    break;
-                }
+                //if (esmVer == ESM4::VER_094 || esmVer == ESM4::VER_170 || mIsFONV)
+                if (subHdr.dataSize == 24)
+                    reader.get(mBaseConfig);
+                else
+                    reader.get(&mBaseConfig, 16); // TES4
 
-                reader.get(mBaseConfig);
                 break;
             }
             case ESM4::SUB_DATA:
             {
-                if (esmVer == ESM4::VER_094 || esmVer == ESM4::VER_170 || isFONV)
+                if (esmVer == ESM4::VER_094 || esmVer == ESM4::VER_170 || mIsFONV)
                 {
                     if (subHdr.dataSize != 0) // FIXME FO3
                         reader.skipSubRecordData();
@@ -228,6 +228,14 @@ void ESM4::Npc::load(ESM4::Reader& reader)
                 //std::cout << "fg race " << mEditorId << " " << mFgRace << std::endl; // FIXME
                 break;
             }
+            case ESM4::SUB_PNAM: // FO3/FONV/TES5
+            {
+                FormId headPart;
+                reader.get(headPart);
+                mHeadParts.push_back(headPart);
+
+                break;
+            }
             case ESM4::SUB_ATKR:
             case ESM4::SUB_COCT:
             case ESM4::SUB_CRIF:
@@ -253,7 +261,6 @@ void ESM4::Npc::load(ESM4::Reader& reader)
             case ESM4::SUB_NAM9:
             case ESM4::SUB_NAMA:
             case ESM4::SUB_OBND:
-            case ESM4::SUB_PNAM:
             case ESM4::SUB_PRKR:
             case ESM4::SUB_PRKZ:
             case ESM4::SUB_QNAM:

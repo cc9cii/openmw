@@ -27,14 +27,15 @@
 #ifndef ESM4_ARMO_H
 #define ESM4_ARMO_H
 
-#include <string>
 #include <cstdint>
+#include <string>
+
+#include "formid.hpp"
 
 namespace ESM4
 {
     class Reader;
     class Writer;
-    typedef std::uint32_t FormId;
 
     struct Armor
     {
@@ -149,6 +150,10 @@ namespace ESM4
         FormId mFormId;       // from the header
         std::uint32_t mFlags; // from the header, see enum type RecordFlag for details
 
+        bool mIsTES4; // TODO: check that these match the general flags
+        bool mIsFO3;
+        bool mIsFONV;
+
         std::string mEditorId;
         std::string mFullName;
         std::string mModelMale;
@@ -157,7 +162,12 @@ namespace ESM4
         std::string mModelFemaleWorld;
         std::string mText;
         std::string mIconMale;
+        std::string mMiniIconMale;
         std::string mIconFemale;
+        std::string mMiniIconFemale;
+
+        FormId mPickUpSound;
+        FormId mDropSound;
 
         std::string mModel; // FIXME: for OpenCS
 

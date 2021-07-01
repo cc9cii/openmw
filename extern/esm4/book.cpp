@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016, 2018 cc9cii
+  Copyright (C) 2016, 2018, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -31,7 +31,7 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::Book::Book() : mFormId(0), mFlags(0), mBoundRadius(0.f), mScript(0),
+ESM4::Book::Book() : mFormId(0), mFlags(0), mPickUpSound(0), mDropSound(0), mBoundRadius(0.f), mScript(0),
                      mEnchantmentPoints(0), mEnchantment(0)
 {
     mEditorId.clear();
@@ -113,13 +113,14 @@ void ESM4::Book::load(ESM4::Reader& reader)
             case ESM4::SUB_ANAM: reader.get(mEnchantmentPoints); break;
             case ESM4::SUB_ENAM: reader.getFormId(mEnchantment); break;
             case ESM4::SUB_MODB: reader.get(mBoundRadius);  break;
+            case ESM4::SUB_YNAM: reader.getFormId(mPickUpSound); break;
+            case ESM4::SUB_ZNAM: reader.getFormId(mDropSound); break; // TODO: does this exist?
             case ESM4::SUB_MODT:
             case ESM4::SUB_OBND:
             case ESM4::SUB_KSIZ:
             case ESM4::SUB_KWDA:
             case ESM4::SUB_CNAM:
             case ESM4::SUB_INAM:
-            case ESM4::SUB_YNAM:
             case ESM4::SUB_VMAD:
             {
                 //std::cout << "BOOK " << ESM4::printName(subHdr.typeId) << " skipping..." << std::endl;

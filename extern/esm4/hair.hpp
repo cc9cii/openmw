@@ -27,14 +27,15 @@
 #ifndef ESM4_HAIR
 #define ESM4_HAIR
 
-#include <string>
 #include <cstdint>
+#include <string>
+
+#include "formid.hpp"
 
 namespace ESM4
 {
     class Reader;
     class Writer;
-    typedef std::uint32_t FormId;
 
     struct Hair
     {

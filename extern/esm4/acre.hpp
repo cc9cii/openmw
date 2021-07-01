@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016, 2018 cc9cii
+  Copyright (C) 2016, 2018, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,7 +27,9 @@
 #ifndef ESM4_ACRE_H
 #define ESM4_ACRE_H
 
-#include "common.hpp" // EnableParent
+#include <cstdint>
+
+#include "reference.hpp" // FormId, Position, EnableParent
 
 namespace ESM4
 {
@@ -48,8 +50,9 @@ namespace ESM4
         FormId   mGlobal;
         std::uint32_t mFactionRank;
 
-        bool mDisabled;
-        EnableParent mEsp;    // TODO may need to check mFlags & 0x800 (initially disabled)
+        bool mInitiallyDisabled; // TODO may need to check mFlags & 0x800 (initially disabled)
+
+        EnableParent mEsp;
 
         ActorCreature();
         virtual ~ActorCreature();

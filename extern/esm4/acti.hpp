@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016, 2018 cc9cii
+  Copyright (C) 2016, 2018, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,14 +27,15 @@
 #ifndef ESM4_ACTI_H
 #define ESM4_ACTI_H
 
-#include <string>
 #include <cstdint>
+#include <string>
+
+#include "formid.hpp"
 
 namespace ESM4
 {
     class Reader;
     class Writer;
-    typedef std::uint32_t FormId;
 
     struct Activator
     {
@@ -46,9 +47,15 @@ namespace ESM4
         std::string mModel;
 
         FormId mScript;
-        FormId mSound;
+        FormId mLoopingSound;    // SOUN
+        FormId mActivationSound; // SOUN
 
         float mBoundRadius;
+
+        FormId mRadioTemplate; // SOUN
+        FormId mRadioStation;  // TACT
+
+        std::string mActivationPrompt;
 
         Activator();
         virtual ~Activator();

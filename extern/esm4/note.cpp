@@ -37,6 +37,7 @@ ESM4::Note::Note() : mFormId(0), mFlags(0)
     mEditorId.clear();
     mFullName.clear();
     mModel.clear();
+    mIcon.clear();
 }
 
 ESM4::Note::~Note()
@@ -65,8 +66,8 @@ void ESM4::Note::load(ESM4::Reader& reader)
                 break;
             }
             case ESM4::SUB_MODL: reader.getZString(mModel); break;
+            case ESM4::SUB_ICON: reader.getZString(mIcon); break;
             case ESM4::SUB_DATA:
-            case ESM4::SUB_ICON:
             case ESM4::SUB_MODB:
             case ESM4::SUB_ONAM:
             case ESM4::SUB_SNAM:

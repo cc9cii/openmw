@@ -27,12 +27,12 @@
 #ifndef ESM4_RACE
 #define ESM4_RACE
 
-#include <string>
 #include <cstdint>
-#include <map>
 #include <vector>
+#include <map>
 
-#include "common.hpp" // AttributeValues
+#include "formid.hpp"
+#include "actor.hpp" // AttributeValues
 
 namespace ESM4
 {
@@ -76,7 +76,7 @@ namespace ESM4
             Skill_Unknown     = 0x00
         };
 
-        enum HeadPartIndex
+        enum HeadPartIndex // TES4
         {
             Head              = 0,
             EarMale           = 1,
@@ -90,11 +90,11 @@ namespace ESM4
             NumHeadParts      = 9
         };
 
-        enum BodyPartIndex
+        enum BodyPartIndex // TES4
         {
             UpperBody         = 0,
             LowerBody         = 1,
-            Hands              = 2,
+            Hands             = 2,
             Feet              = 3,
             Tail              = 4,
             NumBodyParts      = 5
@@ -108,6 +108,8 @@ namespace ESM4
 
         FormId mFormId;       // from the header
         std::uint32_t mFlags; // from the header, see enum type RecordFlag for details
+
+        bool mIsTES5;
 
         std::string mEditorId;
         std::string mFullName;
@@ -127,6 +129,7 @@ namespace ESM4
         std::uint32_t mRaceFlags; // 0x0001 = playable?
 
         std::vector<BodyPart> mHeadParts;       // see HeadPartIndex
+        std::vector<BodyPart> mHeadPartsFemale; // see HeadPartIndex
 
         std::vector<BodyPart> mBodyPartsMale;   // see BodyPartIndex
         std::vector<BodyPart> mBodyPartsFemale; // see BodyPartIndex
@@ -136,9 +139,12 @@ namespace ESM4
 
         float mFaceGenMainClamp;
         float mFaceGenFaceClamp;
-        std::vector<float> mSymShapeModeCoefficients;    // should be 50
-        std::vector<float> mAsymShapeModeCoefficients;   // should be 30
-        std::vector<float> mSymTextureModeCoefficients;  // should be 50
+        std::vector<float> mSymShapeModeCoefficients;   // should be 50
+        std::vector<float> mSymShapeModeCoeffFemale;    // should be 50
+        std::vector<float> mAsymShapeModeCoefficients;  // should be 30
+        std::vector<float> mAsymShapeModeCoeffFemale;   // should be 30
+        std::vector<float> mSymTextureModeCoefficients; // should be 50
+        std::vector<float> mSymTextureModeCoeffFemale;  // should be 50
 
         std::map<FormId, std::int32_t> mDisposition; // race adjustments
         std::vector<FormId> mBonusSpells;            // race ability/power

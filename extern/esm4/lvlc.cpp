@@ -27,21 +27,22 @@
 #include "lvlc.hpp"
 
 #include <stdexcept>
+//#include <iostream> // FIXME
 
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::LeveledCreature::LeveledCreature() : mFormId(0), mFlags(0), mScript(0), mTemplate(0),
+ESM4::LevelledCreature::LevelledCreature() : mFormId(0), mFlags(0), mScript(0), mTemplate(0),
                                            mChanceNone(0), mLvlCreaFlags(0)
 {
     mEditorId.clear();
 }
 
-ESM4::LeveledCreature::~LeveledCreature()
+ESM4::LevelledCreature::~LevelledCreature()
 {
 }
 
-void ESM4::LeveledCreature::load(ESM4::Reader& reader)
+void ESM4::LevelledCreature::load(ESM4::Reader& reader)
 {
     mFormId = reader.hdr().record.id;
     reader.adjustFormId(mFormId);
@@ -96,7 +97,7 @@ void ESM4::LeveledCreature::load(ESM4::Reader& reader)
     }
 }
 
-bool ESM4::LeveledCreature::calcAllLvlLessThanPlayer() const
+bool ESM4::LevelledCreature::calcAllLvlLessThanPlayer() const
 {
     if (mHasLvlCreaFlags)
         return (mLvlCreaFlags & 0x01) != 0;
@@ -104,7 +105,7 @@ bool ESM4::LeveledCreature::calcAllLvlLessThanPlayer() const
         return (mChanceNone & 0x80) != 0; // FIXME: 0x80 is just a guess
 }
 
-bool ESM4::LeveledCreature::calcEachItemInCount() const
+bool ESM4::LevelledCreature::calcEachItemInCount() const
 {
     if (mHasLvlCreaFlags)
         return (mLvlCreaFlags & 0x02) != 0;
@@ -112,7 +113,7 @@ bool ESM4::LeveledCreature::calcEachItemInCount() const
         return true; // FIXME: just a guess
 }
 
-std::int8_t ESM4::LeveledCreature::chanceNone() const
+std::int8_t ESM4::LevelledCreature::chanceNone() const
 {
     if (mHasLvlCreaFlags)
         return mChanceNone;
@@ -120,10 +121,10 @@ std::int8_t ESM4::LeveledCreature::chanceNone() const
         return (mChanceNone & 0x7f); // FIXME: 0x80 is just a guess
 }
 
-//void ESM4::LeveledCreature::save(ESM4::Writer& writer) const
+//void ESM4::LevelledCreature::save(ESM4::Writer& writer) const
 //{
 //}
 
-//void ESM4::LeveledCreature::blank()
+//void ESM4::LevelledCreature::blank()
 //{
 //}

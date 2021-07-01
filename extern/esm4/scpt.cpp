@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2019 cc9cii
+  Copyright (C) 2019, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -36,7 +36,6 @@
 ESM4::Script::Script() : mFormId(0), mFlags(0)
 {
     mEditorId.clear();
-    mText.clear();
 }
 
 ESM4::Script::~Script()
@@ -48,6 +47,8 @@ void ESM4::Script::load(ESM4::Reader& reader)
     mFormId = reader.hdr().record.id;
     reader.adjustFormId(mFormId);
     mFlags  = reader.hdr().record.flags;
+
+    static ScriptLocalVariableData localVar;
 
     while (reader.getSubRecordHeader())
     {
@@ -80,18 +81,15 @@ void ESM4::Script::load(ESM4::Reader& reader)
                 }
                 std::cout << ss.str() << std::endl;
 #else
-                reader.skipSubRecordData();
+                reader.get(mScript.scriptHeader);
 #endif
                 break;
             }
-            case ESM4::SUB_SCTX:
-            {
-                reader.getZString(mText);
+            case ESM4::SUB_SCTX: reader.getZString(mScript.scriptSource);
                 //if (mEditorId == "CTrapLogs01SCRIPT")
-                    //std::cout << mText << std::endl;
+                    //std::cout << mScript.scriptSource << std::endl;
                 break;
-            }
-            case ESM4::SUB_SCDA:
+            case ESM4::SUB_SCDA: // compiled script data
             {
     // For debugging only
 #if 0
@@ -125,13 +123,35 @@ void ESM4::Script::load(ESM4::Reader& reader)
 #endif
                 break;
             }
-            case ESM4::SUB_SLSD: // variable data
-            case ESM4::SUB_SCVR: // variable name
-            case ESM4::SUB_SCRO: // global variable ref
-            case ESM4::SUB_SCRV: // declared ref variable data
+            case ESM4::SUB_SCRO: reader.getFormId(mScript.globReference); break;
+            case ESM4::SUB_SLSD:
             {
-                //std::cout << "SCPT " << ESM4::printName(subHdr.typeId) << " skipping..." << subHdr.dataSize << std::endl;
-                reader.skipSubRecordData();
+                localVar.clear();
+                reader.get(localVar.index);
+                reader.get(localVar.unknown1);
+                reader.get(localVar.unknown2);
+                reader.get(localVar.unknown3);
+                reader.get(localVar.type);
+                reader.get(localVar.unknown4);
+                // WARN: assumes SCVR will follow immediately
+
+                break;
+            }
+            case ESM4::SUB_SCVR: // assumed always pair with SLSD
+            {
+                reader.getZString(localVar.variableName);
+
+                mScript.localVarData.push_back(localVar);
+
+                break;
+            }
+            case ESM4::SUB_SCRV:
+            {
+                std::uint32_t index;
+                reader.get(index);
+
+                mScript.localRefVarIndex.push_back(index);
+
                 break;
             }
             default:

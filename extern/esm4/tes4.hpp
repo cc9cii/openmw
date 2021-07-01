@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015-2016, 2018, 2021 cc9cii
+  Copyright (C) 2015-2016, 2018, 2020-2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,15 +27,16 @@
 #ifndef ESM4_TES4_H
 #define ESM4_TES4_H
 
-#include <string>
 #include <cstdint>
+#include <string>
 #include <vector>
+
+#include "formid.hpp"
 
 namespace ESM4
 {
     class Reader;
     class Writer;
-    typedef std::uint32_t FormId;
 
     struct Header
     {

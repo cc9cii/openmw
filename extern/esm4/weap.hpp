@@ -27,14 +27,15 @@
 #ifndef ESM4_WEAP_H
 #define ESM4_WEAP_H
 
-#include <string>
 #include <cstdint>
+#include <string>
+
+#include "formid.hpp"
 
 namespace ESM4
 {
     class Reader;
     class Writer;
-    typedef std::uint32_t FormId;
 
     struct Weapon
     {
@@ -69,6 +70,10 @@ namespace ESM4
         std::string mModel;
         std::string mText;
         std::string mIcon;
+        std::string mMiniIcon;
+
+        FormId mPickUpSound;
+        FormId mDropSound;
 
         float mBoundRadius;
 

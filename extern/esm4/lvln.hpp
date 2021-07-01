@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2019 cc9cii
+  Copyright (C) 2019, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,16 +27,18 @@
 #ifndef ESM4_LVLN_H
 #define ESM4_LVLN_H
 
+#include <cstdint>
 #include <vector>
 
-#include "common.hpp" // LVLO
+#include "formid.hpp"
+#include "inventory.hpp" // LVLO
 
 namespace ESM4
 {
     class Reader;
     class Writer;
 
-    struct LeveledActor
+    struct LevelledNpc
     {
         FormId mFormId;       // from the header
         std::uint32_t mFlags; // from the header, see enum type RecordFlag for details
@@ -46,11 +48,16 @@ namespace ESM4
 
         std::int8_t mChanceNone;
         std::uint8_t mLvlActorFlags;
+
         std::uint8_t mListCount;
         std::vector<LVLO> mLvlObject;
 
-        LeveledActor();
-        virtual ~LeveledActor();
+        LevelledNpc();
+        virtual ~LevelledNpc();
+
+        inline bool calcAllLvlLessThanPlayer() const { return (mLvlActorFlags & 0x01) != 0; }
+        inline bool calcEachItemInCount() const { return (mLvlActorFlags & 0x02) != 0; }
+        inline std::int8_t chanceNone() const { return mChanceNone; }
 
         virtual void load(ESM4::Reader& reader);
         //virtual void save(ESM4::Writer& writer) const;

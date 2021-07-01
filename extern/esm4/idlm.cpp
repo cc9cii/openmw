@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2019 cc9cii
+  Copyright (C) 2019, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -70,7 +70,8 @@ void ESM4::IdleMarker::load(ESM4::Reader& reader)
             case ESM4::SUB_IDLT: reader.get(mIdleTimer);       break;
             case ESM4::SUB_IDLA:
             {
-                if (esmVer == ESM4::VER_094) // FO3? 4 or 8 bytes
+                bool isFONV = esmVer == ESM4::VER_132 || esmVer == ESM4::VER_133 || esmVer == ESM4::VER_134;
+                if (esmVer == ESM4::VER_094 || isFONV) // FO3? 4 or 8 bytes
                 {
                     reader.skipSubRecordData();
                     break;

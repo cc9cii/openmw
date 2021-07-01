@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2019 cc9cii
+  Copyright (C) 2019, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,9 +27,10 @@
 #ifndef ESM4_SCPT_H
 #define ESM4_SCPT_H
 
-#include <string>
+#include <cstdint>
 
-#include "common.hpp"
+#include "formid.hpp"
+#include "script.hpp"
 
 namespace ESM4
 {
@@ -42,7 +43,8 @@ namespace ESM4
         std::uint32_t mFlags; // from the header, see enum type RecordFlag for details
 
         std::string mEditorId;
-        std::string mText;
+
+        ScriptDefinition mScript;
 
         Script();
         virtual ~Script();

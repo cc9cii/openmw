@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016, 2018 cc9cii
+  Copyright (C) 2016, 2018, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -31,12 +31,13 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::Key::Key() : mFormId(0), mFlags(0), mBoundRadius(0.f), mScript(0)
+ESM4::Key::Key() : mFormId(0), mFlags(0), mPickUpSound(0), mDropSound(0), mBoundRadius(0.f), mScript(0)
 {
     mEditorId.clear();
     mFullName.clear();
     mModel.clear();
     mIcon.clear();
+    mMiniIcon.clear();
 
     mData.value = 0;
     mData.weight = 0.f;
@@ -69,17 +70,17 @@ void ESM4::Key::load(ESM4::Reader& reader)
             }
             case ESM4::SUB_MODL: reader.getZString(mModel); break;
             case ESM4::SUB_ICON: reader.getZString(mIcon);  break;
+            case ESM4::SUB_MICO: reader.getZString(mMiniIcon); break; // FO3
             case ESM4::SUB_DATA: reader.get(mData);         break;
             case ESM4::SUB_SCRI: reader.getFormId(mScript); break;
             case ESM4::SUB_MODB: reader.get(mBoundRadius);  break;
+            case ESM4::SUB_YNAM: reader.getFormId(mPickUpSound); break;
+            case ESM4::SUB_ZNAM: reader.getFormId(mDropSound); break;
             case ESM4::SUB_MODT:
             case ESM4::SUB_KSIZ:
             case ESM4::SUB_KWDA:
             case ESM4::SUB_OBND:
             case ESM4::SUB_VMAD:
-            case ESM4::SUB_YNAM:
-            case ESM4::SUB_ZNAM:
-            case ESM4::SUB_MICO: // FO3
             {
                 //std::cout << "KEYM " << ESM4::printName(subHdr.typeId) << " skipping..." << std::endl;
                 reader.skipSubRecordData();

@@ -228,7 +228,7 @@ void ESM4::Navigation::NavMeshInfo::load(ESM4::Reader& reader)
 //
 // Also note that there's no list of formid's following the final node (index 9)
 //
-// The same 10 formids seem to be used for the indicies, but not necessarily
+// The same 10 formids seem to be used for the indices, but not necessarily
 // with the same index value (but only Update.esm differs?)
 //
 // formid   cellid   X   Y Editor ID                   other formids in same X,Y    S U D D

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015-2018, 2019 cc9cii
+  Copyright (C) 2015-2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -31,6 +31,8 @@
 
 #include <cstdint>
 #include <string>
+
+#include "formid.hpp"
 
 // From ScummVM's endianness.h but for little endian
 #define MKTAG(a0,a1,a2,a3) ((std::uint32_t)((a0) | ((a1) << 8) | ((a2) << 16) | ((a3) << 24)))
@@ -94,7 +96,7 @@ namespace ESM4
         REC_EYES = MKTAG('E','Y','E','S'), // Eyes
         REC_FACT = MKTAG('F','A','C','T'), // Faction
         REC_FLOR = MKTAG('F','L','O','R'), // Flora
-        REC_FLST = MKTAG('F','L','S','T'), // Form List (non-leveled list)
+        REC_FLST = MKTAG('F','L','S','T'), // Form List (non-levelled list)
         REC_FSTP = MKTAG('F','S','T','P'), // Footstep
         REC_FSTS = MKTAG('F','S','T','S'), // Footstep Set
         REC_FURN = MKTAG('F','U','R','N'), // Furniture
@@ -154,6 +156,7 @@ namespace ESM4
         REC_RFCT = MKTAG('R','F','C','T'), // Visual Effect
         REC_SBSP = MKTAG('S','B','S','P'), // Subspace (TES4 only?)
         REC_SCEN = MKTAG('S','C','E','N'), // Scene
+        REC_SCPT = MKTAG('S','C','P','T'), // Script
         REC_SCRL = MKTAG('S','C','R','L'), // Scroll
         REC_SGST = MKTAG('S','G','S','T'), // Sigil Stone
         REC_SHOU = MKTAG('S','H','O','U'), // Shout
@@ -181,7 +184,14 @@ namespace ESM4
         REC_WTHR = MKTAG('W','T','H','R'), // Weather
         REC_ACRE = MKTAG('A','C','R','E'), // Placed Creature (TES4 only?)
         REC_PGRD = MKTAG('P','G','R','D'), // Pathgrid (TES4 only?)
-        REC_ROAD = MKTAG('R','O','A','D')  // Road (TES4 only?)
+        REC_ROAD = MKTAG('R','O','A','D'), // Road (TES4 only?)
+        REC_IMOD = MKTAG('I','M','O','D'), // Item Mod
+        REC_PWAT = MKTAG('P','W','A','T'), // Placeable Water
+        REC_SCOL = MKTAG('S','C','O','L'), // Static Collection
+        REC_CCRD = MKTAG('C','C','R','D'), // Caravan Card
+        REC_CMNY = MKTAG('C','M','N','Y'), // Caravan Money
+        REC_ALOC = MKTAG('A','L','O','C'), // Audio Location Controller
+        REC_MSET = MKTAG('M','S','E','T')  // Media Set
     };
 
     enum SubRecordTypes
@@ -510,6 +520,29 @@ namespace ESM4
         SUB_BPNI = MKTAG('B','P','N','I'),
         SUB_RAGA = MKTAG('R','A','G','A'),
 
+        SUB_QSTI = MKTAG('Q','S','T','I'),
+        SUB_QSTR = MKTAG('Q','S','T','R'),
+        SUB_QSDT = MKTAG('Q','S','D','T'),
+        SUB_SCDA = MKTAG('S','C','D','A'),
+        SUB_SCRO = MKTAG('S','C','R','O'),
+        SUB_QSTA = MKTAG('Q','S','T','A'),
+        SUB_CTDT = MKTAG('C','T','D','T'),
+        SUB_SCHD = MKTAG('S','C','H','D'),
+        SUB_TCLF = MKTAG('T','C','L','F'),
+        SUB_TCLT = MKTAG('T','C','L','T'),
+        SUB_TRDT = MKTAG('T','R','D','T'),
+        SUB_TPIC = MKTAG('T','P','I','C'),
+
+        SUB_PKDT = MKTAG('P','K','D','T'),
+        SUB_PSDT = MKTAG('P','S','D','T'),
+        SUB_PLDT = MKTAG('P','L','D','T'),
+        SUB_PTDT = MKTAG('P','T','D','T'),
+        SUB_PGRP = MKTAG('P','G','R','P'),
+        SUB_PGRR = MKTAG('P','G','R','R'),
+        SUB_PGRI = MKTAG('P','G','R','I'),
+        SUB_PGRL = MKTAG('P','G','R','L'),
+        SUB_PGAG = MKTAG('P','G','A','G'),
+
         SUB_XHLT = MKTAG('X','H','L','T'), // Unofficial Oblivion Patch
         SUB_XCHG = MKTAG('X','C','H','G'), // thievery.exp
 
@@ -518,6 +551,42 @@ namespace ESM4
         SUB_MOD5 = MKTAG('M','O','D','5'),
         SUB_MDOB = MKTAG('M','D','O','B'),
         SUB_SPIT = MKTAG('S','P','I','T'),
+        SUB_PTDA = MKTAG('P','T','D','A'), // TES5
+        SUB_PFOR = MKTAG('P','F','O','R'), // TES5
+        SUB_PFO2 = MKTAG('P','F','O','2'), // TES5
+        SUB_PRCB = MKTAG('P','R','C','B'), // TES5
+        SUB_PKCU = MKTAG('P','K','C','U'), // TES5
+        SUB_PKC2 = MKTAG('P','K','C','2'), // TES5
+        SUB_CITC = MKTAG('C','I','T','C'), // TES5
+        SUB_CIS1 = MKTAG('C','I','S','1'), // TES5
+        SUB_CIS2 = MKTAG('C','I','S','2'), // TES5
+        SUB_TIFC = MKTAG('T','I','F','C'), // TES5
+        SUB_ALCA = MKTAG('A','L','C','A'), // TES5
+        SUB_ALCL = MKTAG('A','L','C','L'), // TES5
+        SUB_ALCO = MKTAG('A','L','C','O'), // TES5
+        SUB_ALDN = MKTAG('A','L','D','N'), // TES5
+        SUB_ALEA = MKTAG('A','L','E','A'), // TES5
+        SUB_ALED = MKTAG('A','L','E','D'), // TES5
+        SUB_ALEQ = MKTAG('A','L','E','Q'), // TES5
+        SUB_ALFA = MKTAG('A','L','F','A'), // TES5
+        SUB_ALFC = MKTAG('A','L','F','C'), // TES5
+        SUB_ALFD = MKTAG('A','L','F','D'), // TES5
+        SUB_ALFE = MKTAG('A','L','F','E'), // TES5
+        SUB_ALFI = MKTAG('A','L','F','I'), // TES5
+        SUB_ALFL = MKTAG('A','L','F','L'), // TES5
+        SUB_ALFR = MKTAG('A','L','F','R'), // TES5
+        SUB_ALID = MKTAG('A','L','I','D'), // TES5
+        SUB_ALLS = MKTAG('A','L','L','S'), // TES5
+        SUB_ALNA = MKTAG('A','L','N','A'), // TES5
+        SUB_ALNT = MKTAG('A','L','N','T'), // TES5
+        SUB_ALPC = MKTAG('A','L','P','C'), // TES5
+        SUB_ALRT = MKTAG('A','L','R','T'), // TES5
+        SUB_ALSP = MKTAG('A','L','S','P'), // TES5
+        SUB_ALST = MKTAG('A','L','S','T'), // TES5
+        SUB_ALUA = MKTAG('A','L','U','A'), // TES5
+        SUB_FLTR = MKTAG('F','L','T','R'), // TES5
+        SUB_QTGL = MKTAG('Q','T','G','L'), // TES5
+        SUB_TWAT = MKTAG('T','W','A','T'), // TES5
         SUB_XIBS = MKTAG('X','I','B','S'), // FO3
         SUB_REPL = MKTAG('R','E','P','L'), // FO3
         SUB_BIPL = MKTAG('B','I','P','L'), // FO3
@@ -540,12 +609,33 @@ namespace ESM4
         SUB_XRAD = MKTAG('X','R','A','D'), // FO3
         SUB_XORD = MKTAG('X','O','R','D'), // FO3
         SUB_XCLP = MKTAG('X','C','L','P'), // FO3
-        SUB_SCDA = MKTAG('S','C','D','A'), // FO3
-        SUB_SCRO = MKTAG('S','C','R','O'), // FO3
+        SUB_NEXT = MKTAG('N','E','X','T'), // FO3
+        SUB_QOBJ = MKTAG('Q','O','B','J'), // FO3
+        SUB_POBA = MKTAG('P','O','B','A'), // FO3
+        SUB_POCA = MKTAG('P','O','C','A'), // FO3
+        SUB_POEA = MKTAG('P','O','E','A'), // FO3
+        SUB_PKDD = MKTAG('P','K','D','D'), // FO3
+        SUB_PKD2 = MKTAG('P','K','D','2'), // FO3
+        SUB_PKPT = MKTAG('P','K','P','T'), // FO3
+        SUB_PKED = MKTAG('P','K','E','D'), // FO3
+        SUB_PKE2 = MKTAG('P','K','E','2'), // FO3
+        SUB_PKAM = MKTAG('P','K','A','M'), // FO3
+        SUB_PUID = MKTAG('P','U','I','D'), // FO3
+        SUB_PKW3 = MKTAG('P','K','W','3'), // FO3
+        SUB_PTD2 = MKTAG('P','T','D','2'), // FO3
+        SUB_PLD2 = MKTAG('P','L','D','2'), // FO3
+        SUB_PKFD = MKTAG('P','K','F','D'), // FO3
+        SUB_IDLB = MKTAG('I','D','L','B'), // FO3
+        SUB_XDCR = MKTAG('X','D','C','R'), // FO3
+        SUB_DALC = MKTAG('D','A','L','C'), // FO3
         SUB_IMPS = MKTAG('I','M','P','S'), // FO3 Anchorage
         SUB_IMPF = MKTAG('I','M','P','F'), // FO3 Anchorage
 
         SUB_XATO = MKTAG('X','A','T','O'), // FONV
+        SUB_INFC = MKTAG('I','N','F','C'), // FONV
+        SUB_INFX = MKTAG('I','N','F','X'), // FONV
+        SUB_TDUM = MKTAG('T','D','U','M'), // FONV
+        SUB_TCFU = MKTAG('T','C','F','U'), // FONV
         SUB_DAT2 = MKTAG('D','A','T','2'), // FONV
         SUB_RCIL = MKTAG('R','C','I','L'), // FONV
         SUB_MMRK = MKTAG('M','M','R','K'), // FONV
@@ -579,6 +669,7 @@ namespace ESM4
         SUB_WNM5 = MKTAG('W','N','M','5'), // FONV
         SUB_WNM6 = MKTAG('W','N','M','6'), // FONV
         SUB_WNM7 = MKTAG('W','N','M','7'), // FONV
+        SUB_JNAM = MKTAG('J','N','A','M'), // FONV
         SUB_EFSD = MKTAG('E','F','S','D'), // FONV DeadMoney
     };
 
@@ -780,8 +871,6 @@ namespace ESM4
         Rec_MultiBound = 0x80000000  // (REFR) MultiBound
     };
 
-    typedef std::uint32_t FormId;
-
 #pragma pack(push, 1)
     // NOTE: the label field of a group is not reliable (http://www.uesp.net/wiki/Tes4Mod:Mod_File_Format)
     union GroupLabel
@@ -846,134 +935,11 @@ namespace ESM4
         Grid   grid;
     };
 
-    struct Vector3
+    struct Vertex
     {
         float x;
         float y;
         float z;
-    };
-
-    typedef Vector3 Vertex;
-
-    // REFR, ACHR, ACRE
-    struct Position
-    {
-        Vector3 pos;
-        Vector3 rot; // angles are in radian, rz applied first and rx applied last
-    };
-
-    // REFR, ACHR, ACRE
-    struct EnableParent
-    {
-        FormId        parent;
-        std::uint32_t flags; //0x0001 = Set Enable State Opposite Parent, 0x0002 = Pop In
-    };
-
-    // LVLC, LVLI
-    struct LVLO
-    {
-        std::int16_t  level;
-        std::uint16_t unknown;  // sometimes missing
-        FormId        item;
-        std::int16_t  count;
-        std::uint16_t unknown2; // sometimes missing
-    };
-
-    struct InventoryItem // NPC_, CREA, CONT
-    {
-        FormId        item;
-        std::uint32_t count;
-    };
-
-    struct AIData        // NPC_, CREA
-    {
-        std::uint8_t  aggression;
-        std::uint8_t  confidence;
-        std::uint8_t  energyLevel;
-        std::uint8_t  responsibility;
-        std::uint32_t aiFlags;
-        std::uint8_t  trainSkill;
-        std::uint8_t  trainLevel;
-        std::uint16_t unknown;
-    };
-
-    struct AttributeValues
-    {
-        std::uint8_t  strength;
-        std::uint8_t  intelligence;
-        std::uint8_t  willpower;
-        std::uint8_t  agility;
-        std::uint8_t  speed;
-        std::uint8_t  endurance;
-        std::uint8_t  personality;
-        std::uint8_t  luck;
-    };
-
-    struct ActorBaseConfig
-    {
-#if 0
-        enum ACBS_NPC
-        {
-            ACBS_Female               = 0x000001,
-            ACBS_Essential            = 0x000002,
-            ACBS_Respawn              = 0x000008,
-            ACBS_Autocalcstats        = 0x000010,
-            ACBS_PCLevelOffset        = 0x000080,
-            ACBS_NoLowLevelProcessing = 0x000200,
-            ACBS_NoRumors             = 0x002000,
-            ACBS_Summonable           = 0x004000,
-            ACBS_NoPersuasion         = 0x008000, // different meaning to crea
-            ACBS_CanCorpseCheck       = 0x100000  // opposite of crea
-        };
-
-        enum ACBS_CREA
-        {
-            ACBS_Essential            = 0x000002,
-            ACBS_WeapAndShield        = 0x000004,
-            ACBS_Respawn              = 0x000008,
-            ACBS_PCLevelOffset        = 0x000080,
-            ACBS_NoLowLevelProcessing = 0x000200,
-            ACBS_NoHead               = 0x008000, // different meaning to npc_
-            ACBS_NoRightArm           = 0x010000,
-            ACBS_NoLeftArm            = 0x020000,
-            ACBS_NoCombatWater        = 0x040000,
-            ACBS_NoShadow             = 0x080000,
-            ACBS_NoCorpseCheck        = 0x100000  // opposite of npc_
-        };
-#endif
-        std::uint32_t flags;
-        std::uint16_t baseSpell;  // Base spell points
-        std::uint16_t fatigue;    // Fatigue
-        std::uint16_t barterGold; // Barter gold
-        std::int16_t  level;      // Level/Offset level
-        std::uint16_t calcMin;    // Calc Min
-        std::uint16_t calcMax;    // Calc Max
-    };
-
-    struct ActorFaction
-    {
-        FormId       faction;
-        std::int8_t  rank;
-        std::uint8_t unknown1;
-        std::uint8_t unknown2;
-        std::uint8_t unknown3;
-    };
-
-    union EFI_Label
-    {
-        std::uint32_t value;
-        char effect[4];
-    };
-
-    struct ScriptEffect
-    {
-        FormId       formId;       // Script effect (Magic effect must be SEFF)
-        std::int32_t school;       // Magic school. See Magic schools for more information.
-        EFI_Label    visualEffect; // Visual effect name or 0x00000000 if None
-        std::uint8_t flags;        // 0x01 = Hostile
-        std::uint8_t unknown1;
-        std::uint8_t unknown2;
-        std::uint8_t unknown3;
     };
 #pragma pack(pop)
 

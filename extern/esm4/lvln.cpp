@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2019 cc9cii
+  Copyright (C) 2019, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,22 +27,22 @@
 #include "lvln.hpp"
 
 #include <stdexcept>
-#include <iostream> // FIXME: testing only
+//#include <iostream> // FIXME: testing only
 
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::LeveledActor::LeveledActor() : mFormId(0), mFlags(0), mChanceNone(0), mLvlActorFlags(0), mListCount(0)
+ESM4::LevelledNpc::LevelledNpc() : mFormId(0), mFlags(0), mChanceNone(0), mLvlActorFlags(0), mListCount(0)
 {
     mEditorId.clear();
     mModel.clear();
 }
 
-ESM4::LeveledActor::~LeveledActor()
+ESM4::LevelledNpc::~LevelledNpc()
 {
 }
 
-void ESM4::LeveledActor::load(ESM4::Reader& reader)
+void ESM4::LevelledNpc::load(ESM4::Reader& reader)
 {
     mFormId = reader.hdr().record.id;
     reader.adjustFormId(mFormId);
@@ -105,10 +105,10 @@ void ESM4::LeveledActor::load(ESM4::Reader& reader)
     }
 }
 
-//void ESM4::LeveledActor::save(ESM4::Writer& writer) const
+//void ESM4::LevelledNpc::save(ESM4::Writer& writer) const
 //{
 //}
 
-//void ESM4::LeveledActor::blank()
+//void ESM4::LevelledNpc::blank()
 //{
 //}

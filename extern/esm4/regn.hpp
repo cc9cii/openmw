@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015-2016, 2018 cc9cii
+  Copyright (C) 2015-2016, 2018, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,19 +27,20 @@
 #ifndef ESM4_REGN_H
 #define ESM4_REGN_H
 
-#include <vector>
-#include <string>
 #include <cstdint>
+#include <string>
+#include <vector>
+
+#include "formid.hpp"
 
 namespace ESM4
 {
     class Reader;
     class Writer;
-    typedef std::uint32_t FormId;
 
     struct Region
     {
-        enum RDAT_Types
+        enum RegionDataType
         {
             RDAT_None      = 0x00,
             RDAT_Objects   = 0x02,
@@ -47,16 +48,26 @@ namespace ESM4
             RDAT_Map       = 0x04,
             RDAT_Landscape = 0x05,
             RDAT_Grass     = 0x06,
-            RDAT_Sound     = 0x07
+            RDAT_Sound     = 0x07,
+            RDAT_Imposter  = 0x08
         };
 
-        struct RDAT
+#pragma pack(push, 1)
+        struct RegionData
         {
             std::uint32_t type;
             std::uint8_t  flag;
             std::uint8_t  priority;
             std::uint16_t unknown;
         };
+
+        struct RegionSound
+        {
+            FormId sound;
+            std::uint32_t flags; // 0 pleasant, 1 cloudy, 2 rainy, 3 snowy
+            std::uint32_t chance;
+        };
+#pragma pack(pop)
 
         FormId mFormId;       // from the header
         std::uint32_t mFlags; // from the header, see enum type RecordFlag for details
@@ -67,9 +78,12 @@ namespace ESM4
 
         std::string   mShader; //?? ICON
         std::string   mMapName;
+
         std::uint32_t mEdgeFalloff;
-        std::vector<std::uint32_t> mRPLD; // unknown
-        std::vector<RDAT> mData; // indexed by the type value
+        std::vector<std::uint32_t> mRPLD; // unknown, point data?
+
+        RegionData mData;
+        std::vector<RegionSound> mSounds;
 
         Region();
         virtual ~Region();

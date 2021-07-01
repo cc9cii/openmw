@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015-2016, 2018 cc9cii
+  Copyright (C) 2015-2016, 2018, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,12 +27,31 @@
 #ifndef ESM4_REFR_H
 #define ESM4_REFR_H
 
-#include "common.hpp" // Position
+#include <cstdint>
+
+#include "reference.hpp" // FormId, Position, EnableParent
 
 namespace ESM4
 {
     class Reader;
     class Writer;
+
+    enum MapMarkerType
+    {
+        Map_None          = 0x00, // ?
+        Map_Camp          = 0x01,
+        Map_Cave          = 0x02,
+        Map_City          = 0x03,
+        Map_ElvenRuin     = 0x04,
+        Map_FortRuin      = 0x05,
+        Map_Mine          = 0x06,
+        Map_Landmark      = 0x07,
+        Map_Tavern        = 0x08,
+        Map_Settlement    = 0x09,
+        Map_DaedricShrine = 0x0A,
+        Map_OblivionGate  = 0x0B,
+        Map_Unknown       = 0x0C // ? (door icon)
+    };
 
     struct TeleportDest
     {
@@ -41,8 +60,15 @@ namespace ESM4
         std::uint32_t flags; // 0x01 no alarm (only in TES5)
     };
 
-    // Unlike TES3, multiple cells can have the same exterior co-ordinates.
-    // The cells need to be organised under world spaces.
+    struct RadioStationData
+    {
+        float rangeRadius;
+        // 0 radius, 1 everywhere, 2 worldspace and linked int, 3 linked int, 4 current cell only
+        std::uint32_t broadcastRange;
+        float staticPercentage;
+        FormId posReference; // only used if broadcastRange == 0
+    };
+
     struct Reference
     {
         FormId mFormId;       // from the header
@@ -58,10 +84,17 @@ namespace ESM4
         FormId   mGlobal;
         std::uint32_t mFactionRank;
 
-        bool mDisabled;
-        EnableParent mEsp;    // TODO may need to check mFlags & 0x800 (initially disabled)
+        bool mInitiallyDisabled; // TODO may need to check mFlags & 0x800 (initially disabled)
+        bool mIsMapMarker;
+        std::uint16_t mMapMarker;
+
+        EnableParent mEsp;
 
         std::uint32_t mCount; // only if > 1 (default 1)
+
+        FormId mAudioLocation;
+
+        RadioStationData mRadio;
 
         TeleportDest mDoor;
 

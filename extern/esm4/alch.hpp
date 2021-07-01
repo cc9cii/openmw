@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016, 2018 cc9cii
+  Copyright (C) 2016, 2018, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,7 +27,10 @@
 #ifndef ESM4_ALCH_H
 #define ESM4_ALCH_H
 
-#include "common.hpp"
+#include <cstdint>
+#include <string>
+
+#include "effect.hpp" // FormId, ScriptEffect
 
 namespace ESM4
 {
@@ -41,6 +44,15 @@ namespace ESM4
         {
             float weight;
         };
+
+        struct EnchantedItem
+        {
+            std::int32_t value;
+            std::uint32_t flags;
+            FormId withdrawl;
+            float  chanceAddition;
+            FormId sound;
+        };
 #pragma pack(pop)
 
         FormId mFormId;       // from the header
@@ -50,6 +62,10 @@ namespace ESM4
         std::string mFullName;
         std::string mModel;
         std::string mIcon; // inventory
+        std::string mMiniIcon; // inventory
+
+        FormId mPickUpSound;
+        FormId mDropSound;
 
         FormId mScript;
         ScriptEffect mEffect;
@@ -57,6 +73,7 @@ namespace ESM4
         float mBoundRadius;
 
         Data mData;
+        EnchantedItem mItem;
 
         Potion();
         virtual ~Potion();

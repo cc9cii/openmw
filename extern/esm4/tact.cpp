@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2019 cc9cii
+  Copyright (C) 2019, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -32,7 +32,8 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::TalkingActivator::TalkingActivator() : mFormId(0), mFlags(0), mScript(0), mVoiceType(0), mSound(0)
+ESM4::TalkingActivator::TalkingActivator() : mFormId(0), mFlags(0), mScript(0), mVoiceType(0), mLoopSound(0),
+    mRadioTemplate(0)
 {
     mEditorId.clear();
     mFullName.clear();
@@ -66,14 +67,15 @@ void ESM4::TalkingActivator::load(ESM4::Reader& reader)
             }
             case ESM4::SUB_SCRI: reader.getFormId(mScript); break;
             case ESM4::SUB_VNAM: reader.getFormId(mVoiceType); break;
-            case ESM4::SUB_SNAM: reader.getFormId(mVoiceType); break;
+            case ESM4::SUB_SNAM: reader.getFormId(mLoopSound); break;
+            case ESM4::SUB_INAM: reader.getFormId(mRadioTemplate); break; // FONV
             case ESM4::SUB_MODL: reader.getZString(mModel); break;
-            case ESM4::SUB_DEST: // destruction
-            case ESM4::SUB_DSTD: // destruction
-            case ESM4::SUB_DSTF: // destruction
-            case ESM4::SUB_MODT: // texture file hash?
+            case ESM4::SUB_DEST: // FO3 destruction
+            case ESM4::SUB_DSTD: // FO3 destruction
+            case ESM4::SUB_DSTF: // FO3 destruction
             case ESM4::SUB_FNAM:
             case ESM4::SUB_PNAM:
+            case ESM4::SUB_MODT: // texture file hash?
             case ESM4::SUB_OBND:
             {
                 //std::cout << "TACT " << ESM4::printName(subHdr.typeId) << " skipping..." << std::endl;

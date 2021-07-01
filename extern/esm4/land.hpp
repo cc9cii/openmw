@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015-2016, 2018 cc9cii
+  Copyright (C) 2015-2016, 2018, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,14 +27,15 @@
 #ifndef ESM4_LAND_H
 #define ESM4_LAND_H
 
-#include <vector>
-#include <string>
 #include <cstdint>
+#include <string>
+#include <vector>
+
+#include "formid.hpp"
 
 namespace ESM4
 {
     class Reader;
-    typedef std::uint32_t FormId;
 
     struct Land
     {

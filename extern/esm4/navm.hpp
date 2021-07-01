@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015, 2018 cc9cii
+  Copyright (C) 2015, 2018, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,6 +27,7 @@
 #ifndef ESM4_NAVM_H
 #define ESM4_NAVM_H
 
+#include <cstdint>
 #include <vector>
 
 #include "common.hpp" // CellGrid, Vertex
@@ -86,7 +87,7 @@ namespace ESM4
             float maxX;
             float maxY;
             float maxZ;
-            // there are divisor^2 segments, each segment is a vector of triangle indicies
+            // there are divisor^2 segments, each segment is a vector of triangle indices
             std::vector<std::vector<std::uint16_t> >  triSegments;
 
             void load(ESM4::Reader& esm);

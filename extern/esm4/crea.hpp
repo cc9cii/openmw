@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016, 2018 cc9cii
+  Copyright (C) 2016, 2018, 2020 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,9 +27,12 @@
 #ifndef ESM4_CREA_H
 #define ESM4_CREA_H
 
+#include <cstdint>
+#include <string>
 #include <vector>
 
-#include "common.hpp"
+#include "actor.hpp"
+#include "inventory.hpp"
 
 namespace ESM4
 {
@@ -38,6 +41,53 @@ namespace ESM4
 
     struct Creature
     {
+        enum ACBS_TES4
+        {
+            TES4_Essential      = 0x000002,
+            TES4_WeapAndShield  = 0x000004,
+            TES4_Respawn        = 0x000008,
+            TES4_PCLevelOffset  = 0x000080,
+            TES4_NoLowLevelProc = 0x000200,
+            TES4_NoHead         = 0x008000, // different meaning to npc_
+            TES4_NoRightArm     = 0x010000,
+            TES4_NoLeftArm      = 0x020000,
+            TES4_NoCombatWater  = 0x040000,
+            TES4_NoShadow       = 0x080000,
+            TES4_NoCorpseCheck  = 0x100000  // opposite of npc_
+        };
+
+        enum ACBS_FO3
+        {
+            FO3_Biped          = 0x00000001,
+            FO3_Essential      = 0x00000002,
+            FO3_Weap_Shield    = 0x00000004,
+            FO3_Respawn        = 0x00000008,
+            FO3_CanSwim        = 0x00000010,
+            FO3_CanFly         = 0x00000020,
+            FO3_CanWalk        = 0x00000040,
+            FO3_PCLevelMult    = 0x00000080,
+            FO3_NoLowLevelProc = 0x00000200,
+            FO3_NoBloodSpray   = 0x00000800,
+            FO3_NoBloodDecal   = 0x00001000,
+            FO3_NoHead         = 0x00008000,
+            FO3_NoRightArm     = 0x00010000,
+            FO3_NoLeftArm      = 0x00020000,
+            FO3_NoWaterCombat  = 0x00040000,
+            FO3_NoShadow       = 0x00080000,
+            FO3_NoVATSMelee    = 0x00100000,
+            FO3_AllowPCDialog  = 0x00200000,
+            FO3_NoOpenDoors    = 0x00400000,
+            FO3_Immobile       = 0x00800000,
+            FO3_TiltFrontBack  = 0x01000000,
+            FO3_TiltLeftRight  = 0x02000000,
+            FO3_NoKnockdown    = 0x04000000,
+            FO3_NotPushable    = 0x08000000,
+            FO3_AllowPickpoket = 0x10000000,
+            FO3_IsGhost        = 0x20000000,
+            FO3_NoRotateHead   = 0x40000000,
+            FO3_Invulnerable   = 0x80000000
+        };
+
 #pragma pack(push, 1)
         struct Data
         {
@@ -84,6 +134,9 @@ namespace ESM4
         std::vector<std::string> mKf;
 
         std::vector<InventoryItem> mInventory;
+
+        FormId mBaseTemplate;           // FO3/FONV
+        std::vector<FormId> mBodyParts; // FO3/FONV
 
         Creature();
         virtual ~Creature();
