@@ -72,6 +72,11 @@ namespace ESM
     struct Dialogue;
 }
 
+namespace ESM4
+{
+    union RecordHeader;
+}
+
 namespace CSMWorld
 {
     class ResourcesManager;

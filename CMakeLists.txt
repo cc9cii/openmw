@@ -518,6 +518,7 @@ endif (CMAKE_CXX_COMPILER_ID STREQUAL GNU OR CMAKE_CXX_COMPILER_ID STREQUAL Clan
 
 # Extern
 
+add_subdirectory (extern/esm4)
 add_subdirectory (extern/osg-ffmpeg-videoplayer)
 add_subdirectory (extern/oics)
 add_subdirectory (extern/Base64)

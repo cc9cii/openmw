@@ -6,8 +6,8 @@
 #include <map>
 #include <deque>
 
-#include "alc.h"
-#include "al.h"
+#include <alc.h>
+#include <al.h>
 #include "alext.h"
 
 #include "sound_output.hpp"

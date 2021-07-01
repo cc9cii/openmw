@@ -1,5 +1,7 @@
 #include "statemanagerimp.hpp"
 
+#include <iostream>
+
 #include <components/debug/debuglog.hpp>
 
 #include <components/esm/esmwriter.hpp>

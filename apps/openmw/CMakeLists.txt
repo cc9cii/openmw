@@ -145,6 +145,7 @@ target_link_libraries(openmw
     ${RecastNavigation_LIBRARIES}
     "osg-ffmpeg-videoplayer"
     "oics"
+    ${ESM4_LIBRARIES}
     components
 )
 

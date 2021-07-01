@@ -1,5 +1,7 @@
 #include "loadscpt.hpp"
 
+#include <iostream>
+
 #include <components/debug/debuglog.hpp>
 
 #include "esmreader.hpp"

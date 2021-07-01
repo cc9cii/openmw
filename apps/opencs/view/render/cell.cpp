@@ -1,6 +1,7 @@
 #include "cell.hpp"
 
 #include <math.h>
+#include <iostream>
 
 #include <osg/PositionAttitudeTransform>
 #include <osg/Geode>

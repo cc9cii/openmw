@@ -405,7 +405,7 @@ namespace MWGui
         std::stringstream text;
         time_t time = mCurrentSlot->mTimeStamp;
         struct tm* timeinfo;
-        timeinfo = localtime(&time);
+        timeinfo = std::localtime(&time);
 
         text << std::put_time(timeinfo, "%Y.%m.%d %T") << "\n";
 

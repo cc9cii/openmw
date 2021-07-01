@@ -19,9 +19,15 @@ namespace Gui
         assignWidget(mLeft, "Left");
         assignWidget(mRight, "Right");
 
+#if MYGUI_VERSION < MYGUI_DEFINE_VERSION(3,2,3) // name changed in commit b88ca1b
         assignWidget(mClient, "Client");
         if (!mClient)
             throw std::runtime_error("WindowCaption needs an EditBox Client widget in its skin");
+#else
+		assignWidget(mScrollViewClient, "Client");
+		if (!mScrollViewClient)
+			throw std::runtime_error("WindowCaption needs an EditBox Client widget in its skin");
+#endif
     }
 
     void WindowCaption::setCaption(const MyGUI::UString &_value)
@@ -45,7 +51,11 @@ namespace Gui
     void WindowCaption::align()
     {
         MyGUI::IntSize textSize = getTextSize();
+#if MYGUI_VERSION < MYGUI_DEFINE_VERSION(3, 2, 3) // name changed in commit b88ca1b
         MyGUI::Widget* caption = mClient;
+#else
+		MyGUI::Widget* caption = mScrollViewClient;
+#endif
         caption->setSize(textSize.width + 24, caption->getHeight());
 
         int barwidth = (getWidth()-caption->getWidth())/2;
