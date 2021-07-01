@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <sstream>
-#include <iostream>
 #include <string>
 
 #include <QMouseEvent>

@@ -125,6 +125,7 @@ namespace CSMWorld
             bool mProject;
             std::map<std::string, std::map<ESM::RefNum, std::string> > mRefLoadCache;
             int mReaderIndex;
+            std::vector<std::string> mLoadedFiles; // FIXME: probably duplicated data
 
             bool mFsStrict;
             Files::PathContainer mDataPaths;
@@ -134,6 +135,9 @@ namespace CSMWorld
             std::shared_ptr<Resource::ResourceSystem> mResourceSystem;
 
             std::vector<std::shared_ptr<ESM::ESMReader> > mReaders;
+            // FIXME: hack to workaround the differences between OpenCS and OpenMW
+            //        without rewriting the code block copied from OpenMW
+            std::vector<ESM::ESMReader*> mReaderList;
 
             std::map<std::string, int> mContentFileNames;
 
@@ -151,6 +155,9 @@ namespace CSMWorld
             static int count (RecordBase::State state, const CollectionBase& collection);
 
             void loadFallbackEntries();
+
+            bool loadTes4Group (CSMDoc::Messages& messages);
+            bool loadTes4Record (const ESM4::RecordHeader& hdr, CSMDoc::Messages& messages);
 
         public:
 

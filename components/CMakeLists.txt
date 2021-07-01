@@ -79,7 +79,7 @@ add_component_dir (esm
     loadweap records aipackage effectlist spelllist variant variantimp loadtes3 cellref filter
     savedgame journalentry queststate locals globalscript player objectstate cellid cellstate globalmap inventorystate containerstate npcstate creaturestate dialoguestate statstate
     npcstats creaturestats weatherstate quickkeys fogstate spellstate activespells creaturelevliststate doorstate projectilestate debugprofile
-    aisequence magiceffects util custommarkerstate stolenitems transport animationstate controlsstate mappings
+    aisequence magiceffects util custommarkerstate stolenitems transport animationstate controlsstate mappings esm4reader
     )
 
 add_component_dir (esmterrain
@@ -247,6 +247,7 @@ target_link_libraries(components
     ${SDL2_LIBRARIES}
     ${OPENGL_gl_LIBRARY}
     ${MyGUI_LIBRARIES}
+    ${ESM4_LIBRARIES}
     LZ4::LZ4
     RecastNavigation::DebugUtils
     RecastNavigation::Detour

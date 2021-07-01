@@ -9,6 +9,12 @@
 #include <components/esm/records.hpp>
 #include "store.hpp"
 
+namespace ESM4
+{
+    class Reader;
+    union RecordHeader;
+}
+
 namespace Loading
 {
     class Listener;
@@ -84,6 +90,9 @@ namespace MWWorld
         unsigned int mDynamicCount;
 
         mutable std::map<std::string, std::weak_ptr<MWMechanics::SpellList> > mSpellListCache;
+
+        void loadTes4Group (ESM::ESMReader& esm);
+        void loadTes4Record (ESM::ESMReader& esm);
 
         /// Validate entries in store after setup
         void validate();

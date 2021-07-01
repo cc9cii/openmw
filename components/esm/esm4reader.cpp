@@ -65,10 +65,17 @@ void ESM::ESM4Reader::restoreCellChildrenContext(const ESM4::ReaderContext& ctx)
     mReader.skipRecordData();    // skip the CELL record
 
     mReader.getRecordHeader();   // load the header for cell child group (hopefully)
+
     // this is a hack to load only the cell child group...
     if (mReader.hdr().group.typeId == ESM4::REC_GRUP && mReader.hdr().group.type == ESM4::Grp_CellChild)
     {
+        // mCtx.leftFile controls how much to load - see ESMReader::hasMoreRecs()
+        // in this case we want to load just the CELL child group(s), adjusted for the
+        // getRecordHeader() call just above
         mCtx.leftFile = mReader.hdr().group.groupSize - ctx.recHeaderSize;
+
+        mReader.saveGroupStatus(); // push onto the stack
+
         return;
     }
 

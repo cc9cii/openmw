@@ -2,8 +2,6 @@
 
 #include <components/sceneutil/positionattitudetransform.hpp>
 
-#include <iostream>
-
 #include <components/esm/loadcell.hpp>
 
 #include <components/compiler/opcodes.hpp>

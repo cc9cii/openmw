@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015-2019 cc9cii
+  Copyright (C) 2015-2019, 2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,15 +26,24 @@
 #include <stdexcept>
 #include <unordered_map>
 #include <iostream>
+#include <sstream> // for debugging
 #include <iomanip> // for debugging
 
+#if defined(_MSC_VER)
+    #pragma warning (push)
+    #pragma warning (disable : 4706)
+    #include <boost/iostreams/filter/zlib.hpp>
+    #pragma warning (pop)
+#else
+    #include <boost/iostreams/filter/zlib.hpp>
+#endif
+#include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/iostreams/copy.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 
-#include <OgreResourceGroupManager.h>
-
-#include <zlib.h>
+#include <components/bsa/memorystream.hpp>
 
 #include "formid.hpp"
 
@@ -42,15 +51,13 @@
 #undef NDEBUG
 #endif
 
-ESM4::Reader::Reader() : mObserver(nullptr), mRecordRemaining(0), mCellGridValid(false)
+ESM4::Reader::Reader() : mObserver(nullptr), mRecordRemaining(0), mCellGridValid(false), mFileSize(0)
 {
     mCtx.modIndex = 0;
     mCtx.currWorld = 0;
     mCtx.currCell = 0;
     mCtx.recHeaderSize = sizeof(ESM4::RecordHeader);
 
-    mInBuf.reset();
-    mDataBuf.reset();
     mStream.reset();
     mSavedStream.reset();
 }
@@ -66,7 +73,8 @@ ESM4::Reader::~Reader()
 // restoring the context. The latter option was chosen.
 ESM4::ReaderContext ESM4::Reader::getContext()
 {
-    mCtx.filePos = mStream->tell() - mCtx.recHeaderSize; // update file position
+    mCtx.filePos = mStream->tellg();
+    mCtx.filePos -= mCtx.recHeaderSize; // update file position
     return mCtx;
 }
 
@@ -81,15 +89,17 @@ bool ESM4::Reader::restoreContext(const ESM4::ReaderContext& ctx)
 
     mCtx.groupStack.clear(); // probably not necessary?
     mCtx = ctx;
-    mStream->seek(ctx.filePos); // update file position
+    mStream->seekg(ctx.filePos); // update file position
 
     //return getRecordHeader(); // can't use it because mStream may have been switched
+    mStream->read((char*)&mRecordHeader, mCtx.recHeaderSize);
 
     if (mObserver)
         mObserver->update(mCtx.recHeaderSize);
 
-    return (mStream->read(&mRecordHeader, mCtx.recHeaderSize) == mCtx.recHeaderSize
-            && (mRecordRemaining = mRecordHeader.record.dataSize)); // for keeping track of sub records
+    mRecordRemaining = mRecordHeader.record.dataSize; // for keeping track of sub records
+
+    return (mStream->gcount() == mCtx.recHeaderSize);
 }
 
 bool ESM4::Reader::skipNextGroupCellChild()
@@ -97,19 +107,20 @@ bool ESM4::Reader::skipNextGroupCellChild()
     if (mStream->eof())
         return false;
 
-    std::size_t pos = mStream->tell(); // save
+    std::size_t pos = mStream->tellg(); // save
     ESM4::RecordHeader hdr;
-    if (!mStream->read(&hdr, mCtx.recHeaderSize))
-        throw std::runtime_error("ESM4::Reader::could not peek header");
+    mStream->read((char*)&hdr, mCtx.recHeaderSize);
+    //if (!mStream->read((char*)&hdr, mCtx.recHeaderSize))
+        //throw std::runtime_error("ESM4::Reader::could not peek header");
 
     if (hdr.group.type != ESM4::Grp_CellChild)
     {
-        mStream->seek(pos); // go back to saved
+        mStream->seekg(pos); // go back to saved
         return false;
     }
 
     mCtx.groupStack.back().second -= hdr.group.groupSize;
-    mStream->skip(hdr.group.groupSize - (std::uint32_t)mCtx.recHeaderSize); // already read the header
+    mStream->ignore(hdr.group.groupSize - (std::uint32_t)mCtx.recHeaderSize); // already read the header
     if (mObserver)
         mObserver->update(hdr.group.groupSize);
 
@@ -120,10 +131,14 @@ bool ESM4::Reader::skipNextGroupCellChild()
 std::size_t ESM4::Reader::openTes4File(const std::string& name)
 {
     mCtx.filename = name;
-    mStream = Ogre::DataStreamPtr(new Ogre::FileStreamDataStream(
-                    OGRE_NEW_T(std::ifstream(name.c_str(), std::ios_base::binary),
-                    Ogre::MEMCATEGORY_GENERAL), /*freeOnClose*/true));
-    return mStream->size();
+    // NOTE: Ogre::SharedPtr<DataStream> provides implicit destruction
+    mStream = Files::IStreamPtr(Files::openConstrainedFileStream(name.c_str()));
+
+    mStream->seekg(0, std::ios::end); // FIXME: is there a better way, or eliminate the need to get the size?
+    mFileSize = mStream->tellg();
+    mStream->seekg(0, std::ios::beg);
+
+    return mFileSize;
 }
 
 void ESM4::Reader::setRecHeaderSize(const std::size_t size)
@@ -159,7 +174,11 @@ void ESM4::Reader::buildLStringIndex(const std::string& stringFile, LocalizedStr
     sp.type = stringType;
 
     // TODO: possibly check if the resource exists?
-    Ogre::DataStreamPtr filestream = Ogre::ResourceGroupManager::getSingleton().openResource(stringFile);
+    Files::IStreamPtr filestream = Files::IStreamPtr(Files::openConstrainedFileStream(stringFile.c_str()));
+
+    filestream->seekg(0, std::ios::end);
+    std::size_t fileSize = filestream->tellg();
+    filestream->seekg(0, std::ios::beg);
 
     switch (stringType)
     {
@@ -170,13 +189,13 @@ void ESM4::Reader::buildLStringIndex(const std::string& stringFile, LocalizedStr
             throw std::runtime_error("ESM4::Reader::unexpected string type");
     }
 
-    filestream->read(&numEntries, sizeof(numEntries));
-    filestream->read(&dataSize, sizeof(dataSize));
-    std::size_t dataStart = filestream->size() - dataSize;
+    filestream->read((char*)&numEntries, sizeof(numEntries));
+    filestream->read((char*)&dataSize, sizeof(dataSize));
+    std::size_t dataStart = fileSize - dataSize;
     for (unsigned int i = 0; i < numEntries; ++i)
     {
-        filestream->read(&stringId, sizeof(stringId));
-        filestream->read(&sp.offset, sizeof(sp.offset));
+        filestream->read((char*)&stringId, sizeof(stringId));
+        filestream->read((char*)&sp.offset, sizeof(sp.offset));
         sp.offset += (std::uint32_t)dataStart;
         mLStringIndex[stringId] = sp;
     }
@@ -187,7 +206,8 @@ void ESM4::Reader::getLocalizedString(std::string& str)
 {
     std::uint32_t stringId;
     get(stringId);
-    getLocalizedString(stringId, str);
+    if (stringId) // TES5 FoxRace
+        getLocalizedString(stringId, str);
 }
 
 // FIXME: very messy and probably slow/inefficient
@@ -197,14 +217,14 @@ void ESM4::Reader::getLocalizedString(const FormId stringId, std::string& str)
 
     if (it != mLStringIndex.end())
     {
-        Ogre::DataStreamPtr filestream;
+        Files::IStreamPtr filestream;
 
         switch (it->second.type)
         {
             case Type_Strings:
             {
                 filestream = mStrings;
-                filestream->seek(it->second.offset);
+                filestream->seekg(it->second.offset);
 
                 char ch;
                 std::vector<char> data;
@@ -223,7 +243,7 @@ void ESM4::Reader::getLocalizedString(const FormId stringId, std::string& str)
         }
 
         // get ILStrings or DLStrings
-        filestream->seek(it->second.offset);
+        filestream->seekg(it->second.offset);
         getZString(str, filestream);
     }
     else // FIXME: stringId might be null? (FoxRace)
@@ -239,13 +259,16 @@ bool ESM4::Reader::getRecordHeader()
         mSavedStream.reset();
     }
 
+    mStream->read((char*)&mRecordHeader, mCtx.recHeaderSize);
+
     // keep track of data left to read from the file
     // FIXME: having a default instance of mObserver might be faster than checking for null all the time?
     if (mObserver)
         mObserver->update(mCtx.recHeaderSize);
 
-    return (mStream->read(&mRecordHeader, mCtx.recHeaderSize) == mCtx.recHeaderSize
-            && (mRecordRemaining = mRecordHeader.record.dataSize)); // for keeping track of sub records
+    mRecordRemaining = mRecordHeader.record.dataSize; // for keeping track of sub records
+
+    return (mStream->gcount() == mCtx.recHeaderSize);
 
     // After reading the record header we can cache a WRLD or CELL formId for convenient access later.
     // (currently currWorld and currCell are set manually when loading the WRLD and CELL records)
@@ -259,17 +282,17 @@ bool ESM4::Reader::getSubRecordHeader()
     // - hence it require manual updtes to mRecordRemaining. See ESM4::NavMesh and ESM4::World.
     if (mRecordRemaining >= sizeof(mSubRecordHeader))
     {
-        result = get(mSubRecordHeader);
+        result = getExact(mSubRecordHeader);
         mRecordRemaining -= (sizeof(mSubRecordHeader) + mSubRecordHeader.dataSize);
     }
     return result;
 }
 
 // NOTE: the parameter 'files' must have the file names in the loaded order
-void ESM4::Reader::updateModIndicies(const std::vector<std::string>& files)
+void ESM4::Reader::updateModIndices(const std::vector<std::string>& files)
 {
     if (files.size() >= 0xff)
-        throw std::runtime_error("ESM4::Reader::updateModIndicies too many files"); // 0xff is reserved
+        throw std::runtime_error("ESM4::Reader::updateModIndices too many files"); // 0xff is reserved
 
     // NOTE: this map is rebuilt each time this method is called (i.e. each time a file is loaded)
     // Perhaps there is an opportunity to optimize this by saving the result somewhere.
@@ -281,7 +304,7 @@ void ESM4::Reader::updateModIndicies(const std::vector<std::string>& files)
     for (size_t i = 0; i < files.size(); ++i) // ATTENTION: assumes current file is not included
         fileIndex[boost::to_lower_copy<std::string>(files[i])] = i;
 
-    mHeader.mModIndicies.resize(mHeader.mMaster.size());
+    mHeader.mModIndices.resize(mHeader.mMaster.size());
     for (unsigned int i = 0; i < mHeader.mMaster.size(); ++i)
     {
         // locate the position of the dependency in already loaded files
@@ -289,17 +312,17 @@ void ESM4::Reader::updateModIndicies(const std::vector<std::string>& files)
             = fileIndex.find(boost::to_lower_copy<std::string>(mHeader.mMaster[i].name));
 
         if (it != fileIndex.end())
-            mHeader.mModIndicies[i] = (std::uint32_t)((it->second << 24) & 0xff000000);
+            mHeader.mModIndices[i] = (std::uint32_t)((it->second << 24) & 0xff000000);
         else
-            throw std::runtime_error("ESM4::Reader::updateModIndicies required dependency file not loaded");
+            throw std::runtime_error("ESM4::Reader::updateModIndices required dependency file not loaded");
 #if 0
         std::cout << "Master Mod: " << mHeader.mMaster[i].name << ", " // FIXME: debugging only
-                  << ESM4::formIdToString(mHeader.mModIndicies[i]) << std::endl;
+                  << ESM4::formIdToString(mHeader.mModIndices[i]) << std::endl;
 #endif
     }
 
-    if (!mHeader.mModIndicies.empty() &&  mHeader.mModIndicies[0] != 0)
-        throw std::runtime_error("ESM4::Reader::updateModIndicies base modIndex is not zero");
+    if (!mHeader.mModIndices.empty() &&  mHeader.mModIndices[0] != 0)
+        throw std::runtime_error("ESM4::Reader::updateModIndices base modIndex is not zero");
 }
 
 void ESM4::Reader::saveGroupStatus()
@@ -313,7 +336,7 @@ void ESM4::Reader::saveGroupStatus()
     if (mRecordHeader.group.groupSize == (std::uint32_t)mCtx.recHeaderSize)
     {
 #if 0
-        std::cout << padding << "Igorning record group " // FIXME: debugging only
+        std::cout << padding << "Ignoring record group " // FIXME: debugging only
             << ESM4::printLabel(mRecordHeader.group.label, mRecordHeader.group.type)
             << " (empty)" << std::endl;
 #endif
@@ -344,8 +367,9 @@ void ESM4::Reader::checkGroupStatus()
     // pop finished groups
     while (!mCtx.groupStack.empty() && mCtx.groupStack.back().second == 0)
     {
+#if 0
         ESM4::GroupTypeHeader grp = mCtx.groupStack.back().first; // FIXME: grp is for debugging only
-
+#endif
         uint32_t groupSize = mCtx.groupStack.back().first.groupSize;
         mCtx.groupStack.pop_back();
 #if 0
@@ -378,62 +402,29 @@ const ESM4::GroupTypeHeader& ESM4::Reader::grp(std::size_t pos) const
 
 void ESM4::Reader::getRecordData()
 {
-    std::uint32_t bufSize = 0;
+    std::uint32_t uncompressedSize = 0;
 
     if ((mRecordHeader.record.flags & ESM4::Rec_Compressed) != 0)
     {
-        mInBuf.reset(new unsigned char[mRecordHeader.record.dataSize-(int)sizeof(bufSize)]);
-        mStream->read(&bufSize, sizeof(bufSize));
-        mStream->read(mInBuf.get(), mRecordHeader.record.dataSize-(int)sizeof(bufSize));
-        mDataBuf.reset(new unsigned char[bufSize]);
+        mStream->read(reinterpret_cast<char*>(&uncompressedSize), sizeof(std::uint32_t));
 
-        int ret;
-        z_stream strm;
-        strm.zalloc = Z_NULL;
-        strm.zfree  = Z_NULL;
-        strm.opaque = Z_NULL;
-        strm.avail_in = bufSize;
-        strm.next_in = mInBuf.get();
-        ret = inflateInit(&strm);
-        if (ret != Z_OK)
-            throw std::runtime_error("ESM4::Reader::getRecordData - inflateInit failed");
-
-        strm.avail_out = bufSize;
-        strm.next_out = mDataBuf.get();
-        ret = inflate(&strm, Z_NO_FLUSH);
-        assert(ret != Z_STREAM_ERROR && "ESM4::Reader::getRecordData - inflate - state clobbered");
-        switch (ret)
-        {
-        case Z_NEED_DICT:
-            ret = Z_DATA_ERROR; /* and fall through */
-        case Z_DATA_ERROR: //FONV.esm 0xB0CFF04 LAND record zlip DATA_ERROR
-        case Z_MEM_ERROR:
-            inflateEnd(&strm);
-            getRecordDataPostActions();
-            throw std::runtime_error("ESM4::Reader::getRecordData - inflate failed");
-        }
-        assert(ret == Z_OK || ret == Z_STREAM_END);
-
-    // For debugging only
-#if 0
-        std::ostringstream ss;
-        for (unsigned int i = 0; i < bufSize; ++i)
-        {
-            if (mDataBuf[i] > 64 && mDataBuf[i] < 91)
-                ss << (char)(mDataBuf[i]) << " ";
-            else
-                ss << std::setfill('0') << std::setw(2) << std::hex << (int)(mDataBuf[i]);
-            if ((i & 0x000f) == 0xf)
-                ss << "\n";
-            else if (i < bufSize-1)
-                ss << " ";
-        }
-        std::cout << ss.str() << std::endl;
-#endif
-        inflateEnd(&strm);
-
+        std::size_t recordSize = mRecordHeader.record.dataSize - sizeof(std::uint32_t);
+        Bsa::MemoryInputStream compressedRecord(recordSize);
+        mStream->read(compressedRecord.getRawData(), recordSize);
+        std::istream *fileStream = (std::istream*)&compressedRecord;
         mSavedStream = mStream;
-        mStream = Ogre::DataStreamPtr(new Ogre::MemoryDataStream(mDataBuf.get(), bufSize, false, true));
+
+        std::shared_ptr<Bsa::MemoryInputStream> memoryStreamPtr
+            = std::make_shared<Bsa::MemoryInputStream>(uncompressedSize);
+
+        boost::iostreams::filtering_streambuf<boost::iostreams::input> inputStreamBuf;
+        inputStreamBuf.push(boost::iostreams::zlib_decompressor());
+        inputStreamBuf.push(*fileStream);
+
+        boost::iostreams::basic_array_sink<char> sr(memoryStreamPtr->getRawData(), uncompressedSize);
+        boost::iostreams::copy(inputStreamBuf, sr);
+
+        mStream = std::shared_ptr<std::istream>(memoryStreamPtr, (std::istream*)memoryStreamPtr.get());
     }
 
     getRecordDataPostActions();
@@ -457,18 +448,18 @@ bool ESM4::Reader::getZString(std::string& str)
 }
 
 // FIXME: how to without using a temp buffer?
-bool ESM4::Reader::getZString(std::string& str, Ogre::DataStreamPtr filestream)
+bool ESM4::Reader::getZString(std::string& str, Files::IStreamPtr filestream)
 {
     std::uint32_t size = 0;
     if (filestream == mStream)
         size = mSubRecordHeader.dataSize; // WARNING: assumed size from the header is correct
     else
-        filestream->read(&size, sizeof(size));
+        filestream->read((char*)&size, sizeof(size));
 
-    boost::scoped_array<char> buf(new char[size]);
-    if (filestream->read(buf.get(), size) == (size_t)size)
+    std::unique_ptr<char[]> buf(new char[size]);
+    filestream->read(buf.get(), size);
+    if (filestream->gcount() == (size_t)size)
     {
-
         if (buf[size - 1] != 0)
         {
             str.assign(buf.get(), size);
@@ -497,7 +488,7 @@ void ESM4::Reader::skipGroup()
               << ESM4::printLabel(mRecordHeader.group.label, mRecordHeader.group.type) << std::endl;
 #endif
     // Note: subtract the size of header already read before skipping
-    mStream->skip(mRecordHeader.group.groupSize - (std::uint32_t)mCtx.recHeaderSize);
+    mStream->ignore(mRecordHeader.group.groupSize - (std::uint32_t)mCtx.recHeaderSize);
 
     // keep track of data left to read from the file
     if (mObserver)
@@ -509,7 +500,7 @@ void ESM4::Reader::skipGroup()
 
 void ESM4::Reader::skipRecordData()
 {
-    mStream->skip(mRecordHeader.record.dataSize);
+    mStream->ignore(mRecordHeader.record.dataSize);
 
     // keep track of data left to read from the current group
     assert (!mCtx.groupStack.empty() && "Skipping a record without a group");
@@ -522,37 +513,40 @@ void ESM4::Reader::skipRecordData()
 
 void ESM4::Reader::skipSubRecordData()
 {
-    mStream->skip(mSubRecordHeader.dataSize);
+    mStream->ignore(mSubRecordHeader.dataSize);
 }
 
 void ESM4::Reader::skipSubRecordData(std::uint32_t size)
 {
-    mStream->skip(size);
+    mStream->ignore(size);
 }
 
 // ModIndex adjusted formId according to master file dependencies
 // (see http://www.uesp.net/wiki/Tes4Mod:FormID_Fixup)
-// NOTE: need to update modindex to mModIndicies.size() before saving
+// NOTE: need to update modindex to mModIndices.size() before saving
 //
 // FIXME: probably should add a parameter to check for mHeader::mOverrides
 //        (ACHR, LAND, NAVM, PGRE, PHZD, REFR), but not sure what exactly overrides mean
 //        i.e. use the modindx of its master?
+// FIXME: Apparently ModIndex '00' in an ESP means the object is defined in one of its masters.
+//        This means we may need to search multiple times to get the correct id.
+//        (see https://www.uesp.net/wiki/Tes4Mod:Formid#ModIndex_Zero)
 void ESM4::Reader::adjustFormId(FormId& id)
 {
-    if (mHeader.mModIndicies.empty())
+    if (mHeader.mModIndices.empty())
         return;
 
-    unsigned int index = (id >> 24) & 0xff;
+    std::size_t index = (id >> 24) & 0xff;
 
-    if (index < mHeader.mModIndicies.size())
-        id = mHeader.mModIndicies[index] | (id & 0x00ffffff);
+    if (index < mHeader.mModIndices.size())
+        id = mHeader.mModIndices[index] | (id & 0x00ffffff);
     else
         id = mCtx.modIndex | (id & 0x00ffffff);
 }
 
 bool ESM4::Reader::getFormId(FormId& id)
 {
-    if (!get(id))
+    if (!getExact(id))
         return false;
 
     adjustFormId(id);

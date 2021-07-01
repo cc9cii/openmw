@@ -2,7 +2,6 @@
 
 #include <iomanip>
 #include <limits>
-#include <iostream>
 
 #include <osg/MatrixTransform>
 #include <osg/BlendFunc>

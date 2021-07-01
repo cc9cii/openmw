@@ -54,7 +54,7 @@ void ESMReader::close()
     mHeader.blank();
 }
 
-void ESMReader::clearCtx() 
+void ESMReader::clearCtx()
 {
    mCtx.filename.clear();
    mCtx.leftFile = 0;
@@ -71,7 +71,8 @@ void ESMReader::openRaw(Files::IStreamPtr _esm, const std::string& name)
     mEsm = _esm;
     mCtx.filename = name;
     mEsm->seekg(0, mEsm->end);
-    mCtx.leftFile = mFileSize = mEsm->tellg();
+    mFileSize = mEsm->tellg();
+    mCtx.leftFile = mFileSize;
     mEsm->seekg(0, mEsm->beg);
 }
 
@@ -105,14 +106,14 @@ void ESMReader::open(Files::IStreamPtr _esm, const std::string &name)
             rec = getRecName(); // adjust for extra 4 bytes
         bool readRec = true;
 
-        while (mEsm->size() - mEsm->tell() >= 4) // Shivering Isle or Bashed Patch can end here
+        while (mFileSize - mEsm->tellg() >= 4) // Shivering Isle or Bashed Patch can end here
         {
             if (!readRec) // may be already read
                 rec = getRecName();
             else
                 readRec = false;
 
-            switch (rec.val)
+            switch (rec.intval)
             {
                 case 0x52444548: // HEDR
                 {

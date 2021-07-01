@@ -613,7 +613,7 @@ if (WIN32)
         4127 # Conditional expression is constant
         4996 # Function was declared deprecated
         )
-    
+
     if( "${MyGUI_VERSION}" VERSION_LESS_EQUAL "3.4.0" )
         set(WARNINGS_DISABLE ${WARNINGS_DISABLE}
         4866 # compiler may not enforce left-to-right evaluation order for call
@@ -632,7 +632,7 @@ if (WIN32)
 
     set_target_properties(components PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
     set_target_properties(osg-ffmpeg-videoplayer PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
-    
+
     if (MSVC_VERSION GREATER_EQUAL 1915 AND MSVC_VERSION LESS 1920)
         target_compile_definitions(components INTERFACE _ENABLE_EXTENDED_ALIGNED_STORAGE)
     endif()

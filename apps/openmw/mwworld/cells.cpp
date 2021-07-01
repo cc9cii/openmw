@@ -130,7 +130,7 @@ void MWWorld::Cells::writeCell (ESM::ESMWriter& writer, CellStore& cell) const
     writer.endRecord (ESM::REC_CSTA);
 }
 
-MWWorld::Cells::Cells (const MWWorld::ESMStore& store, std::vector<ESM::ESMReader>& reader)
+MWWorld::Cells::Cells (const MWWorld::ESMStore& store, std::vector<std::vector<ESM::ESMReader*> >& reader)
 : mStore (store), mReader (reader),
   mIdCacheIndex (0)
 {

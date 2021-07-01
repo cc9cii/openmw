@@ -2,8 +2,6 @@
 
 #include <components/debug/debuglog.hpp>
 
-#include <iostream> // FIXME: debug only
-
 #include <components/esm/esmreader.hpp>
 #include <components/esm/esmwriter.hpp>
 

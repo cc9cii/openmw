@@ -22,6 +22,7 @@ class ESMReader
 public:
 
   ESMReader();
+  virtual ~ESMReader() {}
 
   /*************************************************************************
    *
@@ -73,7 +74,7 @@ public:
   void openRaw(const std::string &filename);
 
   /// Get the current position in the file. Make sure that the file has been opened!
-  size_t getFileOffset() const;
+  virtual size_t getFileOffset() const;
 
   // This is a quick hack for multiple esm/esp files. Each plugin introduces its own
   //  terrain palette, but ESMReader does not pass a reference to the correct plugin
@@ -82,8 +83,8 @@ public:
   void setIndex(const int index) { mCtx.index = index;}
   int getIndex() {return mCtx.index;}
 
-  void setGlobalReaderList(std::vector<ESMReader> *list) {mGlobalReaderList = list;}
-  std::vector<ESMReader> *getGlobalReaderList() {return mGlobalReaderList;}
+  void setGlobalReaderList(std::vector<ESMReader*> *list) {mGlobalReaderList = list;}
+  std::vector<ESMReader*> *getGlobalReaderList() {return mGlobalReaderList;}
 
   void addParentFileIndex(int index) { mCtx.parentFileIndices.push_back(index); }
   const std::vector<int>& getParentFileIndices() const { return mCtx.parentFileIndices; }
@@ -258,14 +259,12 @@ public:
   /// Get record flags of last record
   unsigned int getRecordFlags() { return mRecordFlags; }
 
-  size_t getFileSize() const { return mFileSize; }
+  virtual size_t getFileSize() const { return mFileSize; }
 
 private:
   void clearCtx();
 
   Files::IStreamPtr mEsm;
-
-  ESM_Context mCtx;
 
   unsigned int mRecordFlags;
 
@@ -274,13 +273,15 @@ private:
   // Buffer for ESM strings
   std::vector<char> mBuffer;
 
-  Header mHeader;
-
-  std::vector<ESMReader> *mGlobalReaderList;
+  std::vector<ESMReader*> *mGlobalReaderList;
   ToUTF8::Utf8Encoder* mEncoder;
 
   size_t mFileSize;
 
+protected:
+  ESM_Context mCtx;
+
+  Header mHeader;
 };
 }
 #endif

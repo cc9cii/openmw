@@ -376,7 +376,7 @@ namespace MWWorld
         return false;
     }
 
-    CellStore::CellStore (const ESM::Cell *cell, const MWWorld::ESMStore& esmStore, std::vector<ESM::ESMReader>& readerList)
+    CellStore::CellStore (const ESM::Cell *cell, const MWWorld::ESMStore& esmStore, std::vector<std::vector<ESM::ESMReader*> >& readerList)
         : mStore(esmStore), mReader(readerList), mCell (cell), mState (State_Unloaded), mHasState (false), mLastRespawn(0,0), mRechargingItemsUpToDate(false)
     {
         mWaterLevel = cell->mWater;
@@ -534,7 +534,7 @@ namespace MWWorld
 
     void CellStore::listRefs()
     {
-        std::vector<ESM::ESMReader>& esm = mReader;
+        std::vector<ESM::ESMReader*>& esm = mReader[0]; // FIXME: hardcoded 0 means TES3
 
         assert (mCell);
 
@@ -548,13 +548,13 @@ namespace MWWorld
             {
                 // Reopen the ESM reader and seek to the right position.
                 int index = mCell->mContextList[i].index;
-                mCell->restore (esm[index], i);
+                mCell->restore (*esm[index], i);
 
                 ESM::CellRef ref;
 
                 // Get each reference in turn
                 bool deleted = false;
-                while (mCell->getNextRef (esm[index], ref, deleted))
+                while (mCell->getNextRef (*esm[index], ref, deleted))
                 {
                     if (deleted)
                         continue;
@@ -588,7 +588,7 @@ namespace MWWorld
 
     void CellStore::loadRefs()
     {
-        std::vector<ESM::ESMReader>& esm = mReader;
+        std::vector<ESM::ESMReader*>& esm = mReader[0]; // FIXME: hardcoded 0 means TES3
 
         assert (mCell);
 
@@ -604,14 +604,14 @@ namespace MWWorld
             {
                 // Reopen the ESM reader and seek to the right position.
                 int index = mCell->mContextList[i].index;
-                mCell->restore (esm[index], i);
+                mCell->restore (*esm[index], i);
 
                 ESM::CellRef ref;
                 ref.mRefNum.mContentFile = ESM::RefNum::RefNum_NoContentFile;
 
                 // Get each reference in turn
                 bool deleted = false;
-                while(mCell->getNextRef(esm[index], ref, deleted))
+                while(mCell->getNextRef(*esm[index], ref, deleted))
                 {
                     // Don't load reference if it was moved to a different cell.
                     ESM::MovedCellRefTracker::const_iterator iter =

@@ -1,7 +1,5 @@
 #include "npcanimation.hpp"
 
-#include <iostream>
-
 #include <osg/UserDataContainer>
 #include <osg/MatrixTransform>
 #include <osg/Depth>

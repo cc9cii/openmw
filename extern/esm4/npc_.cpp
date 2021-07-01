@@ -1,6 +1,6 @@
 /*
 
-  Copyright (C) 2016-2020 cc9cii
+  Copyright (C) 2016-2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -28,6 +28,8 @@
 #include "npc_.hpp"
 
 #include <stdexcept>
+#include <string> // NOTE: for testing only
+#include <sstream> // NOTE: for testing only
 #include <iostream> // NOTE: for testing only
 #include <iomanip>  // NOTE: for testing only
 

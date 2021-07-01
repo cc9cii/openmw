@@ -78,7 +78,7 @@ namespace MWWorld
         private:
             Resource::ResourceSystem* mResourceSystem;
 
-            std::vector<ESM::ESMReader> mEsm;
+            std::vector<std::vector<ESM::ESMReader*> > mEsm;
             MWWorld::ESMStore mStore;
             LocalScripts mLocalScripts;
             MWWorld::Globals mGlobalVariables;
@@ -238,7 +238,7 @@ namespace MWWorld
 
             const MWWorld::ESMStore& getStore() const override;
 
-            std::vector<ESM::ESMReader>& getEsmReader() override;
+            std::vector<ESM::ESMReader*>& getEsmReader() override;
 
             LocalScripts& getLocalScripts() override;
 

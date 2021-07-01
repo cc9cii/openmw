@@ -439,7 +439,7 @@ void ContentSelectorModel::ContentModel::addFiles(const QString &path)
             fileReader.open(std::string(dir.absoluteFilePath(path2).toUtf8().constData()));
 
             EsmFile *file = new EsmFile(path2);
-         
+
             for (std::vector<ESM::Header::MasterData>::const_iterator itemIter = fileReader.getGameFiles().begin();
                 itemIter != fileReader.getGameFiles().end(); ++itemIter)
                 file->addGameFile(QString::fromUtf8(itemIter->name.c_str()));
@@ -518,7 +518,7 @@ void ContentSelectorModel::ContentModel::sortFiles()
             {
                 if (gamefiles.contains(mFiles.at(j)->fileName(), Qt::CaseInsensitive)
                  || (!mFiles.at(i)->isGameFile() && gamefiles.isEmpty()
-                 && mFiles.at(j)->fileName().compare("Morrowind.esm", Qt::CaseInsensitive) == 0)) // Hack: implicit dependency on Morrowind.esm for dependency-less files
+                                                 && mFiles.at(j)->isGameFile())) // fixes #2829
                 {
                         mFiles.move(j, i);
 

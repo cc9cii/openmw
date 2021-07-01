@@ -22,15 +22,16 @@ class ESMStore;
 
 struct EsmLoader : public ContentLoader
 {
-    EsmLoader(MWWorld::ESMStore& store, std::vector<ESM::ESMReader>& readers,
-      ToUTF8::Utf8Encoder* encoder, Loading::Listener& listener);
+    EsmLoader(MWWorld::ESMStore& store, std::vector<std::vector<ESM::ESMReader*> >& readers,
+        ToUTF8::Utf8Encoder* encoder, Loading::Listener& listener);
 
     void load(const boost::filesystem::path& filepath, int& index) override;
 
     private:
-      std::vector<ESM::ESMReader>& mEsm;
-      MWWorld::ESMStore& mStore;
-      ToUTF8::Utf8Encoder* mEncoder;
+        std::vector<std::vector<ESM::ESMReader*> >& mEsm; // Note: the ownership of the readers is with the caller
+        std::vector<std::vector<std::string> > mLoadedFiles;
+        MWWorld::ESMStore& mStore;
+        ToUTF8::Utf8Encoder* mEncoder;
 };
 
 } /* namespace MWWorld */

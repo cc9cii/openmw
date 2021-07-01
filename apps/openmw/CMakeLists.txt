@@ -142,10 +142,10 @@ target_link_libraries(openmw
     ${FFmpeg_LIBRARIES}
     ${MyGUI_LIBRARIES}
     ${SDL2_LIBRARY}
+    ${ESM4_LIBRARIES}
     ${RecastNavigation_LIBRARIES}
     "osg-ffmpeg-videoplayer"
     "oics"
-    ${ESM4_LIBRARIES}
     components
 )
 
