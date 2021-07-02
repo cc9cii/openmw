@@ -768,7 +768,7 @@ namespace MWWorld
 
         FindContainerVisitor(const ConstPtr& containedPtr) : mContainedPtr(containedPtr) {}
 
-        bool operator() (Ptr ptr)
+        bool operator() (const Ptr& ptr)
         {
             if (mContainedPtr.getContainerStore() == &ptr.getClass().getContainerStore(ptr))
             {
@@ -1436,7 +1436,7 @@ namespace MWWorld
             mWorldScene->removeFromPagedRefs(ptr);
 
             mRendering->rotateObject(ptr, rotate);
-            mPhysics->updateRotation(ptr);
+            mPhysics->updateRotation(ptr, rotate);
 
             if (const auto object = mPhysics->getObject(ptr))
                 updateNavigatorObject(object);
@@ -2567,7 +2567,14 @@ namespace MWWorld
 
     MWRender::Animation* World::getAnimation(const MWWorld::Ptr &ptr)
     {
-        return mRendering->getAnimation(ptr);
+        auto* animation = mRendering->getAnimation(ptr);
+        if(!animation) {
+            mWorldScene->removeFromPagedRefs(ptr);
+            animation = mRendering->getAnimation(ptr);
+            if(animation)
+                mRendering->pagingBlacklistObject(mStore.find(ptr.getCellRef().getRefId()), ptr);
+        }
+        return animation;
     }
 
     const MWRender::Animation* World::getAnimation(const MWWorld::ConstPtr &ptr) const
@@ -3865,7 +3872,7 @@ namespace MWWorld
 
     struct ResetActorsVisitor
     {
-        bool operator() (Ptr ptr)
+        bool operator() (const Ptr& ptr)
         {
             if (ptr.getClass().isActor() && ptr.getCellRef().hasContentFile())
             {

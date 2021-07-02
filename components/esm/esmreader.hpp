@@ -37,10 +37,10 @@ public:
   const std::string getDesc() const { return mHeader.mData.desc; }
   const std::vector<Header::MasterData> &getGameFiles() const { return mHeader.mMaster; }
   const Header& getHeader() const { return mHeader; }
-  int getFormat() const;
+  int getFormat() const { return mHeader.mFormat; };
   const NAME &retSubName() const { return mCtx.subName; }
   uint32_t getSubSize() const { return mCtx.leftSub; }
-  std::string getName() const;
+  std::string getName() const {return mCtx.filename; };
 
   /*************************************************************************
    *
@@ -186,7 +186,7 @@ public:
   bool peekNextSub(const char* name);
 
   // Store the current subrecord name for the next call of getSubName()
-  void cacheSubName();
+  void cacheSubName() {mCtx.subCached = true; };
 
   // Read subrecord name. This gets called a LOT, so I've optimized it
   // slightly.
@@ -248,13 +248,13 @@ public:
   // them from native encoding to UTF8 in the process.
   std::string getString(int size);
 
-  void skip(int bytes);
+  void skip(int bytes) { mEsm->seekg(getFileOffset()+bytes); };
 
   /// Used for error handling
-  void fail(const std::string &msg);
+  [[noreturn]] void fail(const std::string &msg);
 
   /// Sets font encoder for ESM strings
-  void setEncoder(ToUTF8::Utf8Encoder* encoder);
+  void setEncoder(ToUTF8::Utf8Encoder* encoder) { mEncoder = encoder; };
 
   /// Get record flags of last record
   unsigned int getRecordFlags() { return mRecordFlags; }
