@@ -25,22 +25,36 @@ struct ContentFileTest : public ::testing::Test
 
     void SetUp() override
     {
+        // WARN: content files may include those not covered by these tests
         readContentFiles();
 
         // load the content files
-        std::vector<ESM::ESMReader> readerList;
-        readerList.resize(mContentFiles.size());
-
         int index=0;
         for (const auto & mContentFile : mContentFiles)
         {
-            ESM::ESMReader lEsm;
+            ESM::ESMReader *lEsm = new ESM::ESMReader();
             lEsm.setEncoder(nullptr);
             lEsm.setIndex(index);
-            lEsm.setGlobalReaderList(&readerList);
+            lEsm.setGlobalReaderList(&mReaderList);
             lEsm.open(mContentFile.string());
-            readerList[index] = lEsm;
-            mEsmStore.load(readerList[index], &dummyListener);
+
+            int esmVer = lEsm->getVer();
+            bool isTes4 = esmVer == ESM::VER_080 || esmVer == ESM::VER_100;
+            bool isTes5 = esmVer == ESM::VER_094 || esmVer == ESM::VER_17;
+            bool isFONV = esmVer == ESM::VER_132 || esmVer == ESM::VER_133 || esmVer == ESM::VER_134;
+
+            // ignore
+            if (isTes4 || isTes5 || isFONV)
+            {
+                lEsm->close();
+                delete lEsm;
+                lEsm = nullptr;
+
+                continue;
+            }
+
+            mReaderList.push_back(lEsm);
+            mEsmStore.load(*mReaderList[index], &dummyListener);
 
             ++index;
         }
@@ -50,6 +64,11 @@ struct ContentFileTest : public ::testing::Test
 
     void TearDown() override
     {
+        for (size_t i = 0; i < mReaderList.size(); ++i)
+        {
+            mReaderList[i]->close();
+            delete mReaderList[i];
+        }
     }
 
     // read absolute path to content files from openmw.cfg
@@ -94,6 +113,7 @@ struct ContentFileTest : public ::testing::Test
 protected:
     Files::ConfigurationManager mConfigurationManager;
     MWWorld::ESMStore mEsmStore;
+    std::vector<ESM::ESMReader*> mReaderList;
     std::vector<boost::filesystem::path> mContentFiles;
 };
 
@@ -250,9 +270,9 @@ TEST_F(StoreTest, delete_test)
     record.mId = recordId;
 
     ESM::ESMReader reader;
-    std::vector<ESM::ESMReader> readerList;
-    readerList.push_back(reader);
-    reader.setGlobalReaderList(&readerList);
+    std::vector<ESM::ESMReader*> mReaderList;
+    mReaderList.push_back(&reader);
+    reader.setGlobalReaderList(&mReaderList);
 
     // master file inserts a record
     Files::IStreamPtr file = getEsmFile(record, false);
@@ -293,8 +313,8 @@ TEST_F(StoreTest, overwrite_test)
     record.mId = recordId;
 
     ESM::ESMReader reader;
-    std::vector<ESM::ESMReader> readerList;
-    readerList.push_back(reader);
+    std::vector<ESM::ESMReader*> readerList;
+    readerList.push_back(&reader);
     reader.setGlobalReaderList(&readerList);
 
     // master file inserts a record
