@@ -33,10 +33,10 @@ struct ContentFileTest : public ::testing::Test
         for (const auto & mContentFile : mContentFiles)
         {
             ESM::ESMReader *lEsm = new ESM::ESMReader();
-            lEsm.setEncoder(nullptr);
-            lEsm.setIndex(index);
-            lEsm.setGlobalReaderList(&mReaderList);
-            lEsm.open(mContentFile.string());
+            lEsm->setEncoder(nullptr);
+            lEsm->setIndex(index);
+            lEsm->setGlobalReaderList(&mReaderList);
+            lEsm->open(mContentFile.string());
 
             int esmVer = lEsm->getVer();
             bool isTes4 = esmVer == ESM::VER_080 || esmVer == ESM::VER_100;
