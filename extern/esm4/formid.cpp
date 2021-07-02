@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <cstdlib> // strtol
+#include <climits> // LONG_MIN, LONG_MAX
 
 #include <string>
 
@@ -57,7 +58,8 @@ namespace ESM4
         errno = 0;
         unsigned long val = strtol(str.c_str(), &tmp, 16);
 
-        if (tmp == str.c_str() || *tmp != '\0' || ((val == LONG_MIN || val == LONG_MAX) && errno == ERANGE))
+        if (tmp == str.c_str() || *tmp != '\0'
+                || ((val == (unsigned long)LONG_MIN || val == (unsigned long)LONG_MAX) && errno == ERANGE))
             return false;
 
         if (id != nullptr)

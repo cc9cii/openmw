@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2019, 2020 cc9cii
+  Copyright (C) 2019-2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -47,7 +47,7 @@ void ESM4::LevelledNpc::load(ESM4::Reader& reader)
     mFormId = reader.hdr().record.id;
     reader.adjustFormId(mFormId);
     mFlags  = reader.hdr().record.flags;
-    std::uint32_t esmVer = reader.esmVersion();
+    //std::uint32_t esmVer = reader.esmVersion(); // currently unused
 
     while (reader.getSubRecordHeader())
     {

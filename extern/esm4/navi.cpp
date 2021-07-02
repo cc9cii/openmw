@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2015-2016, 2018 cc9cii
+  Copyright (C) 2015-2016, 2018, 2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -321,7 +321,7 @@ void ESM4::Navigation::load(ESM4::Reader& reader)
                     std::cout << "node " << std::hex << node // FIXME: debugging only
                         << ", index " << index << ", i " << std::dec << total+i << std::endl;
 #endif
-                    std::pair<std::map<FormId, std::uint32_t>::iterator, bool> res =
+                    //std::pair<std::map<FormId, std::uint32_t>::iterator, bool> res =
                         mPathIndexMap.insert(std::make_pair(node, index));
                     // FIXME: this throws if more than one file is being loaded
                     //if (!res.second)

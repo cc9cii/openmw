@@ -32,9 +32,9 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::Reference::Reference() : mFormId(0), mFlags(0), mInitiallyDisabled(false), mIsMapMarker(false), mMapMarker(0),
-                               mBaseObj(0), mScale(1.f), mOwner(0), mGlobal(0), mFactionRank(0), mCount(1),
-                               mAudioLocation(0)
+ESM4::Reference::Reference() : mFormId(0), mFlags(0), mBaseObj(0), mScale(1.f), mOwner(0), mGlobal(0),
+                               mFactionRank(0), mInitiallyDisabled(false), mIsMapMarker(false), mMapMarker(0),
+                               mCount(1), mAudioLocation(0)
 {
     mEditorId.clear();
     mFullName.clear();
@@ -147,7 +147,7 @@ void ESM4::Reference::load(ESM4::Reader& reader)
                     reader.get(data);
                     reader.get(data2);
                     reader.get(data3);
-                    bool hasVisibleWhenDistantFlag = (mFlags & 0x00008000) != 0;
+                    //bool hasVisibleWhenDistantFlag = (mFlags & 0x00008000) != 0;
                     // some are trees, e.g. 000E03B6, mBaseObj 00022F32, persistent, visible when distant
                     // some are doors, e.g. 000270F7, mBaseObj 000CD338, persistent, initially disabled
                     // (this particular one is an Oblivion Gate)

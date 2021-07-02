@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016, 2018, 2020 cc9cii
+  Copyright (C) 2016, 2018, 2020-2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -31,8 +31,8 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::Book::Book() : mFormId(0), mFlags(0), mPickUpSound(0), mDropSound(0), mBoundRadius(0.f), mScript(0),
-                     mEnchantmentPoints(0), mEnchantment(0)
+ESM4::Book::Book() : mFormId(0), mFlags(0), mBoundRadius(0.f), mScript(0),
+                     mEnchantmentPoints(0), mEnchantment(0), mPickUpSound(0), mDropSound(0)
 {
     mEditorId.clear();
     mFullName.clear();
@@ -56,7 +56,7 @@ void ESM4::Book::load(ESM4::Reader& reader)
     mFormId = reader.hdr().record.id;
     reader.adjustFormId(mFormId);
     mFlags  = reader.hdr().record.flags;
-    std::uint32_t esmVer = reader.esmVersion();
+    //std::uint32_t esmVer = reader.esmVersion(); // currently unused
 
     while (reader.getSubRecordHeader())
     {

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2020 cc9cii
+  Copyright (C) 2020-2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,6 +27,7 @@
 #include "aloc.hpp"
 
 #include <stdexcept>
+#include <cstring>
 //#include <iostream> // FIXME: for debugging only
 //#include <iomanip>  // FIXME: for debugging only
 
@@ -38,7 +39,7 @@
 //#include "writer.hpp"
 
 ESM4::MediaLocationController::MediaLocationController() : mFormId(0), mFlags(0),
-    mLocationDelay(0.f), mRetriggerDelay(0.f), mConditionalFaction(0), mDayStart(0), mNightStart(0)
+    mConditionalFaction(0), mLocationDelay(0.f), mRetriggerDelay(0.f), mDayStart(0), mNightStart(0)
 {
     mEditorId.clear();
     mFullName.clear();

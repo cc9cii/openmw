@@ -99,7 +99,7 @@ bool ESM4::Reader::restoreContext(const ESM4::ReaderContext& ctx)
 
     mRecordRemaining = mRecordHeader.record.dataSize; // for keeping track of sub records
 
-    return (mStream->gcount() == mCtx.recHeaderSize);
+    return ((std::size_t)mStream->gcount() == mCtx.recHeaderSize);
 }
 
 bool ESM4::Reader::skipNextGroupCellChild()
@@ -268,7 +268,7 @@ bool ESM4::Reader::getRecordHeader()
 
     mRecordRemaining = mRecordHeader.record.dataSize; // for keeping track of sub records
 
-    return (mStream->gcount() == mCtx.recHeaderSize);
+    return ((std::size_t)mStream->gcount() == mCtx.recHeaderSize);
 
     // After reading the record header we can cache a WRLD or CELL formId for convenient access later.
     // (currently currWorld and currCell are set manually when loading the WRLD and CELL records)
@@ -458,7 +458,7 @@ bool ESM4::Reader::getZString(std::string& str, Files::IStreamPtr filestream)
 
     std::unique_ptr<char[]> buf(new char[size]);
     filestream->read(buf.get(), size);
-    if (filestream->gcount() == (size_t)size)
+    if ((std::size_t)filestream->gcount() == size)
     {
         if (buf[size - 1] != 0)
         {

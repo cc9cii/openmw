@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2020 cc9cii
+  Copyright (C) 2020-2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -67,7 +67,7 @@ void ESM4::Pathgrid::load(ESM4::Reader& reader)
             case ESM4::SUB_PGRP:
             {
                 std::size_t numNodes = subHdr.dataSize / sizeof(PGRP);
-                if (numNodes != mData)
+                if (numNodes != (std::size_t)mData)
                     throw std::runtime_error("ESM4::PGRD::load numNodes mismatch");
 
                 mNodes.resize(numNodes);
@@ -87,7 +87,7 @@ void ESM4::Pathgrid::load(ESM4::Reader& reader)
             {
                 static PGRR link;
 
-                for (std::size_t i = 0; i < mData; ++i)
+                for (std::size_t i = 0; i < (std::size_t)mData; ++i)
                 {
                     for (std::size_t j = 0; j < mNodes[i].numLinks; ++j)
                     {

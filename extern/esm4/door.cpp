@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016, 2018 cc9cii
+  Copyright (C) 2016, 2018, 2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -31,7 +31,7 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::Door::Door() : mFormId(0), mFlags(0), mDoorFlags(0), mBoundRadius(0.f), mScript(0),
+ESM4::Door::Door() : mFormId(0), mFlags(0), mBoundRadius(0.f), mDoorFlags(0), mScript(0),
                      mOpenSound(0), mCloseSound(0), mLoopSound(0), mRandomTeleport(0)
 {
     mEditorId.clear();

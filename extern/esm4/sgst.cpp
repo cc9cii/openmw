@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016, 2018 cc9cii
+  Copyright (C) 2016, 2018, 2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,6 +27,7 @@
 #include "sgst.hpp"
 
 #include <stdexcept>
+#include <cstring>
 
 #include "reader.hpp"
 //#include "writer.hpp"

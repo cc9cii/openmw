@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2016, 2018, 2020 cc9cii
+  Copyright (C) 2016, 2018, 2020-2021 cc9cii
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -31,8 +31,8 @@
 #include "reader.hpp"
 //#include "writer.hpp"
 
-ESM4::ActorCreature::ActorCreature() : mFormId(0), mFlags(0), mInitiallyDisabled(false), mBaseObj(0), mScale(1.f),
-                                       mOwner(0), mGlobal(0), mFactionRank(0)
+ESM4::ActorCreature::ActorCreature() : mFormId(0), mFlags(0), mBaseObj(0), mScale(1.f),
+                                       mOwner(0), mGlobal(0), mFactionRank(0), mInitiallyDisabled(false)
 {
     mEditorId.clear();
 

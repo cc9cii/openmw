@@ -150,8 +150,8 @@ void ESM4::Land::load(ESM4::Reader& reader)
                 assert(currentAddQuad != -1 && "VTXT without ATXT found");
 
                 int count = (int)reader.subRecordHeader().dataSize / sizeof(ESM4::Land::VTXT);
-                int remainder = reader.subRecordHeader().dataSize % sizeof(ESM4::Land::VTXT);
-                assert(remainder == 0 && "ESM4::LAND VTXT data size error");
+                //int remainder = reader.subRecordHeader().dataSize % sizeof(ESM4::Land::VTXT);
+                //assert(remainder == 0 && "ESM4::LAND VTXT data size error");
 
                 if (count)
                 {
@@ -179,8 +179,8 @@ void ESM4::Land::load(ESM4::Reader& reader)
             case ESM4::SUB_VTEX: // only in Oblivion?
             {
                 int count = (int)reader.subRecordHeader().dataSize / sizeof(FormId);
-                int remainder = reader.subRecordHeader().dataSize % sizeof(FormId);
-                assert(remainder == 0 && "ESM4::LAND VTEX data size error");
+                //int remainder = reader.subRecordHeader().dataSize % sizeof(FormId);
+                //assert(remainder == 0 && "ESM4::LAND VTEX data size error");
 
                 if (count)
                 {

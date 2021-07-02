@@ -27,6 +27,7 @@
 #include "npc_.hpp"
 
 #include <stdexcept>
+#include <cstring>
 #include <string> // NOTE: for testing only
 #include <sstream> // NOTE: for testing only
 #include <iostream> // NOTE: for testing only
