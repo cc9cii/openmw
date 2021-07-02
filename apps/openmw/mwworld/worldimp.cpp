@@ -154,10 +154,12 @@ namespace MWWorld
       mLevitationEnabled(true), mGoToJail(false), mDaysInPrison(0),
       mPlayerTraveling(false), mPlayerInJail(false), mSpellPreloadTimer(0.f)
     {
-        int tesVerIndex = 0; // FIXME: hard coded, 0 = MW, 1 = TES4, 2 = TES5 (TODO: Fallout)
-        mEsm.resize(3); // FIXME: hard coded to support up to 3 game types at once
-        // FIXME: contentFiles.size() includes any TES4/5 files
-        mEsm[tesVerIndex].resize(contentFiles.size() + groundcoverFiles.size());
+        int tesVerIndex = 0;
+        mEsm.resize(4);      // FIXME: hard coded, 0 = TES3, 1 = TES4, 2 = TES5, 3 = FO/FONV
+
+        // NOTE: until the content files are loaded it is not possible to know the size;
+        //       see the corresponding change in EsmLoader::load()
+        //mEsm[tesVerIndex].resize(contentFiles.size() + groundcoverFiles.size());
         Loading::Listener* listener = MWBase::Environment::get().getWindowManager()->getLoadingScreen();
         listener->loadingOn();
 
@@ -175,7 +177,7 @@ namespace MWWorld
         listener->loadingOff();
 
         // insert records that may not be present in all versions of MW
-        if (mEsm[tesVerIndex][0]->getFormat() == 0) // FIXME: first file may not be for MW
+        if (mEsm[0/*TES3*/][0/*Morrowind.esm*/]->getFormat() == 0)
             ensureNeededRecords();
 
         mCurrentDate.reset(new DateTimeManager());
@@ -2988,20 +2990,6 @@ namespace MWWorld
         return mScriptsEnabled;
     }
 
-    // The aim is to allow loading various types of TES files in any combination, as long as
-    // the dependent files are loaded first.  To achieve this, separate indices for each TES
-    // versions are required.
-    //
-    // The trouble is that until the file is opened by an ESM reader to check the version from
-    // the header we don't know which index to increment.
-    //
-    // One option is to allow the content loader to manage.
-
-    // FIXME: Appears to be loading all the files named in 'content' located in fileCollections
-    // based on the extension string (e.g. .esm).  This probably means that the contents are in
-    // the correct load order.
-    //
-    // 'contentLoader' has a number of loaders that can deal with various extension types.
     void World::loadContentFiles(const Files::Collections& fileCollections,
         const std::vector<std::string>& content, const std::vector<std::string>& groundcover, ContentLoader& contentLoader)
     {

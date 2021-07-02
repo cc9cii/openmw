@@ -14,19 +14,21 @@ EsmLoader::EsmLoader(MWWorld::ESMStore& store, std::vector<std::vector<ESM::ESMR
   , mStore(store)
   , mEncoder(encoder)
 {
-    mLoadedFiles.resize(3); // FIXME: hard coded to support up to 3 game types at once
+    // NOTE: mEsm size is set in World ctor
+    // the size indicates how many different types of games can be loaded concurrently
+    mLoadedFiles.resize(mEsm.size());
 }
 
 // FIXME: tesVerIndex stuff is rather clunky, needs to be refactored
 void EsmLoader::load(const boost::filesystem::path& filepath, int& index)
 {
-    int tesVerIndex = 0; // FIXME: hard coded, 0 = MW, 1 = TES4, 2 = TES5 (TODO: Fallout)
+    int tesVerIndex = 0; // FIXME: hard coded, 0 = MW, 1 = TES4, 2 = TES5 3 = Fallout
 
     ContentLoader::load(filepath.filename(), index);
 
     ESM::ESMReader *lEsm = new ESM::ESMReader();
     lEsm->setEncoder(mEncoder);
-    lEsm->setGlobalReaderList(&mEsm[tesVerIndex]);  // global reader list is used by ESMStore::load only
+    lEsm->setGlobalReaderList(&mEsm[tesVerIndex]);  // seems to be used only by ESMStore::load()
     lEsm->open(filepath.string());
 
     int esmVer = lEsm->getVer();
@@ -52,6 +54,9 @@ void EsmLoader::load(const boost::filesystem::path& filepath, int& index)
         mLoadedFiles[tesVerIndex].push_back(filepath.filename().string());
         esm->setIndex(tes4Index);
 
+        // HACK: trick index into ignoring non TES3 content files
+        index -= 1;
+
         esm->reader().setModIndex(tes4Index);
         esm->openTes4File(filepath.string());
         esm->reader().updateModIndices(mLoadedFiles[tesVerIndex]);
@@ -65,11 +70,11 @@ void EsmLoader::load(const boost::filesystem::path& filepath, int& index)
     else
     {
         tesVerIndex = 0; // 0 = MW
-        // FIXME: index assumes that Morrowind files come before anything else
-        //int tes3Index = mLoadedFiles[tesVerIndex].size();
-        //mLoadedFiles[tesVerIndex].push_back(filepath.filename().string());
+        assert (index == mLoadedFiles[tesVerIndex].size());
+
+        mLoadedFiles[tesVerIndex].push_back(filepath.filename().string());
         lEsm->setIndex(index);
-        mEsm[tesVerIndex][index] = lEsm;
+        mEsm[tesVerIndex].push_back(lEsm);
 
         mStore.load(*mEsm[tesVerIndex][index], &mListener);
     }
